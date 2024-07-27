@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 import 'package:world_movie_trailer/model/movie.dart';
-import 'package:world_movie_trailer/common/constants.dart';
+import 'package:world_movie_trailer/common/utils.dart'; // Import the utility file
 
 class MovieDetailPage extends StatefulWidget {
   final Movie movie;
@@ -21,7 +21,6 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
   @override
   void initState() {
     super.initState();
-    print(widget.movie.engTitle);
     _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(widget.movie.trailerUrl))
       ..initialize().then((_) {
         setState(() {});
@@ -49,6 +48,7 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
       ),
       body: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             _videoPlayerController.value.isInitialized
                 ? Stack(
@@ -81,6 +81,13 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                   )
                 : Center(child: CircularProgressIndicator()),
             SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: parseHtml(widget.movie.spec), // Use the utility function
+              ),
+            ),
           ],
         ),
       ),

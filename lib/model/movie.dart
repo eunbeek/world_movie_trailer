@@ -6,6 +6,8 @@ class Movie {
   final String country;
   final String source;
   final int sourceIdx;
+  final String spec;
+  final String status;
 
   Movie({
     required this.localTitle,
@@ -15,6 +17,8 @@ class Movie {
     required this.country,
     required this.source,
     required this.sourceIdx,
+    required this.spec,
+    required this.status,
   });
 
   Map<String, dynamic> toJson() => {
@@ -25,6 +29,8 @@ class Movie {
     'country': country,
     'source': source,
     'sourceIdx': sourceIdx,
+    'spec': spec,
+    'status': status
   };
 
   factory Movie.fromJson(Map<String, dynamic> json) {
@@ -36,6 +42,8 @@ class Movie {
       country: json['country'],
       source: json['source'],
       sourceIdx: json['source_idx'],
+      spec: json['spec'],
+      status: json['status'],
     );
   }
 }
