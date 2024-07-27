@@ -4,6 +4,38 @@ import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 
 class MovieService {
+
+  static Future<List<Movie>> fetchMovie(String status, String country) async {
+    switch (country) {
+      case kr: 
+        return fetchKRMovie(status);
+      case jp:
+        return fetchJPMovie(status);
+      case na:
+        return fetchNAMovie(status);
+      case fr:
+        return fetchFRMovie(status);
+      default:
+        return fetchKRMovie(status);
+    }
+  }
+
+  static Future<List<Movie>> fetchKRMovie(String status) async {
+    return fetchFromCgv(status); // required double check for data duplication from cgv & lotte cinema
+  }
+
+  static Future<List<Movie>> fetchJPMovie(String status) async {
+    return fetchFromCgv(status); // required to implement fetching jp data
+  }
+
+  static Future<List<Movie>> fetchNAMovie(String status) async {
+    return fetchFromCgv(status); // required to implement fetching na data
+  }
+
+  static Future<List<Movie>> fetchFRMovie(String status) async {
+    return fetchFromCgv(status); // required to implement fetching fr data
+  }
+
   static Future<List<Movie>> fetchFromCgv(String status) async {
     String cgvUrl;
 
@@ -46,7 +78,7 @@ class MovieService {
                   engTitle: trailerData['engTitle'] ?? '',
                   posterUrl: aTag.querySelector('span.thumb-image img')?.attributes['src'] ?? '',
                   trailerUrl: trailerData['trailerUrl'] ?? '',
-                  country: korea,
+                  country: kr,
                   source: cgv,
                   sourceIdx: int.parse(midx),
                   spec: trailerData['spec'] ?? '',

@@ -69,7 +69,7 @@ class _MovieListPageState extends State<MovieListPage> {
           ),
           Expanded(
             child: FutureBuilder<List<Movie>>(
-              future: MovieService.fetchFromCgv(selectedFilter),
+              future: MovieService.fetchMovie(selectedFilter, widget.country),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(child: CircularProgressIndicator());
