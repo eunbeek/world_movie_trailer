@@ -5,9 +5,10 @@ import 'package:world_movie_trailer/common/constants.dart';
 
 class MovieService {
 
+  // Entry point for fetching movies based on status and country
   static Future<List<Movie>> fetchMovie(String status, String country) async {
     switch (country) {
-      case kr: 
+      case kr:
         return fetchKRMovie(status);
       case jp:
         return fetchJPMovie(status);
@@ -20,45 +21,37 @@ class MovieService {
     }
   }
 
+  // Fetch movies from Korea (currently only CGV)
   static Future<List<Movie>> fetchKRMovie(String status) async {
-    return fetchFromCgv(status); // required double check for data duplication from cgv & lotte cinema
+    return fetchFromCgv(status);
   }
 
+  // Placeholder for fetching movies from Japan
   static Future<List<Movie>> fetchJPMovie(String status) async {
-    return fetchFromCgv(status); // required to implement fetching jp data
+    return fetchFromCgv(status); // Required to implement fetching JP data
   }
 
+  // Placeholder for fetching movies from North America
   static Future<List<Movie>> fetchNAMovie(String status) async {
-    return fetchFromCgv(status); // required to implement fetching na data
+    return fetchFromCgv(status); // Required to implement fetching NA data
   }
 
+  // Placeholder for fetching movies from France
   static Future<List<Movie>> fetchFRMovie(String status) async {
-    return fetchFromCgv(status); // required to implement fetching fr data
+    return fetchFromCgv(status); // Required to implement fetching FR data
   }
 
+  // Fetch movies from CGV based on the status
   static Future<List<Movie>> fetchFromCgv(String status) async {
-    String cgvUrl;
-
-    switch (status) {
-      case listFilterUpcoming:
-        cgvUrl = cgvUrlUpcoming;
-        break;
-      case listFilterRunning:
-        cgvUrl = cgvUrlRunning;
-        break;
-      default:
-        cgvUrl = cgvUrlAll;
-        break;
-    }
-
+    String cgvUrl = _getCgvUrl(status);
     final response = await http.get(Uri.parse(cgvUrl));
+
     if (response.statusCode != 200) {
       throw Exception('Failed to load thumbnails');
     }
 
     final document = html.parse(response.body);
     final trailers = <Movie>[];
-
     final movieBoxes = document.querySelectorAll('div.box-image');
     int startIndex = (status == listFilterUpcoming) ? 3 : 0; // Skip first 3 items if status is listFilterUpcoming
 
@@ -72,19 +65,17 @@ class MovieService {
           if (midx != null) {
             final trailerData = await fetchVideoAndTitles(midx);
             if (trailerData['trailerUrl'] != null) {
-              trailers.add(
-                Movie(
-                  localTitle: trailerData['localTitle'] ?? '',
-                  engTitle: trailerData['engTitle'] ?? '',
-                  posterUrl: aTag.querySelector('span.thumb-image img')?.attributes['src'] ?? '',
-                  trailerUrl: trailerData['trailerUrl'] ?? '',
-                  country: kr,
-                  source: cgv,
-                  sourceIdx: int.parse(midx),
-                  spec: trailerData['spec'] ?? '',
-                  status: status,
-                ),
-              );
+              trailers.add(Movie(
+                localTitle: trailerData['localTitle'] ?? '',
+                engTitle: trailerData['engTitle'] ?? '',
+                posterUrl: aTag.querySelector('span.thumb-image img')?.attributes['src'] ?? '',
+                trailerUrl: trailerData['trailerUrl'] ?? '',
+                country: kr,
+                source: cgv,
+                sourceIdx: int.parse(midx),
+                spec: trailerData['spec'] ?? '',
+                status: status,
+              ));
             }
           }
         }
@@ -94,6 +85,19 @@ class MovieService {
     return trailers;
   }
 
+  // Determine the correct CGV URL based on the status
+  static String _getCgvUrl(String status) {
+    switch (status) {
+      case listFilterUpcoming:
+        return cgvUrlUpcoming;
+      case listFilterRunning:
+        return cgvUrlRunning;
+      default:
+        return cgvUrlAll;
+    }
+  }
+
+  // Fetch video and titles for a specific movie
   static Future<Map<String, String?>> fetchVideoAndTitles(String midx) async {
     final response = await http.get(Uri.parse('$cgvDetailUrl$midx'));
     if (response.statusCode != 200) {
