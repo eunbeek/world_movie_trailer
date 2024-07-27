@@ -14,7 +14,7 @@ class MovieListPage extends StatefulWidget {
 }
 
 class _MovieListPageState extends State<MovieListPage> {
-  String selectedFilter = 'All';
+  String selectedFilter = listFilterAll;
 
   @override
   Widget build(BuildContext context) {
@@ -30,37 +30,37 @@ class _MovieListPageState extends State<MovieListPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 FilterChip(
-                  label: Text('All'),
-                  selected: selectedFilter == 'All',
+                  label: Text(listFilterAll),
+                  selected: selectedFilter == listFilterAll,
                   showCheckmark: false,
                   selectedColor: Colors.blue.withOpacity(0.5),
                   onSelected: (bool selected) {
                     setState(() {
-                      selectedFilter = 'All';
+                      selectedFilter = listFilterAll;
                     });
                   },
                 ),
                 SizedBox(width: 8),
                 FilterChip(
-                  label: Text('Running'),
-                  selected: selectedFilter == 'Running',
+                  label: Text(listFilterRunning),
+                  selected: selectedFilter == listFilterRunning,
                   showCheckmark: false,
                   selectedColor: Colors.blue.withOpacity(0.5),
                   onSelected: (bool selected) {
                     setState(() {
-                      selectedFilter = 'Running';
+                      selectedFilter = listFilterRunning;
                     });
                   },
                 ),
                 SizedBox(width: 8),
                 FilterChip(
-                  label: Text('Upcoming'),
-                  selected: selectedFilter == 'Upcoming',
+                  label: Text(listFilterUpcoming),
+                  selected: selectedFilter == listFilterUpcoming,
                   showCheckmark: false,
                   selectedColor: Colors.blue.withOpacity(0.5),
                   onSelected: (bool selected) {
                     setState(() {
-                      selectedFilter = 'Upcoming';
+                      selectedFilter = listFilterUpcoming;
                     });
                   },
                 ),
@@ -69,7 +69,7 @@ class _MovieListPageState extends State<MovieListPage> {
           ),
           Expanded(
             child: FutureBuilder<List<Movie>>(
-              future: MovieService.fetchCgvThumbnails(selectedFilter),
+              future: MovieService.fetchFromCgv(selectedFilter),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(child: CircularProgressIndicator());

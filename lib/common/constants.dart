@@ -2,11 +2,14 @@
 const appTitle = "World Movie Trailer";
 
 // country list
-List<String> countries = ['Korea', 'Japan', 'North America', 'France'];
+List<String> countries = ['South Korea', 'Japan', 'North America', 'France'];
 const countryAppBar = "World Movie Trailers";
 
 // movie list
 const listAppBar = "Movies in ";
+const listFilterAll = "All";
+const listFilterRunning = "Running";
+const listFilterUpcoming = "Upcoming";
 
 // movie detail
 const trailerPause = "Pause Trailer";
