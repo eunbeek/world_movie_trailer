@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
+import 'package:world_movie_trailer/common/utils.dart';
 import 'package:world_movie_trailer/model/movie.dart';
-import 'package:world_movie_trailer/common/utils.dart'; // Import the utility file
 
 class MovieDetailPage extends StatefulWidget {
   final Movie movie;
@@ -15,28 +15,39 @@ class MovieDetailPage extends StatefulWidget {
 
 class _MovieDetailPageState extends State<MovieDetailPage> {
   late VideoPlayerController _videoPlayerController;
-  late ChewieController _chewieController;
-  bool _isPlaying = false;
+  ChewieController? _chewieController;
+  String _errorMessage = '';
 
   @override
   void initState() {
     super.initState();
-    _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(widget.movie.trailerUrl))
-      ..initialize().then((_) {
-        setState(() {});
-      });
+    _initializeVideoPlayer();
+  }
 
-    _chewieController = ChewieController(
-      videoPlayerController: _videoPlayerController,
-      autoPlay: false,
-      looping: false,
-    );
+  void _initializeVideoPlayer() {
+    _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(widget.movie.trailerUrl));
+
+    _videoPlayerController.initialize().then((_) {
+      print('Video Initialized'); 
+      _chewieController = ChewieController(
+        videoPlayerController: _videoPlayerController,
+        autoPlay: false,
+        looping: false,
+        showControlsOnInitialize: false,
+      );
+      setState(() {});
+    }).catchError((error) {
+      print('Video Initialization Error: $error');
+      setState(() {
+        _errorMessage = 'Error loading video: $error';
+      });
+    });
   }
 
   @override
   void dispose() {
     _videoPlayerController.dispose();
-    _chewieController.dispose();
+    _chewieController?.dispose();
     super.dispose();
   }
 
@@ -44,48 +55,35 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.movie.engTitle),
+        title: Text(widget.movie.localTitle),
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            _videoPlayerController.value.isInitialized
-                ? Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      AspectRatio(
+            _errorMessage.isNotEmpty
+                ? Center(child: Text(_errorMessage, style: const TextStyle(color: Colors.red)))
+                : _chewieController != null && _videoPlayerController.value.isInitialized
+                    ? AspectRatio(
                         aspectRatio: _videoPlayerController.value.aspectRatio,
                         child: Chewie(
-                          controller: _chewieController,
+                          controller: _chewieController!,
                         ),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          _isPlaying ? Icons.pause : Icons.play_arrow,
-                          color: Colors.white,
-                          size: 50.0,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            if (_isPlaying) {
-                              _videoPlayerController.pause();
-                            } else {
-                              _videoPlayerController.play();
-                            }
-                            _isPlaying = !_isPlaying;
-                          });
-                        },
-                      ),
-                    ],
-                  )
-                : Center(child: CircularProgressIndicator()),
-            SizedBox(height: 20),
+                      )
+                    : const Center(child: CircularProgressIndicator()),
+            const SizedBox(height: 20),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                'Movie Details',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: parseHtml(widget.movie.spec), // Use the utility function
+                children: parseHtml(widget.movie.spec),
               ),
             ),
           ],

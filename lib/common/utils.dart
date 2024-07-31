@@ -49,3 +49,10 @@ List<Widget> parseHtml(String htmlString) {
 
   return widgets;
 }
+
+String getCurrentYearMonth() {
+  final now = DateTime.now();
+  final year = now.year.toString();
+  final month = now.month.toString().padLeft(2, '0'); // Ensures the month is always two digits
+  return '$year$month';
+}

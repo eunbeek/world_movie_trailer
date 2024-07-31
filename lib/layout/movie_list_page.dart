@@ -15,6 +15,54 @@ class MovieListPage extends StatefulWidget {
 
 class _MovieListPageState extends State<MovieListPage> {
   String selectedFilter = listFilterAll;
+  List<Movie> allMovies = [];
+  List<Movie> filteredMovies = [];
+  bool isLoading = true;
+  bool hasError = false;
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMovies();
+  }
+
+  Future<void> _fetchMovies() async {
+    try {
+      final movies = await MovieService.fetchMovie(widget.country);
+      setState(() {
+        allMovies = movies;
+        _applyFilter();
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        hasError = true;
+        isLoading = false;
+      });
+    }
+  }
+
+  void _applyFilter() {
+    setState(() {
+      if (selectedFilter == listFilterAll) {
+        filteredMovies = allMovies;
+      } else if (selectedFilter == listFilterRunning) {
+        filteredMovies = allMovies.where((movie) => movie.status == listFilterRunning).toList();
+      } else if (selectedFilter == listFilterUpcoming) {
+        filteredMovies = allMovies.where((movie) => movie.status == listFilterUpcoming).toList();
+      }
+    });
+
+    // 필터 적용 후 맨 위로 스크롤
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollController.animateTo(
+        0.0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,37 +78,40 @@ class _MovieListPageState extends State<MovieListPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 FilterChip(
-                  label: Text(listFilterAll),
+                  label: const Text(listFilterAll),
                   selected: selectedFilter == listFilterAll,
                   showCheckmark: false,
                   selectedColor: Colors.blue.withOpacity(0.5),
                   onSelected: (bool selected) {
                     setState(() {
                       selectedFilter = listFilterAll;
+                      _applyFilter();
                     });
                   },
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 FilterChip(
-                  label: Text(listFilterRunning),
+                  label: const Text(listFilterRunning),
                   selected: selectedFilter == listFilterRunning,
                   showCheckmark: false,
                   selectedColor: Colors.blue.withOpacity(0.5),
                   onSelected: (bool selected) {
                     setState(() {
                       selectedFilter = listFilterRunning;
+                      _applyFilter();
                     });
                   },
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 FilterChip(
-                  label: Text(listFilterUpcoming),
+                  label: const Text(listFilterUpcoming),
                   selected: selectedFilter == listFilterUpcoming,
                   showCheckmark: false,
                   selectedColor: Colors.blue.withOpacity(0.5),
                   onSelected: (bool selected) {
                     setState(() {
                       selectedFilter = listFilterUpcoming;
+                      _applyFilter();
                     });
                   },
                 ),
@@ -68,40 +119,33 @@ class _MovieListPageState extends State<MovieListPage> {
             ),
           ),
           Expanded(
-            child: FutureBuilder<List<Movie>>(
-              future: MovieService.fetchMovie(selectedFilter, widget.country),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else {
-                  final movies = snapshot.data!;
-                  return GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.7,
-                    ),
-                    itemCount: movies.length,
-                    itemBuilder: (context, index) {
-                      final movie = movies[index];
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MovieDetailPage(movie: movie),
-                            ),
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
-                          child: Image.network(movie.posterUrl, fit: BoxFit.cover),
-                        ),
-                      );
-                    },
-                  );
-                }
+            child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : hasError
+            ? const Center(child: Text('Error loading movies'))
+            : GridView.builder(
+              controller: _scrollController,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.7,
+              ),
+              itemCount: filteredMovies.length,
+              itemBuilder: (context, index) {
+                final movie = filteredMovies[index];
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MovieDetailPage(movie: movie),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
+                    child: Image.network(movie.posterUrl, fit: BoxFit.cover),
+                  ),
+                );
               },
             ),
           ),
