@@ -27,8 +27,6 @@ class MovieService {
   static Future<List<Movie>> fetchKRMovie() async {
     final stopWatch = Stopwatch()..start();
     List<Movie> cgvMovies = await fetchFromCgv();
-    // List<Movie> lotteMovies = [];
-    // List<Movie> cgvMovies = [];
     List<Movie> lotteMovies = await fetchFromLotte(cgvMovies);
     stopWatch.stop();
     print('fetchKR: ${stopWatch.elapsedMilliseconds}ms');

@@ -1,32 +1,110 @@
 import 'package:flutter/material.dart';
-import 'package:world_movie_trailer/layout/movie_list_page.dart';
+import 'package:world_movie_trailer/layout/video_ad_page.dart'; // Import VideoAdPage
 import 'package:world_movie_trailer/common/constants.dart';
 
-class CountryListPage extends StatelessWidget {
+class CountryListPage extends StatefulWidget {
   const CountryListPage({super.key});
 
   @override
+  _CountryListPageState createState() => _CountryListPageState();
+}
+
+class _CountryListPageState extends State<CountryListPage> {
+  List<String> countries = [];  // Initialize with an empty list
+
+  @override
+  void initState() {
+    super.initState();
+    // Add a post frame callback to ensure context is available
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _arrangeCountriesBasedOnLocale();
+    });
+  }
+
+  void _arrangeCountriesBasedOnLocale() {
+    String languageCode = Localizations.localeOf(context).languageCode;
+    setState(() {
+      countries = countryKeys
+          .map((key) =>
+              localizedCountries[languageCode]?[key] ?? localizedCountries['en']![key]!)
+          .toList();
+    });
+  }
+
+  String _getAppBarTitle(String languageCode) {
+    switch (languageCode) {
+      case 'ko':
+        return countryAppBarKr;
+      case 'ja':
+        return countryAppBarJp;
+      case 'fr':
+        return countryAppBarFr;
+      case 'cn':
+        return countryAppBarCn;
+      default:
+        return countryAppBarEn;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    String languageCode = Localizations.localeOf(context).languageCode;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text(countryAppBar),
+        title: Text(_getAppBarTitle(languageCode)),
       ),
-      body: ListView.builder(
-        itemCount: countries.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(countries[index]),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => MovieListPage(country: countries[index]),
-                ),
-              );
-            },
-          );
-        },
-      ),
+      body: countries.isEmpty
+          ? const Center(child: CircularProgressIndicator()) 
+          : Container(
+              child: ReorderableListView(
+                onReorder: (int oldIndex, int newIndex) {
+                  setState(() {
+                    if (newIndex > oldIndex) {
+                      newIndex -= 1;
+                    }
+                    final String item = countries.removeAt(oldIndex);
+                    countries.insert(newIndex, item);
+                  });
+                },
+                padding: const EdgeInsets.all(16.0),
+                children: [
+                  for (int index = 0; index < countries.length; index++)
+                    Padding(
+                      key: ValueKey(countries[index]),
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Material(
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => VideoAdPage(country: countries[index]),
+                              ),
+                            );
+                          },
+                          highlightColor: Colors.blue.withOpacity(0.1),
+                          splashColor: Colors.blue.withOpacity(0.2),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            child: Center(
+                              child: Text(
+                                countries[index],
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
     );
   }
 }
