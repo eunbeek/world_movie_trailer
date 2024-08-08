@@ -58,3 +58,7 @@ const cgvDetailUrl= "http://www.cgv.co.kr/movies/detail-view/trailer.aspx?midx="
 const lotte = 'Lotte';
 const lotteUrlAll = "https://www.lottecinema.co.kr/NLCHS/Movie/List?flag=1";
 const lotteDetail = "https://www.lottecinema.co.kr/LCWS/Movie/MovieData.aspx";
+
+// 3. Eiga
+const eiga = 'Eiga';
+const eigaAll = "https://eiga.com/movie/video/";
