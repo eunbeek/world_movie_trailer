@@ -25,7 +25,7 @@ class MovieService {
   static Future<List<Movie>> fetchKRMovie() async {
     final stopWatch = Stopwatch()..start();
     // Fetch movies from Korea (integrates CGV and Lotte Cinema)
-    List<Movie> cgvMovies = await fetchNoTrailerFromCGV();
+    List<Movie> cgvMovies = [] ?? await fetchNoTrailerFromCGV();
     List<Movie> lotteMovies = await fetchNoTrailerFromLOTTE(cgvMovies);
     stopWatch.stop();
     return [...cgvMovies, ...lotteMovies];
