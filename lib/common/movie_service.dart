@@ -74,9 +74,10 @@ class MovieService {
         final midxMatch = RegExp(r'midx=(\d+)').firstMatch(aTag?.attributes['href'] ?? '');
         final midx = midxMatch?.group(1) ?? '0';
 
-        final status = movieBoxes[i].querySelector('.txt-info strong em.dday') != null
-            ? listFilterUpcoming
-            : listFilterRunning;
+        // final status = movieBoxes[i].querySelector('.txt-info strong em.dday') != null
+        //     ? listFilterUpcoming
+        //     : listFilterRunning;
+        final status = url == cgvUrlRunning ? listFilterRunning: listFilterUpcoming;
 
         final movie = Movie(
           localTitle: localTitle,
@@ -92,19 +93,19 @@ class MovieService {
 
         movies.add(movie);
       }
+      if(url == cgvUrlRunning){
+        // Fetch additional movies
+        final additionalMoviesResponse = await http.get(Uri.parse(cgvMoreMoviesUrl), headers: cgvMoreMovieHeader);
+
+        if (additionalMoviesResponse.statusCode != 200) {
+          throw Exception('Failed to load more movies');
+        }
+
+        final jsonResponse = json.decode(additionalMoviesResponse.body) as Map<String, dynamic>;
+        final additionalMoviesData = json.decode(jsonResponse['d']) as Map<String, dynamic>;  // Access the nested data
+        _processAdditionalMovies(additionalMoviesData['List'], movies);
+      }
     }
-
-
-    // Fetch additional movies
-    final additionalMoviesResponse = await http.get(Uri.parse(cgvMoreMoviesUrl), headers: cgvMoreMovieHeader);
-
-    if (additionalMoviesResponse.statusCode != 200) {
-      throw Exception('Failed to load more movies');
-    }
-
-    final jsonResponse = json.decode(additionalMoviesResponse.body) as Map<String, dynamic>;
-    final additionalMoviesData = json.decode(jsonResponse['d']) as Map<String, dynamic>;  // Access the nested data
-    _processAdditionalMovies(additionalMoviesData['List'], movies);
 
     return movies;
   }
@@ -238,11 +239,11 @@ class MovieService {
               cgvMovies.any((cgvMovie) => cgvMovie.localTitle == movieJson['MovieNameKR'])) {
             continue;
           }
-
+          final posterUrl = "https://cors-anywhere.herokuapp.com/" +   movieJson['PosterURL'];
           movies.add(Movie(
             localTitle: movieJson['MovieNameKR'] as String,
             engTitle: '',
-            posterUrl: movieJson['PosterURL'] as String,
+            posterUrl: posterUrl,
             trailerUrl: '',
             country: kr,
             source: lotte,
@@ -289,7 +290,7 @@ class MovieService {
     final trailer = trailers.lastWhere((item) => item["MediaURL"].isNotEmpty, orElse: () => null);
 
     if (trailer != null) {
-      final traileURL = trailer["MediaURL"];
+      final traileURL = "https://cors-anywhere.herokuapp.com/"+trailer["MediaURL"];
       return traileURL;
     } else {
       return null;

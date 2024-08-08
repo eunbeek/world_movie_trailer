@@ -34,6 +34,7 @@ class _VideoAdPageState extends State<VideoAdPage> {
         fetchComplete = true; 
         _checkTransitionReady();
       });
+      print(movies.last.localTitle);
     } catch (e) {
       setState(() {
         hasError = true;

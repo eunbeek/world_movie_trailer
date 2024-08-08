@@ -78,9 +78,9 @@ const trailerContinue = "Watch Trailer";
 // movie service
 // 1. CGV
 const cgv = 'CGV';
-const cgvUrlRunning = "http://www.cgv.co.kr/movies/?lt=1&ft=1";
-const cgvUrlUpcoming = "http://www.cgv.co.kr/movies/pre-movies.aspx";
-const cgvMoreMoviesUrl = 'https://www.cgv.co.kr/common/ajax/movies.aspx/GetMovieMoreList?listType=1&orderType=1&filterType=1';
+const cgvUrlRunning = "https://cors-anywhere.herokuapp.com/http://www.cgv.co.kr/movies/?lt=1&ft=1";
+const cgvUrlUpcoming = "https://cors-anywhere.herokuapp.com/http://www.cgv.co.kr/movies/pre-movies.aspx";
+const cgvMoreMoviesUrl = 'https://cors-anywhere.herokuapp.com/https://www.cgv.co.kr/common/ajax/movies.aspx/GetMovieMoreList?listType=1&orderType=1&filterType=1';
 const cgvMoreMovieHeader = {
   'Accept': 'application/json, text/javascript, */*; q=0.01',
   'Accept-Encoding': 'gzip, deflate',
@@ -93,9 +93,9 @@ const cgvMoreMovieHeader = {
   'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
   'X-Requested-With': 'XMLHttpRequest',
 };
-const cgvDetailUrl= "http://www.cgv.co.kr/movies/detail-view/trailer.aspx?midx=";
+const cgvDetailUrl= "https://cors-anywhere.herokuapp.com/http://www.cgv.co.kr/movies/detail-view/trailer.aspx?midx=";
 
 // 2. Lotte
 const lotte = 'Lotte';
-const lotteUrlAll = "https://www.lottecinema.co.kr/NLCHS/Movie/List?flag=1";
-const lotteDetail = "https://www.lottecinema.co.kr/LCWS/Movie/MovieData.aspx";
+const lotteUrlAll = "https://cors-anywhere.herokuapp.com/https://www.lottecinema.co.kr/NLCHS/Movie/List?flag=1";
+const lotteDetail = "https://cors-anywhere.herokuapp.com/https://www.lottecinema.co.kr/LCWS/Movie/MovieData.aspx";
