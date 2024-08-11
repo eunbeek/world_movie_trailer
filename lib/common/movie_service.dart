@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' as html;
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/common/constants.dart';
-import 'package:intl/intl.dart';
 
 class MovieService {
 
@@ -23,14 +22,30 @@ class MovieService {
     }
   }
 
-  // Fetch movies from Korea (integrates CGV and Lotte Cinema)
+  static Future<List<Movie>> fetchMovieMore(String country, List<Movie> countryMovies) async {
+    print(country);
+    switch (country) {
+      case kr:
+        return fetchKRMovieMore(countryMovies);
+      case jp:
+        return fetchJPMovie();
+      default:
+        return fetchKRMovie();
+    }
+  }
+
   static Future<List<Movie>> fetchKRMovie() async {
     final stopWatch = Stopwatch()..start();
-    List<Movie> cgvMovies = await fetchFromCgv();
-    List<Movie> lotteMovies = await fetchFromLotte(cgvMovies);
+    List<Movie> lotteMovies = await fetchNoTrailerFromLOTTE();
     stopWatch.stop();
-    print('fetchKR: ${stopWatch.elapsedMilliseconds}ms');
-    return [...cgvMovies, ...lotteMovies];
+    return lotteMovies;
+  }
+
+  static Future<List<Movie>> fetchKRMovieMore(List<Movie> moviesKR) async {
+    final stopWatch = Stopwatch()..start();
+    List<Movie> cgvMovies = await fetchNoTrailerFromCGV(moviesKR);
+    stopWatch.stop();
+    return cgvMovies;
   }
 
   static Future<List<Movie>> fetchJPMovie() async {
@@ -45,51 +60,103 @@ class MovieService {
     return [];
   }
 
-  // Fetch movies from CGV based on the status
-  static Future<List<Movie>> fetchFromCgv() async {
-    final response = await http.get(Uri.parse(cgvUrlAll));
+  // Fetch Movies list from CGV except lotte movie
+  static Future<List<Movie>> fetchNoTrailerFromCGV(List<Movie> lotteMovies) async {
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to load thumbnails');
-    }
+    final movies = <Movie>[];
 
-    final document = html.parse(response.body);
-    final trailers = <Movie>[];
-    final movieBoxes = document.querySelectorAll('div.box-image');
+    // Existing URLs for fetching current and upcoming movies
+    final cgvUrls = {cgvUrlRunning, cgvUrlUpcoming};
+    for (var url in cgvUrls) {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode != 200) {
+        throw Exception('Failed to load thumbnails');
+      }
 
+      final document = html.parse(response.body);
+      final movieBoxes = document.querySelectorAll('div.sect-movie-chart ol li');
+      final startPointByStatus = url == cgvUrlRunning ? 0 : 3;
 
-    for (int i = 0; i < movieBoxes.length; i++) {
-      final movieBox = movieBoxes[i];
-      final aTag = movieBox.querySelector('a');
-      if (aTag != null) {
-        final midxMatch = RegExp(r'midx=(\d+)').firstMatch(aTag.attributes['href'] ?? '');
-        if (midxMatch != null) {
-          final midx = midxMatch.group(1);
-          if (midx != null) {
-            final trailerData = await fetchMovieInfoFromCGV(midx);
-            if (trailerData['trailerUrl'] != null) {
-              trailers.add(Movie(
-                localTitle: trailerData['localTitle'] ?? '',
-                engTitle: trailerData['engTitle'] ?? '',
-                posterUrl: aTag.querySelector('span.thumb-image img')?.attributes['src'] ?? '',
-                trailerUrl: trailerData['trailerUrl'] ?? '',
-                country: kr,
-                source: cgv,
-                sourceIdx: int.parse(midx),
-                spec: 'N/A',
-                status: trailerData['status'] ?? 'Upcoming',
-              ));
-            }
-          }
+      for (var i = startPointByStatus; i < movieBoxes.length; i++) {
+        final titleElement = movieBoxes[i].querySelector('.box-contents .title');
+
+        if (titleElement == null ) continue;
+
+        final localTitle = titleElement.text.trim();
+
+        if (lotteMovies.any((lotteMovie) => lotteMovie.localTitle == localTitle)) continue;
+        
+        final posterElement = movieBoxes[i].querySelector('.thumb-image img');
+        final posterUrl = posterElement?.attributes['src'] ?? '';
+
+        final aTag = movieBoxes[i].querySelector('a');
+        final midxMatch = RegExp(r'midx=(\d+)').firstMatch(aTag?.attributes['href'] ?? '');
+        final midx = midxMatch?.group(1) ?? '0';
+
+        // final status = movieBoxes[i].querySelector('.txt-info strong em.dday') != null
+        //     ? listFilterUpcoming
+        //     : listFilterRunning;
+        final status = url == cgvUrlRunning ? listFilterRunning: listFilterUpcoming;
+
+        final movie = Movie(
+          localTitle: localTitle,
+          engTitle: '',
+          posterUrl: posterUrl,
+          trailerUrl: '',
+          country: kr,
+          source: cgv,
+          sourceIdx: int.parse(midx),
+          spec: '',
+          status: status,
+        );
+
+        movies.add(movie);
+      }
+      if(url == cgvUrlRunning){
+        // Fetch additional movies
+        final additionalMoviesResponse = await http.get(Uri.parse(cgvMoreMoviesUrl), headers: cgvMoreMovieHeader);
+
+        if (additionalMoviesResponse.statusCode != 200) {
+          throw Exception('Failed to load more movies');
         }
+
+        final jsonResponse = json.decode(additionalMoviesResponse.body) as Map<String, dynamic>;
+        final additionalMoviesData = json.decode(jsonResponse['d']) as Map<String, dynamic>;  // Access the nested data
+        _processAdditionalMovies(additionalMoviesData['List'], movies, lotteMovies);
       }
     }
 
-    return trailers;
+    return movies;
   }
 
-  // Fetch video and titles for a specific movie from CGV
-  static Future<Map<String, String?>> fetchMovieInfoFromCGV(String midx) async {
+  static void _processAdditionalMovies(List<dynamic> movieList, List<Movie> movies, List<Movie> lotteMovies) {
+    if (movieList.isEmpty) return;
+
+    for (var movieJson in movieList) {
+      final localTitle = movieJson['Title'] ?? 'Unknown';
+      final engTitle = movieJson['EnglishTitle'] ?? '';
+      final posterUrl = movieJson['PosterImage']['LargeImage'] ?? '';
+      final midx = movieJson['MovieIdx'] ?? '0';
+
+      if (lotteMovies.any((lotteMovie) => lotteMovie.localTitle == localTitle)) continue;
+
+      final movie = Movie(
+        localTitle: localTitle,
+        engTitle: engTitle,
+        posterUrl: posterUrl,
+        trailerUrl: '',
+        country: kr,
+        source: cgv,
+        sourceIdx: midx,
+        spec: '',
+        status: listFilterRunning,
+      );
+
+      movies.add(movie);
+    }
+  }
+  
+  static Future<Map<String, String?>> fetchTrailerFromCGV(String midx) async {
     final response = await http.get(Uri.parse('$cgvDetailUrl$midx'));
     if (response.statusCode != 200) {
       throw Exception('Failed to load video details');
@@ -97,20 +164,15 @@ class MovieService {
 
     final document = html.parse(response.body);
     String? trailerUrl;
-    String localTitle = 'N/A';
-    String engTitle = 'N/A';
-    String spec = '';
-    DateTime? releaseDate;
+    String? engTitle;
 
     try {
       final trailerCount = document.querySelector('div.sect-trailer')?.querySelectorAll("li");
+
       if (trailerCount?.isEmpty ?? true) {
         return {
           'trailerUrl': null,
-          'localTitle': null,
           'engTitle': null,
-          'status': null,
-          'spec': null,
         };
       }
 
@@ -123,43 +185,23 @@ class MovieService {
       }
 
       final titleDiv = document.querySelector('div.title');
-      final localTitleTag = titleDiv?.querySelector('strong');
-      if (localTitleTag != null) {
-        localTitle = localTitleTag.text.trim();
-      }
 
       final engTitleTag = titleDiv?.querySelector('p');
       if (engTitleTag != null) {
         engTitle = engTitleTag.text.trim();
       }
 
-      final releaseDateString = document.querySelectorAll('dd.on').last.text.trim();
-
-      releaseDate = DateFormat('yyyy.MM.dd').parse(releaseDateString);
-
-      final specDiv = document.querySelector('div.spec');
-      if (specDiv != null) {
-        spec = specDiv.innerHtml.trim();
-      }
     } catch (e) {
       print('An error occurred: $e');
     }
 
-    String status = '';
-    if (releaseDate != null) {
-      status = releaseDate.isAfter(DateTime.now()) ? 'Upcoming' : 'Running';
-    }
-
     return {
       'trailerUrl': trailerUrl ?? '',
-      'localTitle': localTitle,
-      'engTitle': engTitle,
-      'status': status,
-      'spec': spec,
+      'engTitle': engTitle ?? '',
     };
   }
 
-  static Future<List<Movie>> fetchFromLotte(List<Movie> cgvMovies) async {
+  static Future<List<Movie>> fetchNoTrailerFromLOTTE() async {
     final List<Map<String, dynamic>> requestDataList = [
       {
         "MethodName": "GetMoviesToBe",
@@ -189,7 +231,7 @@ class MovieService {
       }
     ];
 
-    final trailers = <Movie>[];
+    final movies = <Movie>[];
 
     for (var requestData in requestDataList) {
       String requestDataJson = jsonEncode(requestData);
@@ -211,28 +253,23 @@ class MovieService {
 
       try {
         final responseData = json.decode(response.body);
-        final movies = responseData['Movies']['Items'] as List;
+        final moviesList = responseData['Movies']['Items'] as List;
 
-        for (var movieJson in movies) {
-          if (movieJson['RepresentationMovieCode'] == 'AD' ||
-              cgvMovies.any((cgvMovie) => _normalizeTitle(cgvMovie.localTitle) == _normalizeTitle(movieJson['MovieNameKR']))) {
-            continue;
-          }
-          String? trailerUrl = await _isTrailerExist(movieJson['RepresentationMovieCode']);
-
-          if (trailerUrl != null) {
-            trailers.add(Movie(
-              localTitle: movieJson['MovieNameKR'] as String,
-              engTitle: '',
-              posterUrl: movieJson['PosterURL'] as String,
-              trailerUrl: trailerUrl,
-              country: 'kr',
-              source: 'lotte',
-              sourceIdx: int.parse(movieJson['RepresentationMovieCode'] as String),
-              spec: 'N/A',
-              status: requestData['moviePlayYN'] == 'Y' ? 'Running' : 'Upcoming',
-            ));
-          }
+        for (var movieJson in moviesList) {
+          if (movieJson['RepresentationMovieCode'] == 'AD') continue;
+          // final posterUrl = "https://cors-anywhere.herokuapp.com/" +   movieJson['PosterURL'];
+          final posterUrl = movieJson['PosterURL'];
+          movies.add(Movie(
+            localTitle: movieJson['MovieNameKR'] as String,
+            engTitle: '',
+            posterUrl: posterUrl,
+            trailerUrl: '',
+            country: kr,
+            source: lotte,
+            sourceIdx: int.parse(movieJson['RepresentationMovieCode'] as String),
+            spec: '',
+            status: requestData['moviePlayYN'] == 'Y' ? 'Running' : 'Upcoming',
+          ));
         }
       } catch (e) {
         print('Failed to parse response body as JSON');
@@ -241,17 +278,17 @@ class MovieService {
       }
     }
 
-    return trailers;
+    return movies;
   }
-
-  static Future<String?> _isTrailerExist(String midx) async {
+  
+  static Future<String?> fetchTrailerFromLOTTE(String midx) async {
     try {
       final Map<String, dynamic> requestData = {
         "MethodName": "GetMovieDetailTOBE",
         "channelType": "HO",
         "osType": "Chrome",
         "osVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_0_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
-        "multiLanguageID": "KR",
+        "multiLanguageID": "EN",
         "representationMovieCode": midx,
         "memberOnNo": ""
       };
@@ -269,7 +306,6 @@ class MovieService {
     final responseData = json.decode(response.body);
     final trailers = responseData['Trailer']["Items"] as List;
 
-    // MediaURL이 비어있지 않은 마지막 요소를 필터링하여 찾기
     final trailer = trailers.lastWhere((item) => item["MediaURL"].isNotEmpty, orElse: () => null);
 
     if (trailer != null) {
@@ -282,9 +318,5 @@ class MovieService {
       print('Failed to check trailer URL: $e');
       return null;
     }
-  }
-
-  static String _normalizeTitle(String title) {
-    return title.replaceAll(RegExp(r'[^\w\s]'), '').trim();
   }
 }
