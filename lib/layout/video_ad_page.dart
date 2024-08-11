@@ -44,7 +44,7 @@ class _VideoAdPageState extends State<VideoAdPage> {
   }
 
   void _startDelayTimer() {
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 1), () {
       setState(() {
         delayComplete = true;
         _checkTransitionReady();
