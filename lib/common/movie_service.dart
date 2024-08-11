@@ -58,7 +58,8 @@ class MovieService {
     stopWatch.stop();
     return eigaMoreMovies;
   }
- // Fetch Movies list from CGV except lotte movie
+
+  // Fetch Movies list from CGV except lotte movie
   static Future<List<Movie>> fetchNoTrailerFromCGV(List<Movie> lotteMovies) async {
 
     final movies = <Movie>[];
