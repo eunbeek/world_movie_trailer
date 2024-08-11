@@ -22,13 +22,30 @@ class MovieService {
     }
   }
 
+  static Future<List<Movie>> fetchMovieMore(String country, List<Movie> countryMovies) async {
+    print(country);
+    switch (country) {
+      case kr:
+        return fetchKRMovieMore(countryMovies);
+      case jp:
+        return fetchJPMovie();
+      default:
+        return fetchKRMovie();
+    }
+  }
+
   static Future<List<Movie>> fetchKRMovie() async {
     final stopWatch = Stopwatch()..start();
-    // Fetch movies from Korea (integrates CGV and Lotte Cinema)
-    List<Movie> cgvMovies = [] ?? await fetchNoTrailerFromCGV();
-    List<Movie> lotteMovies = await fetchNoTrailerFromLOTTE(cgvMovies);
+    List<Movie> lotteMovies = await fetchNoTrailerFromLOTTE();
     stopWatch.stop();
-    return [...cgvMovies, ...lotteMovies];
+    return lotteMovies;
+  }
+
+  static Future<List<Movie>> fetchKRMovieMore(List<Movie> moviesKR) async {
+    final stopWatch = Stopwatch()..start();
+    List<Movie> cgvMovies = await fetchNoTrailerFromCGV(moviesKR);
+    stopWatch.stop();
+    return cgvMovies;
   }
 
   static Future<List<Movie>> fetchJPMovie() async {
@@ -43,8 +60,8 @@ class MovieService {
     return [];
   }
 
-// Fetch Movies list from CGV 
-  static Future<List<Movie>> fetchNoTrailerFromCGV() async {
+  // Fetch Movies list from CGV except lotte movie
+  static Future<List<Movie>> fetchNoTrailerFromCGV(List<Movie> lotteMovies) async {
 
     final movies = <Movie>[];
 
@@ -62,11 +79,13 @@ class MovieService {
 
       for (var i = startPointByStatus; i < movieBoxes.length; i++) {
         final titleElement = movieBoxes[i].querySelector('.box-contents .title');
-        if (titleElement == null) {
-          continue;
-        }
+
+        if (titleElement == null ) continue;
+
         final localTitle = titleElement.text.trim();
 
+        if (lotteMovies.any((lotteMovie) => lotteMovie.localTitle == localTitle)) continue;
+        
         final posterElement = movieBoxes[i].querySelector('.thumb-image img');
         final posterUrl = posterElement?.attributes['src'] ?? '';
 
@@ -103,14 +122,14 @@ class MovieService {
 
         final jsonResponse = json.decode(additionalMoviesResponse.body) as Map<String, dynamic>;
         final additionalMoviesData = json.decode(jsonResponse['d']) as Map<String, dynamic>;  // Access the nested data
-        _processAdditionalMovies(additionalMoviesData['List'], movies);
+        _processAdditionalMovies(additionalMoviesData['List'], movies, lotteMovies);
       }
     }
 
     return movies;
   }
 
-  static void _processAdditionalMovies(List<dynamic> movieList, List<Movie> movies) {
+  static void _processAdditionalMovies(List<dynamic> movieList, List<Movie> movies, List<Movie> lotteMovies) {
     if (movieList.isEmpty) return;
 
     for (var movieJson in movieList) {
@@ -118,6 +137,8 @@ class MovieService {
       final engTitle = movieJson['EnglishTitle'] ?? '';
       final posterUrl = movieJson['PosterImage']['LargeImage'] ?? '';
       final midx = movieJson['MovieIdx'] ?? '0';
+
+      if (lotteMovies.any((lotteMovie) => lotteMovie.localTitle == localTitle)) continue;
 
       final movie = Movie(
         localTitle: localTitle,
@@ -180,7 +201,7 @@ class MovieService {
     };
   }
 
-  static Future<List<Movie>> fetchNoTrailerFromLOTTE(List<Movie> cgvMovies) async {
+  static Future<List<Movie>> fetchNoTrailerFromLOTTE() async {
     final List<Map<String, dynamic>> requestDataList = [
       {
         "MethodName": "GetMoviesToBe",
@@ -235,11 +256,9 @@ class MovieService {
         final moviesList = responseData['Movies']['Items'] as List;
 
         for (var movieJson in moviesList) {
-          if (movieJson['RepresentationMovieCode'] == 'AD' ||
-              cgvMovies.any((cgvMovie) => cgvMovie.localTitle == movieJson['MovieNameKR'])) {
-            continue;
-          }
-          final posterUrl = "https://cors-anywhere.herokuapp.com/" +   movieJson['PosterURL'];
+          if (movieJson['RepresentationMovieCode'] == 'AD') continue;
+          // final posterUrl = "https://cors-anywhere.herokuapp.com/" +   movieJson['PosterURL'];
+          final posterUrl = movieJson['PosterURL'];
           movies.add(Movie(
             localTitle: movieJson['MovieNameKR'] as String,
             engTitle: '',
@@ -290,7 +309,7 @@ class MovieService {
     final trailer = trailers.lastWhere((item) => item["MediaURL"].isNotEmpty, orElse: () => null);
 
     if (trailer != null) {
-      final traileURL = "https://cors-anywhere.herokuapp.com/"+trailer["MediaURL"];
+      final traileURL = trailer["MediaURL"];
       return traileURL;
     } else {
       return null;
