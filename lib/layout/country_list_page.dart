@@ -10,12 +10,11 @@ class CountryListPage extends StatefulWidget {
 }
 
 class _CountryListPageState extends State<CountryListPage> {
-  List<String> countries = [];  // Initialize with an empty list
+  List<String> countries = [];
 
   @override
   void initState() {
     super.initState();
-    // Add a post frame callback to ensure context is available
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _arrangeCountriesBasedOnLocale();
     });
@@ -37,10 +36,8 @@ class _CountryListPageState extends State<CountryListPage> {
         return countryAppBarKr;
       case 'ja':
         return countryAppBarJp;
-      case 'fr':
-        return countryAppBarFr;
-      case 'cn':
-        return countryAppBarCn;
+      case 'en':
+        return countryAppBarEn;
       default:
         return countryAppBarEn;
     }
@@ -56,55 +53,53 @@ class _CountryListPageState extends State<CountryListPage> {
       ),
       body: countries.isEmpty
           ? const Center(child: CircularProgressIndicator()) 
-          : Container(
-              child: ReorderableListView(
-                onReorder: (int oldIndex, int newIndex) {
-                  setState(() {
-                    if (newIndex > oldIndex) {
-                      newIndex -= 1;
-                    }
-                    final String item = countries.removeAt(oldIndex);
-                    countries.insert(newIndex, item);
-                  });
-                },
-                padding: const EdgeInsets.all(16.0),
-                children: [
-                  for (int index = 0; index < countries.length; index++)
-                    Padding(
-                      key: ValueKey(countries[index]),
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Material(
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => VideoAdPage(country: countries[index]),
-                              ),
-                            );
-                          },
-                          highlightColor: Colors.blue.withOpacity(0.1),
-                          splashColor: Colors.blue.withOpacity(0.2),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            child: Center(
-                              child: Text(
-                                countries[index],
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
+          : ReorderableListView(
+            onReorder: (int oldIndex, int newIndex) {
+              setState(() {
+                if (newIndex > oldIndex) {
+                  newIndex -= 1;
+                }
+                final String item = countries.removeAt(oldIndex);
+                countries.insert(newIndex, item);
+              });
+            },
+            padding: const EdgeInsets.all(16.0),
+            children: [
+              for (int index = 0; index < countries.length; index++)
+                Padding(
+                  key: ValueKey(countries[index]),
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Material(
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => VideoAdPage(country: countries[index]),
+                          ),
+                        );
+                      },
+                      highlightColor: Colors.blue.withOpacity(0.1),
+                      splashColor: Colors.blue.withOpacity(0.2),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        child: Center(
+                          child: Text(
+                            countries[index],
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
                             ),
+                            textAlign: TextAlign.center,
                           ),
                         ),
                       ),
                     ),
-                ],
-              ),
-            ),
+                  ),
+                ),
+            ],
+          ),
     );
   }
 }

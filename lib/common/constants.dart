@@ -11,9 +11,6 @@ const countryAppBarCn = '世界电影预告片';
 List<String> countryKeys = ['korea', 'japan', 'canada'];
 Map<String, Map<String, String>> localizedCountries = {
   'en': {
-    'usa': 'U.S.A.',
-    'uk': 'U.K.',
-    'france': 'France',
     'korea': 'South Korea',
     'japan': 'Japan',
     'canada': 'Canada',
@@ -79,3 +76,12 @@ const lotte = 'Lotte';
 // const lotteDetail = "https://cors-anywhere.herokuapp.com/https://www.lottecinema.co.kr/LCWS/Movie/MovieData.aspx";
 const lotteUrlAll = "https://www.lottecinema.co.kr/NLCHS/Movie/List?flag=1";
 const lotteDetail = "https://www.lottecinema.co.kr/LCWS/Movie/MovieData.aspx";
+
+// 3. Eiga
+const eiga = 'Eiga';
+const eigaAll = "https://eiga.com/movie/video/";
+const eigaRunning = "https://eiga.com/now/";
+const eigaUpcoming = "https://eiga.com/movie/video/upcoming";
+const eigaMore = "https://eiga.com/now/all/release/";
+const eigaDetail = "https://eiga.com/movie/";
+const eigaMoreUpcoming = "https://eiga.com/movie/video/coming/";

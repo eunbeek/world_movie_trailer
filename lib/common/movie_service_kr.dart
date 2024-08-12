@@ -226,7 +226,7 @@ class MovieServiceKR {
     return movies;
   }
   
-  static Future<String?> fetchTrailerFromLOTTE(String midx) async {
+  static Future<Map<String,String?>> fetchTrailerFromLOTTE(String midx) async {
     try {
       final Map<String, dynamic> requestData = {
         "MethodName": "GetMovieDetailTOBE",
@@ -250,18 +250,17 @@ class MovieServiceKR {
 
     final responseData = json.decode(response.body);
     final trailers = responseData['Trailer']["Items"] as List;
-
+    print(trailers.first);
     final trailer = trailers.lastWhere((item) => item["MediaURL"].isNotEmpty, orElse: () => null);
 
     if (trailer != null) {
-      final traileURL = trailer["MediaURL"];
-      return traileURL;
+      return {'trailerUrl': trailer["MediaURL"], 'engTitle': ''};
     } else {
-      return null;
+      return {'trailerUrl': null, 'engTitle': null};
     }
     } catch (e) {
       print('Failed to check trailer URL: $e');
-      return null;
+      return {'trailerUrl': null, 'engTitle': null};
     }
   }
 }
