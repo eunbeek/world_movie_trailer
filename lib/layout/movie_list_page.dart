@@ -132,7 +132,7 @@ class _MovieListPageState extends State<MovieListPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => MovieDetailPage(movie: movie),
+                          builder: (context) => MovieDetailPage(country: widget.country, movie: movie),
                         ),
                       );
                     },

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
+import 'package:world_movie_trailer/common/movie_service.dart';
 import 'package:world_movie_trailer/common/utils.dart';
 import 'package:world_movie_trailer/model/movie.dart';
-import 'package:world_movie_trailer/common/movie_service_kr.dart';
-import 'package:world_movie_trailer/common/constants.dart';
 
 class MovieDetailPage extends StatefulWidget {
+  final String country;
   final Movie movie;
 
-  MovieDetailPage({required this.movie});
+  MovieDetailPage({required this.country, required this.movie});
 
   @override
   _MovieDetailPageState createState() => _MovieDetailPageState();
@@ -32,15 +32,8 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
   // Fetch details and initialize the video player
   void _fetchDetailsAndInitializeVideo() async {
     try {
-      Map<String, String?> trailerData;
-      
-      if (widget.movie.source == cgv) {
-        trailerData = await MovieServiceKR.fetchTrailerFromCGV(widget.movie.sourceIdx.toString());
-      } else {
-        final trailerUrl = await MovieServiceKR.fetchTrailerFromLOTTE(widget.movie.sourceIdx.toString());
-        trailerData = {'trailerUrl': trailerUrl, 'engTitle': widget.movie.engTitle};
-      }
-
+      Map<String, String?> trailerData = await MovieService.fetchMovieDetails(widget.country, widget.movie);
+    
       setState(() {
         _trailerUrl = trailerData['trailerUrl'];
         _engTitle = trailerData['engTitle'] ?? widget.movie.localTitle;

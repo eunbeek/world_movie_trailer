@@ -11,9 +11,6 @@ const countryAppBarCn = '世界电影预告片';
 List<String> countryKeys = ['korea', 'japan', 'canada'];
 Map<String, Map<String, String>> localizedCountries = {
   'en': {
-    'usa': 'U.S.A.',
-    'uk': 'U.K.',
-    'france': 'France',
     'korea': 'South Korea',
     'japan': 'Japan',
     'canada': 'Canada',
