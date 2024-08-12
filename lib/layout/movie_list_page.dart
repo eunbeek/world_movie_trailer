@@ -41,7 +41,7 @@ class _MovieListPageState extends State<MovieListPage> {
       }
     });
 
-    if(!isMore){
+    if (!isMore) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollController.animateTo(
           0.0,
@@ -119,11 +119,11 @@ class _MovieListPageState extends State<MovieListPage> {
           Expanded(
             child: GridView.builder(
               controller: _scrollController,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.7,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: widget.country == jp ? 1 : 2, 
+                childAspectRatio: widget.country == jp ? 2 : 0.7, 
               ),
-              itemCount: filteredMovies.length + 1, // +1 for the "More" button
+              itemCount: filteredMovies.length + 1, 
               itemBuilder: (context, index) {
                 if (index < filteredMovies.length) {
                   final movie = filteredMovies[index];
@@ -142,11 +142,15 @@ class _MovieListPageState extends State<MovieListPage> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Expanded(
-                            child: Image.network(movie.posterUrl, fit: BoxFit.cover),
+                            child: Image.network(
+                              movie.posterUrl,
+                              fit: BoxFit.cover,
+                              width: widget.country == jp ? double.infinity : null, 
+                            ),
                           ),
                           const SizedBox(height: 4.0),
                           Text(
-                            '${movie.source} ${movie.localTitle}',
+                            '${movie.status} ${movie.localTitle}',
                             textAlign: TextAlign.center,
                             style: const TextStyle(fontSize: 12.0),
                           ),
@@ -159,18 +163,18 @@ class _MovieListPageState extends State<MovieListPage> {
                     return Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: SizedBox(
-                        width: double.infinity, // Full-width button
+                        width: double.infinity,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.zero, // Square corners
+                              borderRadius: BorderRadius.zero, 
                             ),
                             padding: const EdgeInsets.all(16.0),
                           ),
                           onPressed: () {
                             setState(() {
                               allMovies.addAll(moreMovies);
-                              _applyFilter(true); // Reapply the filter after adding new movies
+                              _applyFilter(true); 
                               moreMovies = [];
                             });
                           },
@@ -179,7 +183,7 @@ class _MovieListPageState extends State<MovieListPage> {
                       ),
                     );
                   } else {
-                    return const SizedBox.shrink(); // If no more movies, don't show anything
+                    return const SizedBox.shrink();
                   }
                 }
               },

@@ -32,7 +32,7 @@ class MovieService {
       case kr:
         return fetchKRMovieDetails(movie);
       case jp:
-        return fetchKRMovieDetails(movie);
+        return fetchJPMovieDetails(movie);
       default:
         return fetchKRMovieDetails(movie);
     }
@@ -52,27 +52,34 @@ class MovieService {
     return cgvMovies;
   }
 
-  static Future<List<Movie>> fetchJPMovie() async {
-    final stopWatchJP = Stopwatch()..start();
-    List<Movie> eigaMovies = await MovieServiceJP.fetchFromEIGA();
-    stopWatchJP.stop();
-    print('fetchKR: ${stopWatchJP.elapsedMilliseconds}ms');
-    return eigaMovies;
+  static Future<Map<String, String?>> fetchKRMovieDetails(Movie movie) async {
+      Map<String, String?> trailerData = movie.source == cgv ? 
+        await MovieServiceKR.fetchTrailerFromCGV(movie.sourceIdx.toString()) 
+        : await MovieServiceKR.fetchTrailerFromLOTTE(movie.sourceIdx.toString());
+      return trailerData;
   }
 
-  // not implemented yet
+  static Future<List<Movie>> fetchJPMovie() async {
+    final stopWatchJP = Stopwatch()..start();
+    List<Movie> eigaMovies = await MovieServiceJP.fetchRunningFromEIGA(false);
+    List<Movie> eigaUpcomingMovies = await MovieServiceJP.fetchUpcomingFromEIGA();
+    stopWatchJP.stop();
+    print('fetchKR: ${stopWatchJP.elapsedMilliseconds}ms');
+    return [...eigaMovies, ...eigaUpcomingMovies];
+  }
+
   // static Future<List<Movie>> fetchJPMovieMore(List<Movie> moviesJP) async {
   //   final stopWatch = Stopwatch()..start();
-  //   List<Movie> eigaMoreMovies = await MovieServiceJP.fetchNoTrailerFromCGV(moviesJP);
+  //   List<Movie> eigaMoreMovies = await MovieServiceJP.fetchMoreFromEIGA();
   //   stopWatch.stop();
   //   return eigaMoreMovies;
   // }
 
- static Future<Map<String, String?>> fetchKRMovieDetails(Movie movie) async {
-    Map<String, String?> trailerData = movie.source == cgv ? 
-      await MovieServiceKR.fetchTrailerFromCGV(movie.sourceIdx.toString()) 
-      : await MovieServiceKR.fetchTrailerFromLOTTE(movie.sourceIdx.toString());
-    return trailerData;
- }
+  static Future<Map<String, String?>> fetchJPMovieDetails(Movie movie) async {
+      Map<String, String?> trailerData = 
+        await MovieServiceJP.fetchMovieinfoJP(movie.sourceIdx.toString());
+
+      return trailerData;
+  }
 
 }

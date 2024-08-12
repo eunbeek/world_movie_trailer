@@ -80,3 +80,8 @@ const lotteDetail = "https://www.lottecinema.co.kr/LCWS/Movie/MovieData.aspx";
 // 3. Eiga
 const eiga = 'Eiga';
 const eigaAll = "https://eiga.com/movie/video/";
+const eigaRunning = "https://eiga.com/now/";
+const eigaUpcoming = "https://eiga.com/movie/video/upcoming";
+const eigaMore = "https://eiga.com/now/all/release/";
+const eigaDetail = "https://eiga.com/movie/";
+const eigaMoreUpcoming = "https://eiga.com/movie/video/coming/";
