@@ -46,7 +46,7 @@ class _CountryListPageState extends State<CountryListPage> {
   @override
   Widget build(BuildContext context) {
     String languageCode = Localizations.localeOf(context).languageCode;
-    print(languageCode);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_getAppBarTitle(languageCode)),
