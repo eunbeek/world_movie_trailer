@@ -3,7 +3,7 @@ import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 import 'package:world_movie_trailer/common/utils.dart';
 import 'package:world_movie_trailer/model/movie.dart';
-import 'package:world_movie_trailer/common/movie_service.dart';
+import 'package:world_movie_trailer/common/movie_service_kr.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 
 class MovieDetailPage extends StatefulWidget {
@@ -35,9 +35,9 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
       Map<String, String?> trailerData;
       
       if (widget.movie.source == cgv) {
-        trailerData = await MovieService.fetchTrailerFromCGV(widget.movie.sourceIdx.toString());
+        trailerData = await MovieServiceKR.fetchTrailerFromCGV(widget.movie.sourceIdx.toString());
       } else {
-        final trailerUrl = await MovieService.fetchTrailerFromLOTTE(widget.movie.sourceIdx.toString());
+        final trailerUrl = await MovieServiceKR.fetchTrailerFromLOTTE(widget.movie.sourceIdx.toString());
         trailerData = {'trailerUrl': trailerUrl, 'engTitle': widget.movie.engTitle};
       }
 
