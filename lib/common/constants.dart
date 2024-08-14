@@ -11,9 +11,9 @@ const countryAppBarCn = '世界电影预告片';
 List<String> countryKeys = ['korea', 'japan', 'canada'];
 Map<String, Map<String, String>> localizedCountries = {
   'en': {
+    'canada': 'Canada',
     'korea': 'South Korea',
     'japan': 'Japan',
-    'canada': 'Canada',
   },
   'ko': {
     'korea': '한국',
@@ -21,8 +21,8 @@ Map<String, Map<String, String>> localizedCountries = {
     'canada': '캐나다',
   },
   'ja': {
-    'korea': '韓国',
     'japan': '日本',
+    'korea': '韓国',
     'canada': 'カナダ',
   },
 };
@@ -43,8 +43,7 @@ const listFilterRunning = "Running";
 const listFilterUpcoming = "Upcoming";
 
 // movie detail
-const trailerPause = "Pause Trailer";
-const trailerContinue = "Watch Trailer";
+
 
 // movie service
 // 1. CGV
@@ -76,12 +75,37 @@ const lotte = 'Lotte';
 // const lotteDetail = "https://cors-anywhere.herokuapp.com/https://www.lottecinema.co.kr/LCWS/Movie/MovieData.aspx";
 const lotteUrlAll = "https://www.lottecinema.co.kr/NLCHS/Movie/List?flag=1";
 const lotteDetail = "https://www.lottecinema.co.kr/LCWS/Movie/MovieData.aspx";
+const lotteRunningHeader = {
+  "MethodName": "GetMoviesToBe",
+  "channelType": "HO",
+  "osType": "Chrome",
+  "osVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_0_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
+  "multiLanguageID": "US",
+  "division": 1,
+  "moviePlayYN": 'Y',
+  "orderType": "1",
+  "blockSize": 100,
+  "pageNo": 1,
+  "memberOnNo": ""
+};
+const lotteUpcomingHeader = {
+  "MethodName": "GetMoviesToBe",
+  "channelType": "HO",
+  "osType": "Chrome",
+  "osVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_0_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
+  "multiLanguageID": "US",
+  "division": 1,
+  "moviePlayYN": 'N',
+  "orderType": "1",
+  "blockSize": 100,
+  "pageNo": 1,
+  "memberOnNo": ""
+};
 
 // 3. Eiga
 const eiga = 'Eiga';
-const eigaAll = "https://eiga.com/movie/video/";
 const eigaRunning = "https://eiga.com/now/";
 const eigaUpcoming = "https://eiga.com/movie/video/upcoming";
-const eigaMore = "https://eiga.com/now/all/release/";
-const eigaDetail = "https://eiga.com/movie/";
+const eigaMore = "https://eiga.com/now/all/release/2/";
 const eigaMoreUpcoming = "https://eiga.com/movie/video/coming/";
+const eigaDetail = "https://eiga.com/movie/";

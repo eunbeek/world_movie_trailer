@@ -5,7 +5,7 @@ class Movie {
   final String trailerUrl;
   final String country;
   final String source;
-  final int sourceIdx;
+  final String sourceIdx;
   final String spec;
   final String status;
 

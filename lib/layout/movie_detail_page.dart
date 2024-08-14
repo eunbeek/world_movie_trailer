@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 import 'package:world_movie_trailer/common/movie_service.dart';
+import 'package:world_movie_trailer/common/movie_service_kr.dart';
 import 'package:world_movie_trailer/common/utils.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 
@@ -22,11 +23,14 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
   bool _isLoading = true;
   String? _trailerUrl;
   String? _engTitle;
+  String? _tmdbOverview;
+  String? _displayLink;
 
   @override
   void initState() {
     super.initState();
     _fetchDetailsAndInitializeVideo();
+    _fetchMovieDetailsFromTMDB();
   }
 
   // Fetch details and initialize the video player
@@ -48,6 +52,17 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
         _errorMessage = 'Error loading video: $error';
         _isLoading = false;
       });
+    }
+  }
+
+  void _fetchMovieDetailsFromTMDB() async {
+    try {
+      final tmdbData = await MovieService.fetchMovieInfoFromTMDB(widget.country, widget.movie);
+      setState(() {
+        _tmdbOverview = tmdbData['overview'];
+      });
+    } catch (error) {
+      print('Error fetching TMDB details: $error');
     }
   }
 
@@ -92,9 +107,7 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
       appBar: AppBar(
         title: Text(_engTitle ?? widget.movie.localTitle),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+      body: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
@@ -123,6 +136,36 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                       children: parseHtml(widget.movie.spec),
                     ),
                   ),
+                  _tmdbOverview != null
+                      ? Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ElevatedButton(
+                                onPressed: () {
+                                  // link 아래에 출력
+                                  setState(() {
+                                    _displayLink = _tmdbOverview;
+                                  });
+                                },
+                                child: const Text('Details'),
+                              ),
+                              if (_displayLink != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 10),
+                                  child: Text(
+                                    'TMDB Link: $_displayLink',
+                                    style: const TextStyle(
+                                      color: Colors.blue,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        )
+                      : const SizedBox.shrink(),
                 ],
               ),
             ),

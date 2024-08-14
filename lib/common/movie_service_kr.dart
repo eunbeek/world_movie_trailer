@@ -24,8 +24,8 @@ class MovieServiceKR {
 
       for (var i = startPointByStatus; i < movieBoxes.length; i++) {
         final titleElement = movieBoxes[i].querySelector('.box-contents .title');
-
-        if (titleElement == null ) continue;
+      
+        if (titleElement == null) continue;
 
         final localTitle = titleElement.text.trim();
 
@@ -50,7 +50,7 @@ class MovieServiceKR {
           trailerUrl: '',
           country: kr,
           source: cgv,
-          sourceIdx: int.parse(midx),
+          sourceIdx: midx,
           spec: '',
           status: status,
         );
@@ -58,6 +58,7 @@ class MovieServiceKR {
         movies.add(movie);
       }
       if(url == cgvUrlRunning){
+
         // Fetch additional movies
         final additionalMoviesResponse = await http.get(Uri.parse(cgvMoreMoviesUrl), headers: cgvMoreMovieHeader);
 
@@ -76,28 +77,33 @@ class MovieServiceKR {
 
   static void _processAdditionalMovies(List<dynamic> movieList, List<Movie> movies, List<Movie> lotteMovies) {
     if (movieList.isEmpty) return;
-
+    
     for (var movieJson in movieList) {
-      final localTitle = movieJson['Title'] ?? 'Unknown';
-      final engTitle = movieJson['EnglishTitle'] ?? '';
-      final posterUrl = movieJson['PosterImage']['LargeImage'] ?? '';
-      final midx = movieJson['MovieIdx'] ?? '0';
+      try {
+        final localTitle = movieJson['Title'] ?? 'Unknown';
+        final engTitle = movieJson['OriginalTitle'] ?? '';
+        final posterUrl = movieJson['PosterImage']['LargeImage'] ?? '';
+        final midx = movieJson['MovieIdx']?.toString() ?? '0';
 
-      if (lotteMovies.any((lotteMovie) => lotteMovie.localTitle == localTitle)) continue;
+        if (lotteMovies.any((lotteMovie) => lotteMovie.localTitle == localTitle)) continue;
 
-      final movie = Movie(
-        localTitle: localTitle,
-        engTitle: engTitle,
-        posterUrl: posterUrl,
-        trailerUrl: '',
-        country: kr,
-        source: cgv,
-        sourceIdx: midx,
-        spec: '',
-        status: listFilterRunning,
-      );
+        final movie = Movie(
+          localTitle: localTitle,
+          engTitle: engTitle,
+          posterUrl: posterUrl,
+          trailerUrl: '',
+          country: kr,
+          source: cgv,
+          sourceIdx: midx,
+          spec: '',
+          status: listFilterRunning,
+        );
 
-      movies.add(movie);
+        movies.add(movie);
+      }catch(e, stacktrace){
+        print('Error processing movie: $e');
+        print(stacktrace); 
+      }
     }
   }
   
@@ -147,34 +153,7 @@ class MovieServiceKR {
   }
 
   static Future<List<Movie>> fetchNoTrailerFromLOTTE() async {
-    final List<Map<String, dynamic>> requestDataList = [
-      {
-        "MethodName": "GetMoviesToBe",
-        "channelType": "HO",
-        "osType": "Chrome",
-        "osVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_0_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
-        "multiLanguageID": "EN",
-        "division": 1,
-        "moviePlayYN": 'Y',
-        "orderType": "1",
-        "blockSize": 100,
-        "pageNo": 1,
-        "memberOnNo": ""
-      },
-      {
-        "MethodName": "GetMoviesToBe",
-        "channelType": "HO",
-        "osType": "Chrome",
-        "osVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_0_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
-        "multiLanguageID": "EN",
-        "division": 1,
-        "moviePlayYN": 'N',
-        "orderType": "1",
-        "blockSize": 100,
-        "pageNo": 1,
-        "memberOnNo": ""
-      }
-    ];
+    final List<Map<String, dynamic>> requestDataList = [lotteRunningHeader, lotteUpcomingHeader];
 
     final movies = <Movie>[];
 
@@ -199,19 +178,18 @@ class MovieServiceKR {
       try {
         final responseData = json.decode(response.body);
         final moviesList = responseData['Movies']['Items'] as List;
-
         for (var movieJson in moviesList) {
           if (movieJson['RepresentationMovieCode'] == 'AD') continue;
           // final posterUrl = "https://cors-anywhere.herokuapp.com/" +   movieJson['PosterURL'];
           final posterUrl = movieJson['PosterURL'];
           movies.add(Movie(
             localTitle: movieJson['MovieNameKR'] as String,
-            engTitle: '',
+            engTitle: movieJson['MovieNameUS'] as String,
             posterUrl: posterUrl,
             trailerUrl: '',
             country: kr,
             source: lotte,
-            sourceIdx: int.parse(movieJson['RepresentationMovieCode'] as String),
+            sourceIdx: movieJson['RepresentationMovieCode'] as String,
             spec: '',
             status: requestData['moviePlayYN'] == 'Y' ? 'Running' : 'Upcoming',
           ));

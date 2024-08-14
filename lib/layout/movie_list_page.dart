@@ -150,7 +150,7 @@ class _MovieListPageState extends State<MovieListPage> {
                           ),
                           const SizedBox(height: 4.0),
                           Text(
-                            '${movie.status} ${movie.localTitle}',
+                            '${movie.status} ${movie.engTitle}',
                             textAlign: TextAlign.center,
                             style: const TextStyle(fontSize: 12.0),
                           ),

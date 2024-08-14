@@ -5,8 +5,8 @@ import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 
 class MovieServiceJP {
-   static Future<List<Movie>> fetchRunningFromEIGA(bool isMore) async {
-    final response = await http.get(Uri.parse(eigaRunning));
+  static Future<List<Movie>> fetchRunningFromEIGA(bool isMore, {List<Movie>? moviesJP}) async {
+    final response = await http.get(Uri.parse(isMore?eigaRunning : eigaMore));
 
     if (response.statusCode != 200) {
       throw Exception('Failed to load EIGA movies');
@@ -20,6 +20,12 @@ class MovieServiceJP {
       final aTag = movieBox.querySelector('div.img-box a');
       if (aTag != null) {
         final title = aTag.querySelector('img')?.attributes['alt'];
+        if(isMore && moviesJP != null){
+          final localTitle = title?.trim();
+
+          if (moviesJP.any((movieJP) => movieJP.localTitle == localTitle)) continue;
+        }
+
         final posterUrl = aTag.querySelector('img')?.attributes['src'];
         final href = aTag.attributes['href'] ?? '';
         final midxMatch = RegExp(r'/movie/(\d+)/').firstMatch(href);
@@ -43,7 +49,7 @@ class MovieServiceJP {
           trailerUrl: '',
           country: jp,
           source: eiga,
-          sourceIdx: int.parse(midx),
+          sourceIdx: midx,
           spec: 'N/A',
           status: status,
         ));
@@ -53,8 +59,8 @@ class MovieServiceJP {
     return movies;
   }
 
- static Future<List<Movie>> fetchUpcomingFromEIGA() async {
-    final response = await http.get(Uri.parse(eigaUpcoming));
+ static Future<List<Movie>> fetchUpcomingFromEIGA(bool isMore, {List<Movie>? moviesJP}) async {
+    final response = await http.get(Uri.parse(isMore?eigaUpcoming:eigaMoreUpcoming));
 
     if (response.statusCode != 200) {
       throw Exception('Failed to load EIGA movies');
@@ -70,6 +76,13 @@ class MovieServiceJP {
       if (aTag != null) {
 
         final title = movieBox.querySelector('div.img-thumb')?.querySelector('img')?.attributes['alt'];
+        if(isMore && moviesJP != null){
+          final localTitle = title?.trim();
+
+          if (moviesJP.any((movieJP) => movieJP.localTitle == localTitle)) continue;
+        }
+
+       
         final posterUrl = movieBox.querySelector('div.img-thumb')?.querySelector('img')?.attributes['src'];
         final href = aTag.attributes['href'] ?? '';
         final midxMatch = RegExp(r'/movie/(\d+)/video/').firstMatch(href);
@@ -92,7 +105,7 @@ class MovieServiceJP {
           trailerUrl: '',
           country: jp,
           source: eiga,
-          sourceIdx: int.parse(midx),
+          sourceIdx: midx,
           spec: 'N/A',
           status: status,
         ));
@@ -101,7 +114,7 @@ class MovieServiceJP {
     return movies;
   }
 
-   // Function to parse the release date string
+  // Function to parse the release date string
   static DateTime? _parseReleaseDate(String releaseDateString) {
     final match = RegExp(r'(\d{1,2}月\d{1,2}日)').firstMatch(releaseDateString);
     if (match != null) {
