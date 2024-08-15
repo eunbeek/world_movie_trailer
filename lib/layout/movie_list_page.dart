@@ -121,7 +121,7 @@ class _MovieListPageState extends State<MovieListPage> {
               controller: _scrollController,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: widget.country == jp ? 1 : 2, 
-                childAspectRatio: widget.country == jp ? 2 : 0.7, 
+                childAspectRatio: widget.country == jp ? 1.3 : 0.7, 
               ),
               itemCount: filteredMovies.length + 1, 
               itemBuilder: (context, index) {
@@ -150,7 +150,7 @@ class _MovieListPageState extends State<MovieListPage> {
                           ),
                           const SizedBox(height: 4.0),
                           Text(
-                            '${movie.status} ${movie.engTitle}',
+                            '${movie.localTitle}',
                             textAlign: TextAlign.center,
                             style: const TextStyle(fontSize: 12.0),
                           ),

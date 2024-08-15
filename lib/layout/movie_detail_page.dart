@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 import 'package:world_movie_trailer/common/movie_service.dart';
-import 'package:world_movie_trailer/common/movie_service_kr.dart';
-import 'package:world_movie_trailer/common/utils.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 
 class MovieDetailPage extends StatefulWidget {
@@ -20,7 +18,6 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
   late VideoPlayerController _videoPlayerController;
   ChewieController? _chewieController;
   String _errorMessage = '';
-  bool _isLoading = true;
   String? _trailerUrl;
   String? _engTitle;
   String? _tmdbOverview;
@@ -41,7 +38,6 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
       setState(() {
         _trailerUrl = trailerData['trailerUrl'];
         _engTitle = trailerData['engTitle'] ?? widget.movie.localTitle;
-        _isLoading = false;
       });
 
       _initializeVideoPlayer();
@@ -50,7 +46,6 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
       print('Error fetching trailer details: $error');
       setState(() {
         _errorMessage = 'Error loading video: $error';
-        _isLoading = false;
       });
     }
   }
@@ -70,21 +65,22 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
     if (_trailerUrl == null || _trailerUrl!.isEmpty) {
       setState(() {
         _errorMessage = 'Trailer not available';
-        _isLoading = false;
       });
       return;
     }
 
     _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(_trailerUrl!));
 
-    _videoPlayerController.initialize().then((_) {
-      print('Video Initialized'); 
-      _chewieController = ChewieController(
-        videoPlayerController: _videoPlayerController,
-        autoPlay: false,
-        looping: false,
-        showControlsOnInitialize: true,
-      );
+    // 비디오 초기화 및 ChewieController 설정을 동시에 처리
+    final initializeFuture = _videoPlayerController.initialize();
+    _chewieController = ChewieController(
+      videoPlayerController: _videoPlayerController,
+      autoPlay: false,
+      looping: false,
+    );
+
+    // initialize가 완료될 때까지 기다리기
+    initializeFuture.then((_) {
       setState(() {});
     }).catchError((error) {
       print('Video Initialization Error: $error');
@@ -129,13 +125,6 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: parseHtml(widget.movie.spec),
-                    ),
-                  ),
                   _tmdbOverview != null
                       ? Padding(
                           padding: const EdgeInsets.all(8.0),
@@ -155,7 +144,7 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                                 Padding(
                                   padding: const EdgeInsets.only(top: 10),
                                   child: Text(
-                                    'TMDB Link: $_displayLink',
+                                    '$_displayLink',
                                     style: const TextStyle(
                                       color: Colors.blue,
                                       decoration: TextDecoration.underline,

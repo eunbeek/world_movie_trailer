@@ -6,7 +6,7 @@ import 'package:world_movie_trailer/common/constants.dart';
 
 class MovieServiceJP {
   static Future<List<Movie>> fetchRunningFromEIGA(bool isMore, {List<Movie>? moviesJP}) async {
-    final response = await http.get(Uri.parse(isMore?eigaRunning : eigaMore));
+    final response = await http.get(Uri.parse(!isMore?eigaRunning : eigaMore));
 
     if (response.statusCode != 200) {
       throw Exception('Failed to load EIGA movies');
@@ -60,7 +60,7 @@ class MovieServiceJP {
   }
 
  static Future<List<Movie>> fetchUpcomingFromEIGA(bool isMore, {List<Movie>? moviesJP}) async {
-    final response = await http.get(Uri.parse(isMore?eigaUpcoming:eigaMoreUpcoming));
+    final response = await http.get(Uri.parse(!isMore?eigaUpcoming:eigaMoreUpcoming));
 
     if (response.statusCode != 200) {
       throw Exception('Failed to load EIGA movies');

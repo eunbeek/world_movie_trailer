@@ -5,7 +5,7 @@ import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 
 class MovieServiceKR {
-  // Fetch Movies list from CGV except lotte movie
+  // Fetch Movies list 
   static Future<List<Movie>> fetchNoTrailerFromCGV(List<Movie> lotteMovies) async {
 
     final movies = <Movie>[];
@@ -29,7 +29,11 @@ class MovieServiceKR {
 
         final localTitle = titleElement.text.trim();
 
-        if (lotteMovies.any((lotteMovie) => lotteMovie.localTitle == localTitle)) continue;
+        final processedTitle = localTitle.startsWith('[')
+            ? localTitle.replaceFirst(RegExp(r'^\[.*?\]'), '').trim()
+            : localTitle;
+        
+        if (lotteMovies.any((lotteMovie) => lotteMovie.localTitle == processedTitle)) continue;
         
         final posterElement = movieBoxes[i].querySelector('.thumb-image img');
         final posterUrl = posterElement?.attributes['src'] ?? '';
@@ -44,7 +48,7 @@ class MovieServiceKR {
         final status = url == cgvUrlRunning ? listFilterRunning: listFilterUpcoming;
 
         final movie = Movie(
-          localTitle: localTitle,
+          localTitle: processedTitle,
           engTitle: '',
           posterUrl: posterUrl,
           trailerUrl: '',
@@ -85,10 +89,14 @@ class MovieServiceKR {
         final posterUrl = movieJson['PosterImage']['LargeImage'] ?? '';
         final midx = movieJson['MovieIdx']?.toString() ?? '0';
 
-        if (lotteMovies.any((lotteMovie) => lotteMovie.localTitle == localTitle)) continue;
+        final processedTitle = localTitle.startsWith('[')
+            ? localTitle.replaceFirst(RegExp(r'^\[.*?\]'), '').trim()
+            : localTitle;
+
+        if (lotteMovies.any((lotteMovie) => lotteMovie.localTitle == processedTitle)) continue;
 
         final movie = Movie(
-          localTitle: localTitle,
+          localTitle: processedTitle,
           engTitle: engTitle,
           posterUrl: posterUrl,
           trailerUrl: '',
@@ -104,9 +112,67 @@ class MovieServiceKR {
         print('Error processing movie: $e');
         print(stacktrace); 
       }
-    }
+    };
   }
-  
+
+  static Future<List<Movie>> fetchNoTrailerFromLOTTE() async {
+    final List<Map<String, dynamic>> requestDataList = [lotteRunningHeader, lotteUpcomingHeader];
+
+    final movies = <Movie>[];
+
+    for (var requestData in requestDataList) {
+      String requestDataJson = jsonEncode(requestData);
+
+      final response = await http.post(
+        Uri.parse(lotteDetail),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: {'paramList': requestDataJson},
+      );
+
+      if (response.statusCode != 200) {
+        print('Failed to load movie data');
+        print('Response status: ${response.statusCode}');
+        print('Response body: ${response.body}');
+        return [];
+      }
+
+      try {
+        final responseData = json.decode(response.body);
+        final moviesList = responseData['Movies']['Items'] as List;
+        for (var movieJson in moviesList) {
+          if (movieJson['RepresentationMovieCode'] == 'AD') continue;
+          // final posterUrl = "https://cors-anywhere.herokuapp.com/" +   movieJson['PosterURL'];
+          final posterUrl = movieJson['PosterURL'];
+          final processedTitle = movieJson['MovieNameKR'].startsWith('[')
+            ? movieJson['MovieNameKR'].replaceFirst(RegExp(r'^\[.*?\]'), '').trim()
+            : movieJson['MovieNameKR'].trim();
+          final planedRelsMnth = movieJson['PlanedRelsMnth'].replaceAll('-','').trim();
+
+          movies.add(Movie(
+            localTitle: processedTitle,
+            engTitle: movieJson['MovieNameUS'] as String,
+            posterUrl: posterUrl,
+            trailerUrl: 'https://cf.lottecinema.co.kr//Media/MovieFile/MovieMedia/$planedRelsMnth/${movieJson['RepresentationMovieCode']}_301_1.mp4',
+            country: kr,
+            source: lotte,
+            sourceIdx: movieJson['RepresentationMovieCode'] as String,
+            spec: '',
+            status: requestData['moviePlayYN'] == 'Y' ? 'Running' : 'Upcoming',
+          ));
+        }
+      } catch (e) {
+        print('Failed to parse response body as JSON');
+        print('Error: $e');
+        return [];
+      }
+    }
+
+    return movies;
+  }
+
+  // fetch trailers
   static Future<Map<String, String?>> fetchTrailerFromCGV(String midx) async {
     final response = await http.get(Uri.parse('$cgvDetailUrl$midx'));
     if (response.statusCode != 200) {
@@ -150,95 +216,5 @@ class MovieServiceKR {
       'trailerUrl': trailerUrl ?? '',
       'engTitle': engTitle ?? '',
     };
-  }
-
-  static Future<List<Movie>> fetchNoTrailerFromLOTTE() async {
-    final List<Map<String, dynamic>> requestDataList = [lotteRunningHeader, lotteUpcomingHeader];
-
-    final movies = <Movie>[];
-
-    for (var requestData in requestDataList) {
-      String requestDataJson = jsonEncode(requestData);
-
-      final response = await http.post(
-        Uri.parse(lotteDetail),
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: {'paramList': requestDataJson},
-      );
-
-      if (response.statusCode != 200) {
-        print('Failed to load movie data');
-        print('Response status: ${response.statusCode}');
-        print('Response body: ${response.body}');
-        return [];
-      }
-
-      try {
-        final responseData = json.decode(response.body);
-        final moviesList = responseData['Movies']['Items'] as List;
-        for (var movieJson in moviesList) {
-          if (movieJson['RepresentationMovieCode'] == 'AD') continue;
-          // final posterUrl = "https://cors-anywhere.herokuapp.com/" +   movieJson['PosterURL'];
-          final posterUrl = movieJson['PosterURL'];
-          movies.add(Movie(
-            localTitle: movieJson['MovieNameKR'] as String,
-            engTitle: movieJson['MovieNameUS'] as String,
-            posterUrl: posterUrl,
-            trailerUrl: '',
-            country: kr,
-            source: lotte,
-            sourceIdx: movieJson['RepresentationMovieCode'] as String,
-            spec: '',
-            status: requestData['moviePlayYN'] == 'Y' ? 'Running' : 'Upcoming',
-          ));
-        }
-      } catch (e) {
-        print('Failed to parse response body as JSON');
-        print('Error: $e');
-        return [];
-      }
-    }
-
-    return movies;
-  }
-  
-  static Future<Map<String,String?>> fetchTrailerFromLOTTE(String midx) async {
-    try {
-      final Map<String, dynamic> requestData = {
-        "MethodName": "GetMovieDetailTOBE",
-        "channelType": "HO",
-        "osType": "Chrome",
-        "osVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_0_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
-        "multiLanguageID": "EN",
-        "representationMovieCode": midx,
-        "memberOnNo": ""
-      };
-
-      String requestDataJson = jsonEncode(requestData);
-
-      final response = await http.post(
-        Uri.parse(lotteDetail),
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: {'paramList': requestDataJson},
-      );
-
-    final responseData = json.decode(response.body);
-    final trailers = responseData['Trailer']["Items"] as List;
-    print(trailers.first);
-    final trailer = trailers.lastWhere((item) => item["MediaURL"].isNotEmpty, orElse: () => null);
-
-    if (trailer != null) {
-      return {'trailerUrl': trailer["MediaURL"], 'engTitle': ''};
-    } else {
-      return {'trailerUrl': null, 'engTitle': null};
-    }
-    } catch (e) {
-      print('Failed to check trailer URL: $e');
-      return {'trailerUrl': null, 'engTitle': null};
-    }
   }
 }

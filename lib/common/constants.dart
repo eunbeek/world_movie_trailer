@@ -46,6 +46,10 @@ const listFilterUpcoming = "Upcoming";
 
 
 // movie service
+const countryCodeByTMDB = {
+  'South Korea' : 'ko-KR',
+  'Japan' : 'ja-JP',
+};
 // 1. CGV
 const cgv = 'CGV';
 // const cgvUrlRunning = "https://cors-anywhere.herokuapp.com/http://www.cgv.co.kr/movies/?lt=1&ft=1";

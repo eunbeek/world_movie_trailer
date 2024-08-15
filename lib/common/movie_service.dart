@@ -41,6 +41,7 @@ class MovieService {
   }
 
   static Future<Map<String, String?>> fetchMovieInfoFromTMDB(String country, Movie movie) async {
+
     final response = await http.get(Uri.parse('https://www.themoviedb.org/search?query=${Uri.encodeComponent(movie.localTitle)}'));
     
     if (response.statusCode != 200) {
@@ -58,7 +59,7 @@ class MovieService {
       throw Exception('Failed to find movie link');
     }
 
-    final res = await http.get(Uri.parse('https://www.themoviedb.org$link?language=ko-KR'));
+    final res = await http.get(Uri.parse('https://www.themoviedb.org$link?language=${countryCodeByTMDB[country]}'));
     if (res.statusCode != 200) {
       throw Exception('Failed to load movie detail');
     }
@@ -90,7 +91,7 @@ class MovieService {
   static Future<Map<String, String?>> fetchKRMovieDetails(Movie movie) async {
       Map<String, String?> trailerData = movie.source == cgv ? 
         await MovieServiceKR.fetchTrailerFromCGV(movie.sourceIdx.toString()) 
-        : await MovieServiceKR.fetchTrailerFromLOTTE(movie.sourceIdx.toString());
+        : {'trailerUrl': movie.trailerUrl};
       return trailerData;
   }
 
@@ -99,7 +100,7 @@ class MovieService {
     List<Movie> eigaMovies = await MovieServiceJP.fetchRunningFromEIGA(false);
     List<Movie> eigaUpcomingMovies = await MovieServiceJP.fetchUpcomingFromEIGA(false);
     stopWatchJP.stop();
-    print('fetchKR: ${stopWatchJP.elapsedMilliseconds}ms');
+    print('fetchJP: ${stopWatchJP.elapsedMilliseconds}ms');
     return [...eigaMovies, ...eigaUpcomingMovies];
   }
 
@@ -108,7 +109,7 @@ class MovieService {
     List<Movie> eigaMovies = await MovieServiceJP.fetchRunningFromEIGA(true, moviesJP: moviesJP);
     List<Movie> eigaUpcomingMovies = await MovieServiceJP.fetchUpcomingFromEIGA(true, moviesJP: moviesJP);
     stopWatchJP.stop();
-    print('fetchKR: ${stopWatchJP.elapsedMilliseconds}ms');
+    print('fetchJPMore: ${stopWatchJP.elapsedMilliseconds}ms');
     return [...eigaMovies, ...eigaUpcomingMovies];
   }
 
