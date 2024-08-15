@@ -26,6 +26,7 @@ class _MovieListPageState extends State<MovieListPage> {
   void initState() {
     super.initState();
     allMovies = widget.movies;
+    print(allMovies.first);
     _applyFilter(false);
     _fetchMoreMoviesInBackground();
   }

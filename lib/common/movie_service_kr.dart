@@ -50,7 +50,7 @@ class MovieServiceKR {
         final movie = Movie(
           localTitle: processedTitle,
           engTitle: '',
-          posterUrl: posterUrl,
+          posterUrl: 'https://cors-anywhere.herokuapp.com/$posterUrl',
           trailerUrl: '',
           country: kr,
           source: cgv,
@@ -98,7 +98,7 @@ class MovieServiceKR {
         final movie = Movie(
           localTitle: processedTitle,
           engTitle: engTitle,
-          posterUrl: posterUrl,
+          posterUrl: 'https://cors-anywhere.herokuapp.com/$posterUrl',
           trailerUrl: '',
           country: kr,
           source: cgv,
@@ -143,8 +143,8 @@ class MovieServiceKR {
         final moviesList = responseData['Movies']['Items'] as List;
         for (var movieJson in moviesList) {
           if (movieJson['RepresentationMovieCode'] == 'AD') continue;
-          // final posterUrl = "https://cors-anywhere.herokuapp.com/" +   movieJson['PosterURL'];
-          final posterUrl = movieJson['PosterURL'];
+          final posterUrl = "https://cors-anywhere.herokuapp.com/" +   movieJson['PosterURL'];
+          // final posterUrl = movieJson['PosterURL'];
           final processedTitle = movieJson['MovieNameKR'].startsWith('[')
             ? movieJson['MovieNameKR'].replaceFirst(RegExp(r'^\[.*?\]'), '').trim()
             : movieJson['MovieNameKR'].trim();

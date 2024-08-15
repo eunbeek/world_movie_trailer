@@ -40,40 +40,6 @@ class MovieService {
     }
   }
 
-  static Future<Map<String, String?>> fetchMovieInfoFromTMDB(String country, Movie movie) async {
-
-    final response = await http.get(Uri.parse('https://www.themoviedb.org/search?query=${Uri.encodeComponent(movie.localTitle)}'));
-    
-    if (response.statusCode != 200) {
-      throw Exception('Failed to search movie');
-    }
-
-    final document = html.parse(response.body);
-    final movieBox = document.querySelector('div.details');
-    String? link;
-    if (movieBox != null) {
-      link = movieBox.querySelector('a')?.attributes['href'];
-    }
-
-    if (link == null) {
-      throw Exception('Failed to find movie link');
-    }
-
-    final res = await http.get(Uri.parse('https://www.themoviedb.org$link?language=${countryCodeByTMDB[country]}'));
-    if (res.statusCode != 200) {
-      throw Exception('Failed to load movie detail');
-    }
-
-    final docu = html.parse(res.body);
-    final score = docu.querySelector('div.user_score_chart')?.attributes['data-percent'];
-    final overview = docu.querySelector('div.overview > p')?.text;
-
-    return {
-      'score': score ?? 'No score available',
-      'overview': overview ?? 'No overview available',
-    };
-  }
-
   static Future<List<Movie>> fetchKRMovie() async {
     final stopWatch = Stopwatch()..start();
     List<Movie> lotteMovies = await MovieServiceKR.fetchNoTrailerFromLOTTE();
@@ -119,5 +85,37 @@ class MovieService {
 
       return trailerData;
   }
+  static Future<Map<String, String?>> fetchMovieInfoFromTMDB(String country, Movie movie) async {
 
+    final response = await http.get(Uri.parse('https://cors-anywhere.herokuapp.com/https://www.themoviedb.org/search?query=${Uri.encodeComponent(movie.localTitle)}'));
+    
+    if (response.statusCode != 200) {
+      throw Exception('Failed to search movie');
+    }
+
+    final document = html.parse(response.body);
+    final movieBox = document.querySelector('div.details');
+    String? link;
+    if (movieBox != null) {
+      link = movieBox.querySelector('a')?.attributes['href'];
+    }
+
+    if (link == null) {
+      throw Exception('Failed to find movie link');
+    }
+
+    final res = await http.get(Uri.parse('https://cors-anywhere.herokuapp.com/https://www.themoviedb.org$link?language=${countryCodeByTMDB[country]}'));
+    if (res.statusCode != 200) {
+      throw Exception('Failed to load movie detail');
+    }
+
+    final docu = html.parse(res.body);
+    final score = docu.querySelector('div.user_score_chart')?.attributes['data-percent'];
+    final overview = docu.querySelector('div.overview > p')?.text;
+
+    return {
+      'score': score ?? 'No score available',
+      'overview': overview ?? 'No overview available',
+    };
+  }
 }

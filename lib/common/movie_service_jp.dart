@@ -45,7 +45,7 @@ class MovieServiceJP {
         movies.add(Movie(
           localTitle: title!,
           engTitle: '',
-          posterUrl: posterUrl!,
+          posterUrl: 'https://cors-anywhere.herokuapp.com/${posterUrl!}',
           trailerUrl: '',
           country: jp,
           source: eiga,
@@ -101,7 +101,7 @@ class MovieServiceJP {
         movies.add(Movie(
           localTitle: title!,
           engTitle: '', // Set English title if available
-          posterUrl: posterUrl!,
+          posterUrl: 'https://cors-anywhere.herokuapp.com/${posterUrl!}',
           trailerUrl: '',
           country: jp,
           source: eiga,
