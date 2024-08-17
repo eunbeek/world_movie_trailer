@@ -87,7 +87,7 @@ class MovieService {
   }
   static Future<Map<String, String?>> fetchMovieInfoFromTMDB(String country, Movie movie) async {
 
-    final response = await http.get(Uri.parse('https://cors-anywhere.herokuapp.com/https://www.themoviedb.org/search?query=${Uri.encodeComponent(movie.localTitle)}'));
+    final response = await http.get(Uri.parse('https://www.themoviedb.org/search?query=${Uri.encodeComponent(movie.localTitle)}'));
     
     if (response.statusCode != 200) {
       throw Exception('Failed to search movie');
@@ -104,7 +104,7 @@ class MovieService {
       throw Exception('Failed to find movie link');
     }
 
-    final res = await http.get(Uri.parse('https://cors-anywhere.herokuapp.com/https://www.themoviedb.org$link?language=${countryCodeByTMDB[country]}'));
+    final res = await http.get(Uri.parse('https://www.themoviedb.org$link?language=${countryCodeByTMDB[country]}'));
     if (res.statusCode != 200) {
       throw Exception('Failed to load movie detail');
     }

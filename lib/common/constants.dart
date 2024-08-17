@@ -52,14 +52,10 @@ const countryCodeByTMDB = {
 };
 // 1. CGV
 const cgv = 'CGV';
-const cgvUrlRunning = "https://cors-anywhere.herokuapp.com/http://www.cgv.co.kr/movies/?lt=1&ft=1";
-const cgvUrlUpcoming = "https://cors-anywhere.herokuapp.com/http://www.cgv.co.kr/movies/pre-movies.aspx";
-const cgvMoreMoviesUrl = 'https://cors-anywhere.herokuapp.com/https://www.cgv.co.kr/common/ajax/movies.aspx/GetMovieMoreList?listType=1&orderType=1&filterType=1';
-const cgvDetailUrl= "https://cors-anywhere.herokuapp.com/http://www.cgv.co.kr/movies/detail-view/trailer.aspx?midx=";
-// const cgvUrlRunning = "http://www.cgv.co.kr/movies/?lt=1&ft=1";
-// const cgvUrlUpcoming = "http://www.cgv.co.kr/movies/pre-movies.aspx";
-// const cgvMoreMoviesUrl = 'https://www.cgv.co.kr/common/ajax/movies.aspx/GetMovieMoreList?listType=1&orderType=1&filterType=1';
-// const cgvDetailUrl= "http://www.cgv.co.kr/movies/detail-view/trailer.aspx?midx=";
+const cgvUrlRunning = "http://www.cgv.co.kr/movies/?lt=1&ft=1";
+const cgvUrlUpcoming = "http://www.cgv.co.kr/movies/pre-movies.aspx";
+const cgvMoreMoviesUrl = 'https://www.cgv.co.kr/common/ajax/movies.aspx/GetMovieMoreList?listType=1&orderType=1&filterType=1';
+const cgvDetailUrl= "http://www.cgv.co.kr/movies/detail-view/trailer.aspx?midx=";
 const cgvMoreMovieHeader = {
   'Accept': 'application/json, text/javascript, */*; q=0.01',
   'Accept-Encoding': 'gzip, deflate',
@@ -75,10 +71,8 @@ const cgvMoreMovieHeader = {
 
 // 2. Lotte
 const lotte = 'Lotte';
-const lotteUrlAll = "https://cors-anywhere.herokuapp.com/https://www.lottecinema.co.kr/NLCHS/Movie/List?flag=1";
-const lotteDetail = "https://cors-anywhere.herokuapp.com/https://www.lottecinema.co.kr/LCWS/Movie/MovieData.aspx";
-// const lotteUrlAll = "https://www.lottecinema.co.kr/NLCHS/Movie/List?flag=1";
-// const lotteDetail = "https://www.lottecinema.co.kr/LCWS/Movie/MovieData.aspx";
+const lotteUrlAll = "https://www.lottecinema.co.kr/NLCHS/Movie/List?flag=1";
+const lotteDetail = "https://www.lottecinema.co.kr/LCWS/Movie/MovieData.aspx";
 const lotteRunningHeader = {
   "MethodName": "GetMoviesToBe",
   "channelType": "HO",
@@ -108,13 +102,8 @@ const lotteUpcomingHeader = {
 
 // 3. Eiga
 const eiga = 'Eiga';
-const eigaRunning = "https://cors-anywhere.herokuapp.com/https://eiga.com/now/";
-const eigaUpcoming = "https://cors-anywhere.herokuapp.com/https://eiga.com/movie/video/upcoming";
-const eigaMore = "https://cors-anywhere.herokuapp.com/https://eiga.com/now/all/release/2/";
-const eigaMoreUpcoming = "https://cors-anywhere.herokuapp.com/https://eiga.com/movie/video/coming/";
-const eigaDetail = "https://cors-anywhere.herokuapp.com/https://eiga.com/movie/";
-// const eigaRunning = "https://eiga.com/now/";
-// const eigaUpcoming = "https://eiga.com/movie/video/upcoming";
-// const eigaMore = "https://eiga.com/now/all/release/2/";
-// const eigaMoreUpcoming = "https://eiga.com/movie/video/coming/";
-// const eigaDetail = "https://eiga.com/movie/";
+const eigaRunning = "https://eiga.com/now/";
+const eigaUpcoming = "https://eiga.com/movie/video/upcoming";
+const eigaMore = "https://eiga.com/now/all/release/2/";
+const eigaMoreUpcoming = "https://eiga.com/movie/video/coming/";
+const eigaDetail = "https://eiga.com/movie/";

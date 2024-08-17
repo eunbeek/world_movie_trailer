@@ -50,7 +50,7 @@ class MovieServiceKR {
         final movie = Movie(
           localTitle: processedTitle,
           engTitle: '',
-          posterUrl: 'https://cors-anywhere.herokuapp.com/$posterUrl',
+          posterUrl: posterUrl,
           trailerUrl: '',
           country: kr,
           source: cgv,
@@ -98,7 +98,7 @@ class MovieServiceKR {
         final movie = Movie(
           localTitle: processedTitle,
           engTitle: engTitle,
-          posterUrl: 'https://cors-anywhere.herokuapp.com/$posterUrl',
+          posterUrl: posterUrl,
           trailerUrl: '',
           country: kr,
           source: cgv,
@@ -143,8 +143,6 @@ class MovieServiceKR {
         final moviesList = responseData['Movies']['Items'] as List;
         for (var movieJson in moviesList) {
           if (movieJson['RepresentationMovieCode'] == 'AD') continue;
-          final posterUrl = "https://cors-anywhere.herokuapp.com/" +   movieJson['PosterURL'];
-          // final posterUrl = movieJson['PosterURL'];
           final processedTitle = movieJson['MovieNameKR'].startsWith('[')
             ? movieJson['MovieNameKR'].replaceFirst(RegExp(r'^\[.*?\]'), '').trim()
             : movieJson['MovieNameKR'].trim();
@@ -153,7 +151,7 @@ class MovieServiceKR {
           movies.add(Movie(
             localTitle: processedTitle,
             engTitle: movieJson['MovieNameUS'] as String,
-            posterUrl: posterUrl,
+            posterUrl:  movieJson['PosterURL'] as String,
             trailerUrl: 'https://cf.lottecinema.co.kr//Media/MovieFile/MovieMedia/$planedRelsMnth/${movieJson['RepresentationMovieCode']}_301_1.mp4',
             country: kr,
             source: lotte,
