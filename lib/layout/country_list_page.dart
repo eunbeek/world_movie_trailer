@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:world_movie_trailer/layout/video_ad_page.dart'; // Import VideoAdPage
+import 'package:world_movie_trailer/layout/video_ad_page.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 
 class CountryListPage extends StatefulWidget {

@@ -84,20 +84,18 @@ async function processBatch(country, moviesData, processedCount, startTime) {
     return moviesData;
   }
 
-  const moviesToProcess = unprocessedMovies.slice(0, 20);
+  const moviesToProcess = unprocessedMovies.slice(0, 10);
 
   for (const movie of moviesToProcess) {
     try {
-      console.log(movie.localTitle);
       const fetchedMovie = await searchMovieInfoByTitle(country, movie.localTitle);
       if (fetchedMovie) {
-        console.log(`fetched movie completed: ${movie.localTitle}`);
-        movie.posterUrl = fetchedMovie.poster_path ?
-      `https://image.tmdb.org/t/p/w600_and_h900_bestv2${fetchedMovie.poster_path}` :
-      "";
-        movie.trailerUrl = fetchedMovie.trailerLink,
+        movie.posterUrl = fetchedMovie.poster_path ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${fetchedMovie.poster_path}` : movie.posterUrl;
+        movie.trailerUrl = fetchedMovie.trailerLink || "ERR404",
         movie.spec = fetchedMovie.overview || "",
         movie.releaseDate = fetchedMovie.release_date || "";
+        movie.runtime = fetchedMovie.runtime || "";
+        movie.credits = fetchedMovie.credits || {};
       } else {
         movie.trailerUrl = "ERR404";
       }
@@ -130,7 +128,10 @@ async function processBatch(country, moviesData, processedCount, startTime) {
 async function saveMoviesAsJson(country, movies) {
   const bucket = admin.storage().bucket();
   const mainFileName = `movies_${country}.json`;
-  const moviesWithTrailer = movies.filter((movie) => movie.trailerUrl !== "ERR404");
+  const moviesWithTrailer = movies.filter((movie) => {
+    console.log(movie.trailerLink);
+    return movie.trailerUrl !== "ERR404";
+  });
   const jsonData = JSON.stringify(moviesWithTrailer, null, 2);
 
   try {

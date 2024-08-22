@@ -76,15 +76,12 @@ async function fetchMovieListFromCgv(lotteMovies) {
         if (lotteMovies.some((movie) => movie.localTitle === processedTitle)) {
           return;
         }
-
+        const posterUrl = $(elem).find(".thumb-image img").attr("src");
         const movie = {
           localTitle: processedTitle,
-          posterUrl: null,
-          trailerUrl: null,
+          posterUrl: posterUrl,
           country: "kr",
           source: "cgv",
-          spec: null,
-          releaseDate: null,
         };
 
         movies.push(movie);
@@ -123,11 +120,11 @@ async function fetchMovieListFromCgv(lotteMovies) {
  */
 async function _processAdditionalMovies(movieList, movies, lotteMovies) {
   if (!movieList) return;
-  console.log(movieList.length);
+
   const promises = movieList.map(async (movieJson) => {
     try {
       const localTitle = movieJson.Title || "Unknown";
-
+      const posterUrl = movieJson.PosterImage.LargeImage;
       const processedTitle = localTitle.startsWith("[") ?
         localTitle.replace(/^\[.*?\]/, "").trim() :
         localTitle;
@@ -138,12 +135,9 @@ async function _processAdditionalMovies(movieList, movies, lotteMovies) {
 
       const movie = {
         localTitle: processedTitle,
-        posterUrl: null,
-        trailerUrl: null,
+        posterUrl: posterUrl,
         country: "kr",
         source: "cgv",
-        spec: null,
-        releaseDate: null,
       };
 
       movies.push(movie);
@@ -191,12 +185,9 @@ async function fetchMovieListFromLotte() {
 
         movies.push({
           localTitle: processedTitle,
-          posterUrl: null,
-          trailerUrl: null,
+          posterUrl: movieJson.PosterURL,
           country: "kr",
           source: "lotte",
-          spec: null,
-          releaseDate: null,
         });
       });
 

@@ -5,6 +5,7 @@ const options = {
   method: "GET",
   headers: {
     accept: "application/json",
+    Authorization: "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiYzJkYjEzZDdhMTJhYjgzYWQ0NmQyZTM2ZmJiZjUxMyIsIm5iZiI6MTcyNDEzNzQzMi4yNTQ0Nywic3ViIjoiNjZjMmM0YzFiMTdiOWI1MzExNmUzNDU1Iiwic2NvcGVzIjpbImFwaV9yZWFkIl0sInZlcnNpb24iOjF9.HibWV0GxB4LevBZpRVwY8ws1xfNtk2xaWO-YViesV2w",
   },
 };
 
@@ -16,7 +17,7 @@ const options = {
  */
 async function searchMovieInfoByTitle(countryCode, query) {
   try {
-    const response = await fetch(`https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(query)}&include_adult=true&language=${countryCode}&page=1&api_key=bc2db13d7a12ab83ad46d2e36fbbf513`, options);
+    const response = await fetch(`https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(query)}&include_adult=true&language=${countryCode}&page=1`, options);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -24,9 +25,11 @@ async function searchMovieInfoByTitle(countryCode, query) {
 
     if (data.results && data.results.length > 0) {
       const movie = data.results[0];
-      const trailerLink = await searchMovieVideosByMovieId(movie.id, movie.original_title);
+      const trailerLink = await searchMovieVideosByMovieId(movie.id, movie.original_title, countryCode);
       if (trailerLink) {
         movie.trailerLink = trailerLink;
+        movie.credits = await searchCreditByMovieId(movie.id, countryCode);
+        movie.runtime = await searchRunTimeByMovieId(movie.id, countryCode);
         return movie;
       } else {
         return null;
@@ -45,11 +48,12 @@ async function searchMovieInfoByTitle(countryCode, query) {
  * Fetches the trailer link from TMDb based on the movie ID.
  * @param {String} movieId - TMDb movie ID.
  * @param {String} movieTitle - TMDb movie title.
+ * @param {String} countryCode - Country Code
  * @return {Promise<string|null>} - A promise that resolves to the trailer YouTube key or null if not found.
  */
-async function searchMovieVideosByMovieId(movieId, movieTitle) {
+async function searchMovieVideosByMovieId(movieId, movieTitle, countryCode) {
   try {
-    const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?api_key=bc2db13d7a12ab83ad46d2e36fbbf513`, options);
+    const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?language=${countryCode}`, options);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -62,8 +66,6 @@ async function searchMovieVideosByMovieId(movieId, movieTitle) {
       }
     }
 
-    // If no results or no YouTube trailer found, search on YouTube directly
-    console.log(`No TMDB trailer found, searching YouTube for ${movieTitle}`);
     const youtubeId = await fetchFirstYouTubeVideoId(movieTitle + " trailer");
     if (youtubeId) {
       return youtubeId;
@@ -73,6 +75,62 @@ async function searchMovieVideosByMovieId(movieId, movieTitle) {
     }
   } catch (err) {
     console.error("Error fetching movie videos:", err);
+    return null;
+  }
+}
+
+/**
+ * Fetches the movie credit from TMDb based on the movie ID.
+ * @param {String} movieId - TMDb movie ID.
+ * @param {String} countryCode - Country Code
+ * @return {Promise<Object|null>} - A promise that resolves to the credit or null if not found.
+ */
+async function searchCreditByMovieId(movieId, countryCode) {
+  try {
+    const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/credits?language=${countryCode}`, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+
+    if (data) {
+      // Limit the cast and crew to 4 members each
+      const limitedCast = data.cast.slice(0, 4);
+      const limitedCrew = data.crew.slice(0, 4);
+
+      // Return the limited data
+      return {
+        cast: limitedCast,
+        crew: limitedCrew,
+      };
+    } else {
+      return {cast: [], crew: []};
+    }
+  } catch (err) {
+    console.error("Error fetching movie credits:", err);
+    return null;
+  }
+}
+/**
+ * Fetches the movie runtime from TMDb based on the movie ID.
+ * @param {String} movieId - TMDb movie ID.
+ * @param {String} countryCode - Country Code
+ * @return {Promise<String|null>} - A promise that resolves to the runtime or null if not found.
+ */
+async function searchRunTimeByMovieId(movieId, countryCode) {
+  try {
+    const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?language=${countryCode}`, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    if (data.runtime) {
+      return data.runtime;
+    } else {
+      return null;
+    }
+  } catch (err) {
+    console.error("Error fetching movie credits:", err);
     return null;
   }
 }

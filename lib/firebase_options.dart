@@ -21,30 +21,9 @@ class DefaultFirebaseOptions {
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for android - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
-      case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
-      case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
-      case TargetPlatform.linux:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for linux - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
@@ -60,6 +39,23 @@ class DefaultFirebaseOptions {
     authDomain: 'world-movie-trailer.firebaseapp.com',
     storageBucket: 'world-movie-trailer.appspot.com',
     measurementId: 'G-NT1KH6LBJ1',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyA323GF95NhZ7QjhMZKit5uF1IJaVeTgY8',
+    appId: '1:917295366628:ios:18f419886a592f220cc7f1',
+    messagingSenderId: '917295366628',
+    projectId: 'world-movie-trailer',
+    storageBucket: 'world-movie-trailer.appspot.com',
+    iosBundleId: 'com.example.worldMovieTrailer',
+  );
+
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyCK6OJdTlKcu-lQ0WVX8lw3Zs8RZeP_Xg0',
+    appId: '1:917295366628:android:ce236cf93580522d0cc7f1',
+    messagingSenderId: '917295366628',
+    projectId: 'world-movie-trailer',
+    storageBucket: 'world-movie-trailer.appspot.com',
   );
 
 }

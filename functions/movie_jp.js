@@ -32,15 +32,12 @@ async function fetchRunningFromEIGA(moviesJP = []) {
         if (aTag) {
           const title = $(aTag).find("img").attr("alt");
           if (moviesJP.length > 0 && moviesJP.some((movieJP) => movieJP.localTitle.trim() === title.trim())) return;
-
+          const posterUrl = $(aTag).find("img").attr("src");
           movies.push({
             localTitle: title.trim(),
-            posterUrl: null,
-            trailerUrl: null,
+            posterUrl: posterUrl,
             country: "jp",
             source: "eiga",
-            spec: null,
-            releaseDate: null,
           });
         }
       }).get();
@@ -80,15 +77,12 @@ async function fetchUpcomingFromEIGA(moviesJP = []) {
           const title = $(movieBox).find("div.img-thumb img").attr("alt");
 
           if (moviesJP.length > 0 && moviesJP.some((movieJP) => movieJP.localTitle.trim() === title.trim())) return;
-
+          const posterUrl = $(movieBox).find("div.img-thumb").find("img").attr("src");
           movies.push({
             localTitle: title.trim(),
-            posterUrl: null,
-            trailerUrl: null,
+            posterUrl: posterUrl,
             country: "jp",
             source: "eiga",
-            spec: null,
-            releaseDate: null,
           });
         }
       }).get();

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/layout/movie_detail_page.dart';
 import 'package:world_movie_trailer/common/constants.dart';
-import 'package:world_movie_trailer/common/movie_service.dart';
 
 class MovieListPage extends StatefulWidget {
   final String country;
@@ -18,7 +17,7 @@ class _MovieListPageState extends State<MovieListPage> {
   String selectedFilter = listFilterAll;
   List<Movie> allMovies = [];
   List<Movie> filteredMovies = [];
-  List<Movie> moreMovies = [];
+
   final ScrollController _scrollController = ScrollController();
   bool isLoadingMore = false;
 
@@ -26,9 +25,7 @@ class _MovieListPageState extends State<MovieListPage> {
   void initState() {
     super.initState();
     allMovies = widget.movies;
-    print(allMovies.first);
     _applyFilter(false);
-    _fetchMoreMoviesInBackground();
   }
 
   void _applyFilter(bool isMore) {
@@ -50,16 +47,6 @@ class _MovieListPageState extends State<MovieListPage> {
           curve: Curves.easeInOut,
         );
       });
-    }
-  }
-
-  void _fetchMoreMoviesInBackground() async {
-    try {
-      moreMovies = await MovieService.fetchMovieMore(widget.country, widget.movies);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error loading more movies')),
-      );
     }
   }
 
@@ -120,73 +107,46 @@ class _MovieListPageState extends State<MovieListPage> {
           Expanded(
             child: GridView.builder(
               controller: _scrollController,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: widget.country == jp ? 1 : 2, 
-                childAspectRatio: widget.country == jp ? 1.3 : 0.7, 
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.7,
               ),
-              itemCount: filteredMovies.length + 1, 
+              itemCount: filteredMovies.length,
               itemBuilder: (context, index) {
-                if (index < filteredMovies.length) {
-                  final movie = filteredMovies[index];
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MovieDetailPage(country: widget.country, movie: movie),
-                        ),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(
-                            child: Image.network(
-                              movie.posterUrl,
-                              fit: BoxFit.cover,
-                              width: widget.country == jp ? double.infinity : null, 
-                            ),
-                          ),
-                          const SizedBox(height: 4.0),
-                          Text(
-                            '${movie.localTitle}',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 12.0),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                } else {
-                  if (moreMovies.isNotEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.zero, 
-                            ),
-                            padding: const EdgeInsets.all(16.0),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              allMovies.addAll(moreMovies);
-                              _applyFilter(true); 
-                              moreMovies = [];
-                            });
-                          },
-                          child: const Text('More', style: TextStyle(fontSize: 16.0)),
-                        ),
+                final movie = filteredMovies[index];
+
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MovieDetailPage(country: widget.country, movie: movie),
                       ),
                     );
-                  } else {
-                    return const SizedBox.shrink();
-                  }
-                }
+                  },
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
+                          child: Image.network(
+                            movie.posterUrl,
+                            fit: BoxFit.cover,
+                            width: double.infinity, // Make sure the image takes up full width
+                            height: double.infinity, // Make sure the image takes up full height
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Text(
+                          movie.localTitle,
+                          overflow: TextOverflow.ellipsis, // Handle text overflow
+                        ),
+                      ),
+                    ],
+                  ),
+                );
               },
             ),
           ),

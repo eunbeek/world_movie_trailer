@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
-import 'package:chewie/chewie.dart';
-import 'package:world_movie_trailer/common/movie_service.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 
 class MovieDetailPage extends StatefulWidget {
@@ -15,85 +13,35 @@ class MovieDetailPage extends StatefulWidget {
 }
 
 class _MovieDetailPageState extends State<MovieDetailPage> {
-  late VideoPlayerController _videoPlayerController;
-  ChewieController? _chewieController;
+  late YoutubePlayerController _youtubePlayerController;
   String _errorMessage = '';
-  String? _trailerUrl;
-  String? _engTitle;
-  String? _tmdbOverview;
-  String? _displayLink;
 
   @override
   void initState() {
     super.initState();
-    _fetchDetailsAndInitializeVideo();
-    _fetchMovieDetailsFromTMDB();
+    _initializeYoutubePlayer();
   }
 
-  // Fetch details and initialize the video player
-  void _fetchDetailsAndInitializeVideo() async {
-    try {
-      Map<String, String?> trailerData = await MovieService.fetchMovieDetails(widget.country, widget.movie);
-    
-      setState(() {
-        _trailerUrl = trailerData['trailerUrl'];
-        _engTitle = trailerData['engTitle'] ?? widget.movie.localTitle;
-      });
-
-      _initializeVideoPlayer();
-
-    } catch (error) {
-      print('Error fetching trailer details: $error');
-      setState(() {
-        _errorMessage = 'Error loading video: $error';
-      });
-    }
-  }
-
-  void _fetchMovieDetailsFromTMDB() async {
-    try {
-      final tmdbData = await MovieService.fetchMovieInfoFromTMDB(widget.country, widget.movie);
-      setState(() {
-        _tmdbOverview = tmdbData['overview'];
-      });
-    } catch (error) {
-      print('Error fetching TMDB details: $error');
-    }
-  }
-
-  void _initializeVideoPlayer() {
-    if (_trailerUrl == null || _trailerUrl!.isEmpty) {
+  void _initializeYoutubePlayer() {
+    if (widget.movie.trailerUrl.isEmpty) {
       setState(() {
         _errorMessage = 'Trailer not available';
       });
       return;
     }
 
-    _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(_trailerUrl!));
-
-    // 비디오 초기화 및 ChewieController 설정을 동시에 처리
-    final initializeFuture = _videoPlayerController.initialize();
-    _chewieController = ChewieController(
-      videoPlayerController: _videoPlayerController,
-      autoPlay: false,
-      looping: false,
+    _youtubePlayerController = YoutubePlayerController(
+      initialVideoId: YoutubePlayer.convertUrlToId(widget.movie.trailerUrl)!,
+      flags: const YoutubePlayerFlags(
+        autoPlay: false,
+        mute: false,
+      ),
     );
-
-    // initialize가 완료될 때까지 기다리기
-    initializeFuture.then((_) {
-      setState(() {});
-    }).catchError((error) {
-      print('Video Initialization Error: $error');
-      setState(() {
-        _errorMessage = 'Error initializing video: $error';
-      });
-    });
   }
 
   @override
   void dispose() {
-    _videoPlayerController.dispose();
-    _chewieController?.dispose();
+    _youtubePlayerController.dispose();
     super.dispose();
   }
 
@@ -101,67 +49,53 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_engTitle ?? widget.movie.localTitle),
+        title: Text(widget.movie.localTitle),
       ),
       body: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  _errorMessage.isNotEmpty
-                      ? _buildErrorWidget()  // Build the error widget
-                      : _chewieController != null && _videoPlayerController.value.isInitialized
-                          ? AspectRatio(
-                              aspectRatio: _videoPlayerController.value.aspectRatio,
-                              child: Chewie(
-                                controller: _chewieController!,
-                              ),
-                            )
-                          : const Center(child: CircularProgressIndicator()),
-                  const SizedBox(height: 20),
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      'Movie Details',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            _errorMessage.isNotEmpty
+                ? _buildErrorWidget()
+                : YoutubePlayer(
+                    controller: _youtubePlayerController,
+                    showVideoProgressIndicator: true,
+                    progressIndicatorColor: Colors.blueAccent,
                   ),
-                  _tmdbOverview != null
-                      ? Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ElevatedButton(
-                                onPressed: () {
-                                  // link 아래에 출력
-                                  setState(() {
-                                    _displayLink = _tmdbOverview;
-                                  });
-                                },
-                                child: const Text('Details'),
-                              ),
-                              if (_displayLink != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 10),
-                                  child: Text(
-                                    '$_displayLink',
-                                    style: const TextStyle(
-                                      color: Colors.blue,
-                                      decoration: TextDecoration.underline,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ],
+            const SizedBox(height: 20),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                'Movie Details',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
+            widget.movie.spec.isNotEmpty
+                ? Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: Text(
+                              widget.movie.spec,
+                              style: const TextStyle(
+                                color: Colors.blue,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ],
+        ),
+      ),
     );
   }
 
-  // Build the error widget with retry button
   Widget _buildErrorWidget() {
     return const Center(
       child: Padding(
