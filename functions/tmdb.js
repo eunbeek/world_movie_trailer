@@ -29,7 +29,8 @@ async function searchMovieInfoByTitle(countryCode, query) {
       if (trailerLink) {
         movie.trailerLink = trailerLink;
         movie.credits = await searchCreditByMovieId(movie.id, countryCode);
-        movie.runtime = await searchRunTimeByMovieId(movie.id, countryCode);
+        const movieDetails = await searchDetailsByMovieId(movie.id, countryCode);
+        movie.runtime = movieDetails.runtime;
         return movie;
       } else {
         return null;
@@ -115,17 +116,17 @@ async function searchCreditByMovieId(movieId, countryCode) {
  * Fetches the movie runtime from TMDb based on the movie ID.
  * @param {String} movieId - TMDb movie ID.
  * @param {String} countryCode - Country Code
- * @return {Promise<String|null>} - A promise that resolves to the runtime or null if not found.
+ * @return {Promise<Object|null>} - A promise that resolves to the runtime or null if not found.
  */
-async function searchRunTimeByMovieId(movieId, countryCode) {
+async function searchDetailsByMovieId(movieId, countryCode) {
   try {
     const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?language=${countryCode}`, options);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    if (data.runtime) {
-      return data.runtime;
+    if (data.runtime || data.release_date || data.overview) {
+      return data;
     } else {
       return null;
     }
@@ -135,6 +136,28 @@ async function searchRunTimeByMovieId(movieId, countryCode) {
   }
 }
 
+/**
+ * Fetches the special movie info from TMDb based on tmdb id
+ * @param {Object} movie - The search id
+ * @return {Promise<Object|null>} - A promise that resolves to the first Movie with trailerLink.
+ */
+async function searchSpecialMovieInfoByTid(movie) {
+  try {
+    const fetchedMovie={};
+    console.log(movie);
+    fetchedMovie.trailerLink = movie.trailerUrl;
+    fetchedMovie.credits = await searchCreditByMovieId(movie.tid, "en-US");
+    const movieDetails = await searchDetailsByMovieId(movie.tid, "en-US");
+    fetchedMovie.runtime = movieDetails.runtime;
+    fetchedMovie.release_date = movieDetails.release_date;
+    fetchedMovie.overview = movieDetails.overview;
+    return fetchedMovie;
+  } catch (err) {
+    console.error("Error fetching movie information:", err);
+    return null;
+  }
+}
 module.exports = {
   searchMovieInfoByTitle,
+  searchSpecialMovieInfoByTid,
 };

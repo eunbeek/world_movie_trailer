@@ -3,7 +3,8 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const {fetchMovieListFromCgv, fetchMovieListFromLotte} = require("./movie_kr");
 const {fetchRunningFromEIGA, fetchUpcomingFromEIGA} = require("./movie_jp");
-const {searchMovieInfoByTitle} = require("./tmdb");
+const {fetchMovieInSpecialSection} = require("./movie_special");
+const {searchMovieInfoByTitle, searchSpecialMovieInfoByTid} = require("./tmdb");
 
 admin.initializeApp();
 
@@ -74,10 +75,11 @@ exports.fetchMovieListJP = functions.pubsub
  * @param {Array} moviesData - The list of movies to process.
  * @param {number} processedCount - The count of processed movies.
  * @param {number} startTime - The start time of the batch process.
+ * @param {boolean} isSpecial - The special section movie or not.
  * @return {Promise<Array>} The updated list of movies.
  */
-async function processBatch(country, moviesData, processedCount, startTime) {
-  const unprocessedMovies = moviesData.filter((movie) => !movie.trailerUrl);
+async function processBatch(country, moviesData, processedCount, startTime, isSpecial = false) {
+  const unprocessedMovies = moviesData.filter((movie) => !movie.spec);
   console.log(`unprocessMovies: ${unprocessedMovies.length}`);
   if (unprocessedMovies.length === 0) {
     console.log("All movies processed. No further action needed.");
@@ -88,16 +90,23 @@ async function processBatch(country, moviesData, processedCount, startTime) {
 
   for (const movie of moviesToProcess) {
     try {
-      const fetchedMovie = await searchMovieInfoByTitle(country, movie.localTitle);
+      let fetchedMovie = [];
+
+      if (isSpecial) {
+        fetchedMovie = await searchSpecialMovieInfoByTid(movie);
+      } else {
+        fetchedMovie = await searchMovieInfoByTitle(country, movie.localTitle);
+      }
+
       if (fetchedMovie) {
         movie.posterUrl = fetchedMovie.poster_path ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${fetchedMovie.poster_path}` : movie.posterUrl;
-        movie.trailerUrl = fetchedMovie.trailerLink || "ERR404",
-        movie.spec = fetchedMovie.overview || "",
+        movie.trailerUrl = fetchedMovie.trailerLink || "",
+        movie.spec = fetchedMovie.overview || "ERR404",
         movie.releaseDate = fetchedMovie.release_date || "";
         movie.runtime = fetchedMovie.runtime || "";
         movie.credits = fetchedMovie.credits || {};
       } else {
-        movie.trailerUrl = "ERR404";
+        movie.spec = "ERR404";
       }
     } catch (error) {
       console.error(`Error processing movie ${movie.originalTitle}:`, error);
@@ -129,7 +138,6 @@ async function saveMoviesAsJson(country, movies) {
   const bucket = admin.storage().bucket();
   const mainFileName = `movies_${country}.json`;
   const moviesWithTrailer = movies.filter((movie) => {
-    console.log(movie.trailerLink);
     return movie.trailerUrl !== "ERR404";
   });
   const jsonData = JSON.stringify(moviesWithTrailer, null, 2);
@@ -145,6 +153,36 @@ async function saveMoviesAsJson(country, movies) {
     console.error("Error saving file to Firebase Storage:", error);
   }
 }
+
+exports.fetchSpeicalSectionByDirector = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
+  try {
+    const processedCount = 0;
+    const startTime = Date.now();
+
+    const specialMovies = await fetchMovieInSpecialSection();
+
+    console.log(`specialMovies : ${specialMovies.length}`);
+
+    const moviesWithTrailer = await processBatch("en-US", specialMovies, processedCount, startTime, true);
+
+    await saveMoviesAsJson("special", moviesWithTrailer);
+
+    const timestamp = new Date().toISOString();
+    console.log(`Success: [${timestamp}] Country: Special, Movie Count: ${moviesWithTrailer.length}`);
+
+    res.status(200).json({
+      success: true,
+      timestamp,
+      country: "Special",
+      movieCount: specialMovies.length,
+      movies: specialMovies,
+    });
+  } catch (error) {
+    console.error("Error fetching movie list:", error);
+    res.status(500).json({success: false, error: error.message});
+  }
+});
+
 
 exports.testFetchMovieListKR = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
   try {
@@ -167,8 +205,8 @@ exports.testFetchMovieListKR = functions.runWith({timeoutSeconds: 540}).https.on
       success: true,
       timestamp,
       country: "KR",
-      movieCount: allMovies.length,
-      movies: allMovies,
+      movieCount: moviesWithTrailer.length,
+      movies: moviesWithTrailer,
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -199,8 +237,8 @@ exports.testFetchMovieListJP = functions.runWith({timeoutSeconds: 540}).https.on
       success: true,
       timestamp,
       country: "JP",
-      movieCount: allMovies.length,
-      movies: allMovies,
+      movieCount: moviesWithTrailer.length,
+      movies: moviesWithTrailer,
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
