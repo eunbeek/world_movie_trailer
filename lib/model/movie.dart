@@ -1,13 +1,37 @@
-class Movie {
+import 'package:hive/hive.dart';
+
+part 'movie.g.dart'; // This part file will be generated later
+
+@HiveType(typeId: 0)
+class Movie extends HiveObject {
+  @HiveField(0)
   final String localTitle;
+
+  @HiveField(1)
   final String posterUrl;
+
+  @HiveField(2)
   final String trailerUrl;
+
+  @HiveField(3)
   final String country;
+
+  @HiveField(4)
   final String source;
+
+  @HiveField(5)
   final String spec;
+
+  @HiveField(6)
   final String releaseDate;
-  dynamic? runtime;
+
+  @HiveField(7)
+  dynamic runtime;
+
+  @HiveField(8)
   Map<String, dynamic>? credits;
+
+  @HiveField(9)
   String? status;
 
   Movie({
@@ -33,10 +57,10 @@ class Movie {
     'releaseDate': releaseDate,
     'runtime': runtime,
     'credits': credits,
-    'status': status
+    'status': status,
   };
 
-  factory Movie.fromJson(Map<String, dynamic> json) {
+  factory Movie.fromJson(Map<dynamic, dynamic> json) {
     return Movie(
       localTitle: json['localTitle'] ?? '',
       posterUrl: json['posterUrl'] ?? '',
@@ -46,7 +70,8 @@ class Movie {
       spec: json['spec'] ?? '',
       releaseDate: json['releaseDate'] ?? '',
       runtime: json['runtime'] ?? 0,
-      credits: json['credits']?? [],
+      credits: json['credits'] ?? {},
+      status: json['status'] ?? '',
     );
   }
 }

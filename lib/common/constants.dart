@@ -32,6 +32,7 @@ const jp = 'Japan';
 const na = 'North America';
 const fr = 'France';
 const ca = 'Canada';
+const special = 'Special';
 
 // ad
 

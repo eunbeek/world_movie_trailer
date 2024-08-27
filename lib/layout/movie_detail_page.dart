@@ -70,23 +70,67 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
-            widget.movie.spec.isNotEmpty
+            widget.movie.spec != "ERR404"
                 ? Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 10),
-                            child: Text(
-                              widget.movie.spec,
-                              style: const TextStyle(
-                                color: Colors.blue,
-                                decoration: TextDecoration.underline,
-                              ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: Text(
+                            widget.movie.spec,
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
                             ),
                           ),
+                        ),
                       ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
+            widget.movie.runtime != 0
+                ? Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: Text(
+                            'Runtime: ${widget.movie.runtime} minutes',
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
+            widget.movie.credits?["crew"] != null && widget.movie.credits?["crew"].isNotEmpty
+                ? Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Crew: ${widget.movie.credits?["crew"].map((crewMember) => crewMember["name"]).join(", ")}',
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+            widget.movie.credits?["cast"] != null && widget.movie.credits?["cast"].isNotEmpty
+                ? Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Cast: ${widget.movie.credits?["cast"].map((castMember) => castMember["name"]).join(", ")}',
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                   )
                 : const SizedBox.shrink(),

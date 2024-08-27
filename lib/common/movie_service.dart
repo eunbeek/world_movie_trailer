@@ -1,39 +1,74 @@
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:hive/hive.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 
 class MovieService {
-  // Entry point for fetching movies based on status and country
+  static Future<Box> _openBox() async {
+    return await Hive.openBox('moviesBox');
+  }
+
   static Future<List<Movie>> fetchMovie(String country) async {
+    print('fetchMovie');
+    Box box = await _openBox();
+    String countryCode;
+
     switch (country) {
       case kr:
-        return await readMoviesFromStorage('kr');
+        countryCode = 'kr';
+        break;
       case jp:
-        return await readMoviesFromStorage('jp');
+        countryCode = 'jp';
+        break;
+      case special:
+        countryCode = 'special';
+        break;
       default:
-        return await readMoviesFromStorage('na');
+        countryCode = 'na';
+        break;
+    }
+
+    // Check if movies are stored in Hive
+    Map<String, dynamic> result = await _getMoviesFromHive(box, countryCode);
+    List<Movie> movies = [];
+    String? timestamp = result['timestamp'];
+
+    if (timestamp != null && !_isDataOutdated(DateTime.parse(timestamp))) {
+      return result['movies'];
+    } else {
+      // Fetch new data from Firebase Storage
+      Map<String, dynamic> newResult = await readMoviesFromStorage(countryCode);
+      movies = newResult['movies'];
+      // Save the new data to Hive
+      await _saveMoviesToHive(box, countryCode, newResult);
+      return movies;
     }
   }
 
-  static Future<List<Movie>> readMoviesFromStorage(String countryCode) async {
+  static Future<Map<String, dynamic>> readMoviesFromStorage(String countryCode) async {
     try {
-      print('read " ${countryCode}');
+      print('readMoviesFromStorage');
       final ref = FirebaseStorage.instance.ref().child('movies_$countryCode.json');
-      print('data');
       final data = await ref.getData();
       final jsonString = utf8.decode(data!);
-      final List<dynamic> jsonData = json.decode(jsonString);
 
+      // Decode the JSON string into a List
+      final Map<String, dynamic> jsonData = json.decode(jsonString);
+
+      // Assuming jsonData[0] contains the timestamp and jsonData[1] contains the movies
+      final String timestamp = jsonData['timestamp'];
+
+      final List<dynamic> movieList = jsonData['movies'];
+
+      // Process each movie
       DateTime today = DateTime.now();
       final DateFormat dateFormat = DateFormat('yyyy-MM-dd');
 
-      // Map the JSON data to a list of Movie objects with status
-      final List<Movie> movies = jsonData.map((json) {
+      List<Movie> movies = movieList.map((json) {
         final movie = Movie.fromJson(json);
 
-        // Parse the releaseDate with the specified format
         DateTime? releaseDate;
         try {
           releaseDate = movie.releaseDate.isNotEmpty ? dateFormat.parseStrict(movie.releaseDate) : null;
@@ -47,14 +82,82 @@ class MovieService {
         } else {
           movie.status = 'Upcoming';
         }
-        print(movie.localTitle);
-        return movie;
-      }).toList();
 
-      return movies;
+        return movie;
+      }).where((movie)=> movie.trailerUrl.isNotEmpty)
+      .toList();
+
+      // Return a Map containing the timestamp and the processed movies
+      return {
+        'timestamp': timestamp,
+        'movies': movies,
+      };
     } catch (e) {
       print('Error reading movies: $e');
-      return []; // Return an empty list in case of an error
+      return {
+        'timestamp': null,
+        'movies': [],
+      }; // Return an empty list and null timestamp in case of an error
     }
+  }
+
+  static Future<void> _saveMoviesToHive(Box box, String countryCode, Map<String, dynamic> newUpdate) async {
+    try {
+      print('_saveMoviesToHive');
+
+      Map<String, dynamic> dataToSave = newUpdate;
+
+      await box.put('movies_$countryCode', dataToSave);
+      print('Movies saved to Hive successfully');
+    } catch (err) {
+      print('Error saving movies to Hive: $err');
+    }
+  }
+
+  static Future<Map<String, dynamic>> _getMoviesFromHive(Box box, String countryCode) async {
+    print('_getMoviesFromHive');
+    try {
+      // Retrieve data as dynamic first
+      Map<dynamic, dynamic>? storedData = box.get('movies_$countryCode');
+
+      if (storedData != null) {
+        // Convert JSON data back to Movie objects
+        List<Movie> movies = (storedData["movies"] as List<dynamic>).map((json) {
+          return Movie(
+            localTitle: json.localTitle as String,
+            posterUrl: json.posterUrl as String,
+            trailerUrl: json.trailerUrl ?? '',
+            country: json.country as String,
+            source: json.source as String,
+            spec: json.spec as String,
+            releaseDate: json.releaseDate ?? '',
+            runtime: json.runtime ?? 0,
+            credits: json.credits as Map<String, dynamic>? ?? {},
+            status: json.status as String? ?? '',
+          );
+        }).toList();
+
+        return {
+          'timestamp': storedData["timestamp"] as String?,
+          'movies': movies,
+        };
+      }
+
+      return {
+        'timestamp': null,
+        'movies': [],
+      };
+    } catch (err) {
+      print('Error retrieving movies from Hive: $err');
+      return {
+        'timestamp': null,
+        'movies': [],
+      };
+    }
+  }
+
+
+  static bool _isDataOutdated(DateTime lastFetched) {
+    return DateTime.now().difference(lastFetched).inDays > 7; // Data older than a week is considered outdated
   }
 }

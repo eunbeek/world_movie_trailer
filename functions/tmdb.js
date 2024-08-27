@@ -30,7 +30,7 @@ async function searchMovieInfoByTitle(countryCode, query) {
         movie.trailerLink = trailerLink;
         movie.credits = await searchCreditByMovieId(movie.id, countryCode);
         const movieDetails = await searchDetailsByMovieId(movie.id, countryCode);
-        movie.runtime = movieDetails.runtime;
+        if (movieDetails && movieDetails.runtime) movie.runtime = movieDetails.runtime;
         return movie;
       } else {
         return null;
@@ -61,7 +61,7 @@ async function searchMovieVideosByMovieId(movieId, movieTitle, countryCode) {
     const data = await response.json();
 
     if (data.results && data.results.length > 0) {
-      const youtubeIdByTMDB = data.results.find((video) => video.site === "YouTube" && video.type === "Trailer");
+      const youtubeIdByTMDB = data.results.find((video) => video.site === "YouTube");
       if (youtubeIdByTMDB) {
         return youtubeIdByTMDB.key;
       }
@@ -148,9 +148,9 @@ async function searchSpecialMovieInfoByTid(movie) {
     fetchedMovie.trailerLink = movie.trailerUrl;
     fetchedMovie.credits = await searchCreditByMovieId(movie.tid, "en-US");
     const movieDetails = await searchDetailsByMovieId(movie.tid, "en-US");
-    fetchedMovie.runtime = movieDetails.runtime;
-    fetchedMovie.release_date = movieDetails.release_date;
-    fetchedMovie.overview = movieDetails.overview;
+    if (movieDetails.runtime) fetchedMovie.runtime = movieDetails.runtime;
+    if (movieDetails.release_date) fetchedMovie.release_date = movieDetails.release_date;
+    if (movieDetails.overview) fetchedMovie.overview = movieDetails.overview;
     return fetchedMovie;
   } catch (err) {
     console.error("Error fetching movie information:", err);

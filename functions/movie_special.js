@@ -10,7 +10,7 @@ async function fetchMovieInSpecialSection() {
   const movies = [];
   try {
     const response = await axios.get(
-        "https://docs.google.com/spreadsheets/d/1GAVRJu8eY9ZArRX7pBrb427Ps6NCHiOsBhbQ6QV6ce4/export?format=tsv&gid=2145613691&range=A1:F",
+        "https://docs.google.com/spreadsheets/d/1GAVRJu8eY9ZArRX7pBrb427Ps6NCHiOsBhbQ6QV6ce4/export?format=tsv&gid=2145613691&range=A1:F9",
     );
 
     if (response.status === 200) {

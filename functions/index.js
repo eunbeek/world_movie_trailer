@@ -137,10 +137,17 @@ async function processBatch(country, moviesData, processedCount, startTime, isSp
 async function saveMoviesAsJson(country, movies) {
   const bucket = admin.storage().bucket();
   const mainFileName = `movies_${country}.json`;
-  const moviesWithTrailer = movies.filter((movie) => {
-    return movie.trailerUrl !== "ERR404";
-  });
-  const jsonData = JSON.stringify(moviesWithTrailer, null, 2);
+  const timestamp = new Date().toISOString(); // Get the current timestamp
+
+  // Add the timestamp to each movie object or at the beginning of the JSON structure
+  const dataToSave = {
+    timestamp: timestamp, // Add the timestamp here
+    movies: movies.filter((movie) => {
+      return movie.trailerUrl !== "ERR404";
+    }),
+  };
+
+  const jsonData = JSON.stringify(dataToSave, null, 2);
 
   try {
     // Overwrite the main file
@@ -149,6 +156,7 @@ async function saveMoviesAsJson(country, movies) {
         contentType: "application/json",
       },
     });
+    console.log(`File ${mainFileName} saved successfully with timestamp ${timestamp}`);
   } catch (error) {
     console.error("Error saving file to Firebase Storage:", error);
   }

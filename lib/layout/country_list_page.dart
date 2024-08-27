@@ -52,54 +52,99 @@ class _CountryListPageState extends State<CountryListPage> {
         title: Text(_getAppBarTitle(languageCode)),
       ),
       body: countries.isEmpty
-          ? const Center(child: CircularProgressIndicator()) 
-          : ReorderableListView(
-            onReorder: (int oldIndex, int newIndex) {
-              setState(() {
-                if (newIndex > oldIndex) {
-                  newIndex -= 1;
-                }
-                final String item = countries.removeAt(oldIndex);
-                countries.insert(newIndex, item);
-              });
-            },
-            padding: const EdgeInsets.all(16.0),
-            children: [
-              for (int index = 0; index < countries.length; index++)
-                Padding(
-                  key: ValueKey(countries[index]),
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Material(
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => VideoAdPage(country: countries[index]),
-                          ),
-                        );
-                      },
-                      highlightColor: Colors.blue.withOpacity(0.1),
-                      splashColor: Colors.blue.withOpacity(0.2),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        child: Center(
-                          child: Text(
-                            countries[index],
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
+      ? const Center(child: CircularProgressIndicator())
+      : Column(
+        children: [
+          Expanded(
+            child: ReorderableListView(
+              onReorder: (int oldIndex, int newIndex) {
+                setState(() {
+                  if (newIndex > oldIndex) {
+                    newIndex -= 1;
+                  }
+                  final String item = countries.removeAt(oldIndex);
+                  countries.insert(newIndex, item);
+                });
+              },
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                for (int index = 0; index < countries.length; index++)
+                  Padding(
+                    key: ValueKey(countries[index]),
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Material(
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => VideoAdPage(country: countries[index]),
                             ),
-                            textAlign: TextAlign.center,
+                          );
+                        },
+                        highlightColor: Colors.blue.withOpacity(0.1),
+                        splashColor: Colors.blue.withOpacity(0.2),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          child: Center(
+                            child: Text(
+                              countries[index],
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
+          SizedBox(
+            height: 100, // Adjust the height as needed
+            width: double.infinity,
+            child: Container(
+              color: Colors.grey[300],
+              child: InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const VideoAdPage(country: special),
+                    ),
+                  );
+                },
+                child: const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Special',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Director of the Month',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

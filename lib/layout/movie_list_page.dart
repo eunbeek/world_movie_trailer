@@ -58,52 +58,53 @@ class _MovieListPageState extends State<MovieListPage> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                FilterChip(
-                  label: const Text(listFilterAll),
-                  selected: selectedFilter == listFilterAll,
-                  showCheckmark: false,
-                  selectedColor: Colors.blue.withOpacity(0.5),
-                  onSelected: (bool selected) {
-                    setState(() {
-                      selectedFilter = listFilterAll;
-                      _applyFilter(false);
-                    });
-                  },
-                ),
-                const SizedBox(width: 8),
-                FilterChip(
-                  label: const Text(listFilterRunning),
-                  selected: selectedFilter == listFilterRunning,
-                  showCheckmark: false,
-                  selectedColor: Colors.blue.withOpacity(0.5),
-                  onSelected: (bool selected) {
-                    setState(() {
-                      selectedFilter = listFilterRunning;
-                      _applyFilter(false);
-                    });
-                  },
-                ),
-                const SizedBox(width: 8),
-                FilterChip(
-                  label: const Text(listFilterUpcoming),
-                  selected: selectedFilter == listFilterUpcoming,
-                  showCheckmark: false,
-                  selectedColor: Colors.blue.withOpacity(0.5),
-                  onSelected: (bool selected) {
-                    setState(() {
-                      selectedFilter = listFilterUpcoming;
-                      _applyFilter(false);
-                    });
-                  },
-                ),
-              ],
+          if (widget.country != special)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  FilterChip(
+                    label: const Text(listFilterAll),
+                    selected: selectedFilter == listFilterAll,
+                    showCheckmark: false,
+                    selectedColor: Colors.blue.withOpacity(0.5),
+                    onSelected: (bool selected) {
+                      setState(() {
+                        selectedFilter = listFilterAll;
+                        _applyFilter(false);
+                      });
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  FilterChip(
+                    label: const Text(listFilterRunning),
+                    selected: selectedFilter == listFilterRunning,
+                    showCheckmark: false,
+                    selectedColor: Colors.blue.withOpacity(0.5),
+                    onSelected: (bool selected) {
+                      setState(() {
+                        selectedFilter = listFilterRunning;
+                        _applyFilter(false);
+                      });
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  FilterChip(
+                    label: const Text(listFilterUpcoming),
+                    selected: selectedFilter == listFilterUpcoming,
+                    showCheckmark: false,
+                    selectedColor: Colors.blue.withOpacity(0.5),
+                    onSelected: (bool selected) {
+                      setState(() {
+                        selectedFilter = listFilterUpcoming;
+                        _applyFilter(false);
+                      });
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
           Expanded(
             child: GridView.builder(
               controller: _scrollController,
