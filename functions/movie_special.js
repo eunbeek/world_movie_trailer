@@ -17,9 +17,6 @@ async function fetchMovieInSpecialSection() {
       const lines = response.data.split("\n");
       const headers = lines[0].split("\t").map((header) => header.trim());
 
-      // Log headers to ensure correct parsing
-      console.log("Headers:", headers);
-
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (line) { // Ensure the line is not empty
@@ -29,9 +26,6 @@ async function fetchMovieInSpecialSection() {
           headers.forEach((header, index) => {
             row[header] = values[index] || ""; // Safely assign values
           });
-
-          // Log to check if 'Trailer' field is being correctly accessed
-          console.log("Trailer URL:", row["Trailer"]);
 
           const movie = {
             localTitle: row["Movie"] || "",
@@ -45,8 +39,6 @@ async function fetchMovieInSpecialSection() {
           movies.push(movie);
         }
       }
-
-      console.log("Movies fetched:", movies);
     } else {
       console.error("Failed to load data");
     }

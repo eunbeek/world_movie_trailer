@@ -3,6 +3,8 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const {fetchMovieListFromCgv, fetchMovieListFromLotte} = require("./movie_kr");
 const {fetchRunningFromEIGA, fetchUpcomingFromEIGA} = require("./movie_jp");
+const {fetchMovieListFromCineplex} = require("./movie_ca");
+const {fetchMovieListFromShowTime} = require("./movie_tw");
 const {fetchMovieInSpecialSection} = require("./movie_special");
 const {searchMovieInfoByTitle, searchSpecialMovieInfoByTid} = require("./tmdb");
 
@@ -14,26 +16,28 @@ admin.initializeApp();
  *
  * @returns {Promise<null>} Returns null when the function completes.
  */
-exports.fetchMovieListKR = functions.pubsub
+exports.fetchMovieListKR = functions
+    .runWith({timeoutSeconds: 540})
+    .pubsub
     .schedule("0 9 * * 1")
     .timeZone("America/Toronto")
     .onRun(async (context) => {
       const processedCount = 0;
       const startTime = Date.now();
 
-      // fetch movie name, country, source from KR theater
+      // Fetch movie name, country, source from KR theater
       const lotteMovies = await fetchMovieListFromLotte();
       const cgvMovies = await fetchMovieListFromCgv(lotteMovies);
       const allMovies = [...lotteMovies, ...cgvMovies];
 
-      // fetch movie trailer, spec, poster, release date from TMDB
-      const moviesWitgDetails = await processBatch("ko-KR", allMovies, processedCount, startTime);
+      // Fetch movie trailer, spec, poster, release date from TMDB
+      const moviesWithDetails = await processBatch("ko-KR", allMovies, processedCount, startTime);
 
-      // save movies to storage
-      await saveMoviesAsJson("kr", moviesWitgDetails);
+      // Save movies to storage
+      await saveMoviesAsJson("kr", moviesWithDetails);
 
       const timestamp = new Date().toISOString();
-      console.log(`Success: [${timestamp}] Country: KR, Movie Count: ${moviesWitgDetails.length}`);
+      console.log(`Success: [${timestamp}] Country: KR, Movie Count: ${moviesWithDetails.length}`);
 
       return null;
     });
@@ -44,22 +48,24 @@ exports.fetchMovieListKR = functions.pubsub
  *
  * @returns {Promise<null>} Returns null when the function completes.
  */
-exports.fetchMovieListJP = functions.pubsub
+exports.fetchMovieListJP = functions
+    .runWith({timeoutSeconds: 540})
+    .pubsub
     .schedule("0 9 * * 2")
-    .timeZone("Asia/Tokyo")
+    .timeZone("America/Toronto")
     .onRun(async (context) => {
       const processedCount = 0;
       const startTime = Date.now();
 
-      // fetch movie name, country, source from KR theater
+      // Fetch movie name, country, source from JP theater
       const runningMovies = await fetchRunningFromEIGA(false);
       const upcomingMovies = await fetchUpcomingFromEIGA(false);
       const allMovies = [...runningMovies, ...upcomingMovies];
 
-      // fetch movie trailer, spec, poster, release date from TMDB
+      // Fetch movie trailer, spec, poster, release date from TMDB
       const moviesWithTrailer = await processBatch("ja-JP", allMovies, processedCount, startTime);
 
-      // save movies to storage
+      // Save movies to storage
       await saveMoviesAsJson("jp", moviesWithTrailer);
 
       const timestamp = new Date().toISOString();
@@ -69,13 +75,102 @@ exports.fetchMovieListJP = functions.pubsub
     });
 
 /**
+ * Fetches movies from Cineplex, processes trailers, and saves the result.
+ * Scheduled to run every Wednesday at 09:00 AM EST.
+ *
+ * @returns {Promise<null>} Returns null when the function completes.
+ */
+exports.fetchMovieListCA = functions
+    .runWith({timeoutSeconds: 540})
+    .pubsub
+    .schedule("0 9 * * 3")
+    .timeZone("America/Toronto")
+    .onRun(async (context) => {
+      const processedCount = 0;
+      const startTime = Date.now();
+
+      // Fetch movie name, country, source from CA theaters (Cineplex)
+      const allMovies = await fetchMovieListFromCineplex();
+
+      // Fetch movie trailer, spec, poster, release date from TMDB
+      const moviesWithDetails = await processBatch("en-US", allMovies, processedCount, startTime);
+
+      // Save movies to storage
+      await saveMoviesAsJson("ca", moviesWithDetails);
+
+      const timestamp = new Date().toISOString();
+      console.log(`Success: [${timestamp}] Country: CA, Movie Count: ${moviesWithDetails.length}`);
+
+      return null;
+    });
+
+/**
+ * Fetches movies from ShowTime, processes trailers, and saves the result.
+ * Scheduled to run every Thursday at 09:00 AM EST.
+ *
+ * @returns {Promise<null>} Returns null when the function completes.
+ */
+exports.fetchMovieListTW = functions
+    .runWith({timeoutSeconds: 540})
+    .pubsub
+    .schedule("0 9 * * 4")
+    .timeZone("America/Toronto")
+    .onRun(async (context) => {
+      // Fetch movie name, country, source from TW theaters (ShowTime)
+      const allMovies = await fetchMovieListFromCineplex();
+
+      // Save movies to storage
+      await saveMoviesAsJson("tw", allMovies);
+
+      const timestamp = new Date().toISOString();
+      console.log(`Success: [${timestamp}] Country: TW, Movie Count: ${allMovies.length}`);
+
+      return null;
+    });
+
+/**
+ * Fetches movies in the special section by director, processes trailers, and saves the result.
+ * Can be triggered via an HTTP request.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} Sends a JSON response when the function completes.
+ */
+exports.fetchSpeicalSectionByDirector = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
+  try {
+    const processedCount = 0;
+    const startTime = Date.now();
+
+    const specialMovies = await fetchMovieInSpecialSection();
+
+    const moviesWithTrailer = await processBatch("en-US", specialMovies, processedCount, startTime, true);
+
+    await saveMoviesAsJson("special", moviesWithTrailer);
+
+    const timestamp = new Date().toISOString();
+    console.log(`Success: [${timestamp}] Country: Special, Movie Count: ${moviesWithTrailer.length}`);
+
+    res.status(200).json({
+      success: true,
+      timestamp,
+      country: "Special",
+      movieCount: specialMovies.length,
+      movies: specialMovies,
+    });
+  } catch (error) {
+    console.error("Error fetching movie list:", error);
+    res.status(500).json({success: false, error: error.message});
+  }
+});
+
+/**
  * Processes a batch of movies to fetch trailers and updates the list.
  *
  * @param {string} country - The country code for the movies.
  * @param {Array} moviesData - The list of movies to process.
  * @param {number} processedCount - The count of processed movies.
  * @param {number} startTime - The start time of the batch process.
- * @param {boolean} isSpecial - The special section movie or not.
+ * @param {boolean} [isSpecial=false] - Whether the movies belong to a special section.
  * @return {Promise<Array>} The updated list of movies.
  */
 async function processBatch(country, moviesData, processedCount, startTime, isSpecial = false) {
@@ -100,8 +195,8 @@ async function processBatch(country, moviesData, processedCount, startTime, isSp
 
       if (fetchedMovie) {
         movie.posterUrl = fetchedMovie.poster_path ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${fetchedMovie.poster_path}` : movie.posterUrl;
-        movie.trailerUrl = fetchedMovie.trailerLink || "",
-        movie.spec = fetchedMovie.overview || "ERR404",
+        movie.trailerUrl = fetchedMovie.trailerLink || "";
+        movie.spec = fetchedMovie.overview || "ERR404";
         movie.releaseDate = fetchedMovie.release_date || "";
         movie.runtime = fetchedMovie.runtime || "";
         movie.credits = fetchedMovie.credits || {};
@@ -109,7 +204,7 @@ async function processBatch(country, moviesData, processedCount, startTime, isSp
         movie.spec = "ERR404";
       }
     } catch (error) {
-      console.error(`Error processing movie ${movie.originalTitle}:`, error);
+      console.error(`Error processing movie ${movie.localTitle}:`, error);
     }
   }
 
@@ -133,6 +228,7 @@ async function processBatch(country, moviesData, processedCount, startTime, isSp
  *
  * @param {string} country - The country code for the movies.
  * @param {Array} movies - The list of movies to save.
+ * @return {Promise<void>} Saves the movie list in Firebase Storage.
  */
 async function saveMoviesAsJson(country, movies) {
   const bucket = admin.storage().bucket();
@@ -162,36 +258,14 @@ async function saveMoviesAsJson(country, movies) {
   }
 }
 
-exports.fetchSpeicalSectionByDirector = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
-  try {
-    const processedCount = 0;
-    const startTime = Date.now();
-
-    const specialMovies = await fetchMovieInSpecialSection();
-
-    console.log(`specialMovies : ${specialMovies.length}`);
-
-    const moviesWithTrailer = await processBatch("en-US", specialMovies, processedCount, startTime, true);
-
-    await saveMoviesAsJson("special", moviesWithTrailer);
-
-    const timestamp = new Date().toISOString();
-    console.log(`Success: [${timestamp}] Country: Special, Movie Count: ${moviesWithTrailer.length}`);
-
-    res.status(200).json({
-      success: true,
-      timestamp,
-      country: "Special",
-      movieCount: specialMovies.length,
-      movies: specialMovies,
-    });
-  } catch (error) {
-    console.error("Error fetching movie list:", error);
-    res.status(500).json({success: false, error: error.message});
-  }
-});
-
-
+/**
+ * Test function for fetching and processing movie data from CGV and Lotte.
+ * Can be triggered via an HTTP request.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} Sends a JSON response when the function completes.
+ */
 exports.testFetchMovieListKR = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
   try {
     const processedCount = 0; // Reset for KR
@@ -222,20 +296,28 @@ exports.testFetchMovieListKR = functions.runWith({timeoutSeconds: 540}).https.on
   }
 });
 
+/**
+ * Test function for fetching and processing movie data from EIGA.
+ * Can be triggered via an HTTP request.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} Sends a JSON response when the function completes.
+ */
 exports.testFetchMovieListJP = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
   try {
     const processedCount = 0;
     const startTime = Date.now();
 
-    // fetch movie name, country, source from KR theater
+    // Fetch movie name, country, source from JP theater
     const runningMovies = await fetchRunningFromEIGA(false);
     const upcomingMovies = await fetchUpcomingFromEIGA(false);
     const allMovies = [...runningMovies, ...upcomingMovies];
 
-    // fetch movie trailer, spec, poster, release date from TMDB
+    // Fetch movie trailer, spec, poster, release date from TMDB
     const moviesWithTrailer = await processBatch("ja-JP", allMovies, processedCount, startTime);
 
-    // save movies to storage
+    // Save movies to storage
     await saveMoviesAsJson("jp", moviesWithTrailer);
 
     const timestamp = new Date().toISOString();
@@ -247,6 +329,74 @@ exports.testFetchMovieListJP = functions.runWith({timeoutSeconds: 540}).https.on
       country: "JP",
       movieCount: moviesWithTrailer.length,
       movies: moviesWithTrailer,
+    });
+  } catch (error) {
+    console.error("Error fetching movie list:", error);
+    res.status(500).json({success: false, error: error.message});
+  }
+});
+
+/**
+ * Test function for fetching and processing movie data from Cineplex.
+ * Can be triggered via an HTTP request.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} Sends a JSON response when the function completes.
+ */
+exports.testFetchMovieListCA = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
+  try {
+    const processedCount = 0; // Reset for US
+    const startTime = Date.now();
+
+    const allMovies = await fetchMovieListFromCineplex();
+
+    console.log(`Cineplex Movies: ${allMovies.length}`);
+    const moviesWithTrailer = await processBatch("en-US", allMovies, processedCount, startTime);
+
+    await saveMoviesAsJson("ca", moviesWithTrailer);
+
+    const timestamp = new Date().toISOString();
+    console.log(`Success: [${timestamp}] Country: CA, Movie Count: ${moviesWithTrailer.length}`);
+
+    res.status(200).json({
+      success: true,
+      timestamp,
+      country: "CA",
+      movieCount: moviesWithTrailer.length,
+      movies: moviesWithTrailer,
+    });
+  } catch (error) {
+    console.error("Error fetching movie list:", error);
+    res.status(500).json({success: false, error: error.message});
+  }
+});
+
+/**
+ * Test function for fetching and processing movie data from ShowTime.
+ * Can be triggered via an HTTP request.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} Sends a JSON response when the function completes.
+ */
+exports.testFetchMovieListTW = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
+  try {
+    const allMovies = await fetchMovieListFromShowTime();
+
+    console.log(`ShowTime Movies: ${allMovies.length}`);
+
+    await saveMoviesAsJson("tw", allMovies);
+
+    const timestamp = new Date().toISOString();
+    console.log(`Success: [${timestamp}] Country: TW, Movie Count: ${allMovies.length}`);
+
+    res.status(200).json({
+      success: true,
+      timestamp,
+      country: "TW",
+      movieCount: allMovies.length,
+      movies: allMovies,
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);

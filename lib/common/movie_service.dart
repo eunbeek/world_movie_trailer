@@ -22,6 +22,11 @@ class MovieService {
       case jp:
         countryCode = 'jp';
         break;
+      case ca:
+        countryCode = 'us';
+        break;
+      case tw:
+        countryCode = 'tw';
       case special:
         countryCode = 'special';
         break;
@@ -133,7 +138,7 @@ class MovieService {
             releaseDate: json.releaseDate ?? '',
             runtime: json.runtime ?? 0,
             credits: json.credits as Map<String, dynamic>? ?? {},
-            status: json.status as String? ?? '',
+            status: json.status as String? ?? 'Upcoming',
           );
         }).toList();
 
