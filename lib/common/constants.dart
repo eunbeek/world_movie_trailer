@@ -9,33 +9,45 @@ const countryAppBarFr = 'Bande-annonces de films du monde';
 const countryAppBarCn = '世界电影预告片';
 const countryAppBarTw = '世界電影預告片';
 
-List<String> countryKeys = ['korea', 'japan', 'canada', 'taiwan'];
+List<String> countryKeys = ['korea', 'japan', 'canada', 'taiwan', 'france'];
 Map<String, Map<String, String>> localizedCountries = {
   'en': {
     'canada': 'Canada',
     'korea': 'South Korea',
     'japan': 'Japan',
     'taiwan': 'Taiwan',
+    'france': 'France',
   },
   'ko': {
     'korea': '한국',
     'japan': '일본',
     'canada': '캐나다',
     'taiwan': '대만',
+    'france': '프랑스',
   },
   'ja': {
     'japan': '日本',
     'korea': '韓国',
     'canada': 'カナダ',
     'taiwan': '台湾',
+    'france': 'フランス',
   },
   'tw': {
     'canada': '加拿大',
     'korea': '韓國',
     'japan': '日本',
     'taiwan': '臺灣',
+    'france': '法國',
   },
+  'fr': {
+    'canada': 'Canada',
+    'korea': 'Corée du Sud',
+    'japan': 'Japon',
+    'taiwan': 'Taïwan',
+    'france': 'France',
+  }
 };
+
 
 const kr = 'South Korea';
 const jp = 'Japan';

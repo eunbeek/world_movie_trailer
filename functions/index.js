@@ -5,6 +5,7 @@ const {fetchMovieListFromCgv, fetchMovieListFromLotte} = require("./movie_kr");
 const {fetchRunningFromEIGA, fetchUpcomingFromEIGA} = require("./movie_jp");
 const {fetchMovieListFromCineplex} = require("./movie_ca");
 const {fetchMovieListFromShowTime} = require("./movie_tw");
+const {fetchMovieListFromUga} = require("./movie_fr");
 const {fetchMovieInSpecialSection} = require("./movie_special");
 const {searchMovieInfoByTitle, searchSpecialMovieInfoByTid} = require("./tmdb");
 
@@ -124,6 +125,36 @@ exports.fetchMovieListTW = functions
 
       const timestamp = new Date().toISOString();
       console.log(`Success: [${timestamp}] Country: TW, Movie Count: ${allMovies.length}`);
+
+      return null;
+    });
+
+/**
+ * Fetches movies from UGA, processes trailers, and saves the result.
+ * Scheduled to run every Friday at 09:00 AM EST.
+ *
+ * @returns {Promise<null>} Returns null when the function completes.
+ */
+exports.fetchMovieListFR = functions
+    .runWith({timeoutSeconds: 540})
+    .pubsub
+    .schedule("0 9 * * 5")
+    .timeZone("America/Toronto")
+    .onRun(async (context) => {
+      const processedCount = 0;
+      const startTime = Date.now();
+
+      // Fetch movie name, country, source from FR theaters (UGA)
+      const allMovies = await fetchMovieListFromUga();
+
+      // Fetch movie trailer, spec, poster, release date from TMDB
+      const moviesWithDetails = await processBatch("fr-FR", allMovies, processedCount, startTime);
+
+      // Save movies to storage
+      await saveMoviesAsJson("fr", moviesWithDetails);
+
+      const timestamp = new Date().toISOString();
+      console.log(`Success: [${timestamp}] Country: FR, Movie Count: ${moviesWithDetails.length}`);
 
       return null;
     });
@@ -346,7 +377,7 @@ exports.testFetchMovieListJP = functions.runWith({timeoutSeconds: 540}).https.on
  */
 exports.testFetchMovieListCA = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
   try {
-    const processedCount = 0; // Reset for US
+    const processedCount = 0;
     const startTime = Date.now();
 
     const allMovies = await fetchMovieListFromCineplex();
@@ -397,6 +428,42 @@ exports.testFetchMovieListTW = functions.runWith({timeoutSeconds: 540}).https.on
       country: "TW",
       movieCount: allMovies.length,
       movies: allMovies,
+    });
+  } catch (error) {
+    console.error("Error fetching movie list:", error);
+    res.status(500).json({success: false, error: error.message});
+  }
+});
+
+/**
+ * Test function for fetching and processing movie data from UGA.
+ * Can be triggered via an HTTP request.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} Sends a JSON response when the function completes.
+ */
+exports.testFetchMovieListFR = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
+  try {
+    const processedCount = 0;
+    const startTime = Date.now();
+
+    const allMovies = await fetchMovieListFromUga();
+
+    console.log(`UGA Movies: ${allMovies.length}`);
+    const moviesWithTrailer = await processBatch("fr-FR", allMovies, processedCount, startTime);
+
+    await saveMoviesAsJson("fr", moviesWithTrailer);
+
+    const timestamp = new Date().toISOString();
+    console.log(`Success: [${timestamp}] Country: FR, Movie Count: ${moviesWithTrailer.length}`);
+
+    res.status(200).json({
+      success: true,
+      timestamp,
+      country: "FR",
+      movieCount: moviesWithTrailer.length,
+      movies: moviesWithTrailer,
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);

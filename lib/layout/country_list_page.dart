@@ -53,6 +53,8 @@ class _CountryListPageState extends State<CountryListPage> {
         return countryAppBarJp;
       case 'zh' :
         return countryAppBarTw;
+      case 'fr' :
+        return countryAppBarFr;
       case 'en':
         return countryAppBarEn;
       default:
