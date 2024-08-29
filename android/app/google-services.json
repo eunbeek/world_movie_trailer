@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:917295366628:android:ce236cf93580522d0cc7f1",
+        "mobilesdk_app_id": "1:917295366628:android:a8b49633b9b83a870cc7f1",
         "android_client_info": {
-          "package_name": "com.example.world_movie_trailer"
+          "package_name": "com.sunnyinnolab.worldMovieTrailer"
         }
       },
       "oauth_client": [],

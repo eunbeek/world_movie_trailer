@@ -23,13 +23,16 @@ class MovieService {
         countryCode = 'jp';
         break;
       case ca:
-        countryCode = 'us';
+        countryCode = 'ca';
         break;
       case tw:
         countryCode = 'tw';
         break;
       case fr:
         countryCode = 'fr';
+        break;
+      case de:
+        countryCode = 'de';
         break;
       case special:
         countryCode = 'special';

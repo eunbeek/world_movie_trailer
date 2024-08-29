@@ -6,6 +6,7 @@ const {fetchRunningFromEIGA, fetchUpcomingFromEIGA} = require("./movie_jp");
 const {fetchMovieListFromCineplex} = require("./movie_ca");
 const {fetchMovieListFromShowTime} = require("./movie_tw");
 const {fetchMovieListFromUga} = require("./movie_fr");
+const {fetchMovieListFromTraumpalast} = require("./movie_de");
 const {fetchMovieInSpecialSection} = require("./movie_special");
 const {searchMovieInfoByTitle, searchSpecialMovieInfoByTid} = require("./tmdb");
 
@@ -158,6 +159,36 @@ exports.fetchMovieListFR = functions
 
       return null;
     });
+
+/**
+ * Fetches movies from Traumpalast, processes trailers, and saves the result.
+ * Scheduled to run every Saturday at 09:00 AM EST.
+ *
+ * @returns {Promise<null>} Returns null when the function completes.
+ */
+// exports.fetchMovieListDE = functions
+//     .runWith({timeoutSeconds: 540})
+//     .pubsub
+//     .schedule("0 9 * * 6")
+//     .timeZone("America/Toronto")
+//     .onRun(async (context) => {
+//       const processedCount = 0;
+//       const startTime = Date.now();
+
+//       // Fetch movie name, country, source from DE theaters (Traumpalast)
+//       const allMovies = await fetchMovieListFromTraumpalast();
+
+//       // Fetch movie trailer, spec, poster, release date from TMDB
+//       const moviesWithDetails = await processBatch("de-DE", allMovies, processedCount, startTime);
+
+//       // Save movies to storage
+//       await saveMoviesAsJson("de", moviesWithDetails);
+
+//       const timestamp = new Date().toISOString();
+//       console.log(`Success: [${timestamp}] Country: DE, Movie Count: ${moviesWithDetails.length}`);
+
+//       return null;
+//     });
 
 /**
  * Fetches movies in the special section by director, processes trailers, and saves the result.
@@ -462,6 +493,42 @@ exports.testFetchMovieListFR = functions.runWith({timeoutSeconds: 540}).https.on
       success: true,
       timestamp,
       country: "FR",
+      movieCount: moviesWithTrailer.length,
+      movies: moviesWithTrailer,
+    });
+  } catch (error) {
+    console.error("Error fetching movie list:", error);
+    res.status(500).json({success: false, error: error.message});
+  }
+});
+
+/**
+ * Test function for fetching and processing movie data from Traumpalast.
+ * Can be triggered via an HTTP request.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} Sends a JSON response when the function completes.
+ */
+exports.testFetchMovieListDE = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
+  try {
+    const processedCount = 0;
+    const startTime = Date.now();
+
+    const allMovies = await fetchMovieListFromTraumpalast();
+
+    console.log(`Traumpalast Movies: ${allMovies.length}`);
+    const moviesWithTrailer = await processBatch("de-DE", allMovies, processedCount, startTime);
+
+    await saveMoviesAsJson("de", moviesWithTrailer);
+
+    const timestamp = new Date().toISOString();
+    console.log(`Success: [${timestamp}] Country: DE, Movie Count: ${moviesWithTrailer.length}`);
+
+    res.status(200).json({
+      success: true,
+      timestamp,
+      country: "DE",
       movieCount: moviesWithTrailer.length,
       movies: moviesWithTrailer,
     });

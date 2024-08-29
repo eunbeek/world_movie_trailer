@@ -8,8 +8,10 @@ const countryAppBarJp = 'ワールドムービートレーラー';
 const countryAppBarFr = 'Bande-annonces de films du monde'; 
 const countryAppBarCn = '世界电影预告片';
 const countryAppBarTw = '世界電影預告片';
+const countryAppBarDe = 'Weltfilmtrailer';
 
 List<String> countryKeys = ['korea', 'japan', 'canada', 'taiwan', 'france'];
+
 Map<String, Map<String, String>> localizedCountries = {
   'en': {
     'canada': 'Canada',
@@ -45,9 +47,16 @@ Map<String, Map<String, String>> localizedCountries = {
     'japan': 'Japon',
     'taiwan': 'Taïwan',
     'france': 'France',
-  }
+  },
+  'de': {
+    'canada': 'Kanada',
+    'korea': 'Südkorea',
+    'japan': 'Japan',
+    'taiwan': 'Taiwan',
+    'france': 'Frankreich',
+    'germany': 'Deutschland',
+  },
 };
-
 
 const kr = 'South Korea';
 const jp = 'Japan';
@@ -55,6 +64,8 @@ const ca = 'Canada';
 const tw = 'Taiwan';
 const na = 'North America';
 const fr = 'France';
+const de = 'Germany';
+
 
 const special = 'Special';
 
