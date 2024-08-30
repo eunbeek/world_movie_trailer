@@ -81,11 +81,22 @@ class _VideoAdPageState extends State<VideoAdPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ad Page'),
-      ),
-      body: const Center(
-        child: CircularProgressIndicator(),
+      body: Stack(
+        children: [
+          // Background Image
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/background.png'), // Replace with your actual background image path
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          // Centered CircularProgressIndicator
+          const Center(
+            child: CircularProgressIndicator(),
+          ),
+        ],
       ),
     );
   }

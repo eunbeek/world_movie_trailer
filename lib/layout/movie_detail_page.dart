@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 
 class MovieDetailPage extends StatefulWidget {
@@ -15,6 +15,7 @@ class MovieDetailPage extends StatefulWidget {
 class _MovieDetailPageState extends State<MovieDetailPage> {
   late YoutubePlayerController _youtubePlayerController;
   String _errorMessage = '';
+  bool _isFullScreen = false;
 
   @override
   void initState() {
@@ -32,113 +33,170 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
 
     _youtubePlayerController = YoutubePlayerController(
       initialVideoId: widget.movie.trailerUrl,
-      params: YoutubePlayerParams(
-        showFullscreenButton: true,
+      flags: const YoutubePlayerFlags(
+        autoPlay: false,
         mute: false,
-        showControls: true,
       ),
     );
+
+    _youtubePlayerController.addListener(() {
+      if (_youtubePlayerController.value.isFullScreen && !_isFullScreen) {
+        setState(() {
+          _isFullScreen = true;
+        });
+      } else if (!_youtubePlayerController.value.isFullScreen && _isFullScreen) {
+        setState(() {
+          _isFullScreen = false;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
-    _youtubePlayerController.close();
+    _youtubePlayerController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.movie.localTitle),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            if (_errorMessage.isNotEmpty)
-              _buildErrorWidget()
-            else
-              YoutubePlayerIFrame(
-                controller: _youtubePlayerController,
-                aspectRatio: 16 / 9,
-              ),
-            const SizedBox(height: 20),
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text(
-                'Movie Details',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      body: Stack(
+        children: [
+          // Background Image
+          if(!_isFullScreen)
+            Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/background.png'), // Replace with your actual background image path
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
-            if (widget.movie.spec != "ERR404")
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10),
-                      child: Text(
-                        widget.movie.spec,
-                        style: const TextStyle(
-                          color: Colors.blue,
-                          decoration: TextDecoration.underline,
+          // Custom AppBar
+          Column(
+            children: [
+              if(!_isFullScreen)
+                Padding(
+                  padding: const EdgeInsets.only(top: 20.0),
+                  child: Stack(
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: IconButton(
+                          icon: Icon(Icons.arrow_back, color: Colors.white),
+                          onPressed: () => Navigator.of(context).pop(),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            if (widget.movie.runtime != 0)
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10),
-                      child: Text(
-                        'Runtime: ${widget.movie.runtime} minutes',
-                        style: const TextStyle(
-                          color: Colors.blue,
-                          decoration: TextDecoration.underline,
+                      Center(
+                        child: Text(
+                          widget.movie.localTitle,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
+                    ],
+                  ),
+                ),
+              YoutubePlayerBuilder(
+                player: YoutubePlayer(
+                  controller: _youtubePlayerController,
+                  showVideoProgressIndicator: true,
+                  progressIndicatorColor: Colors.blueAccent,
+                ),
+                builder: (context, player) {
+                  return SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_errorMessage.isNotEmpty)
+                          _buildErrorWidget()
+                        else
+                          player,
+                        if (!_isFullScreen) ...[
+                          const SizedBox(height: 20),
+                          if (widget.country == "special")
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Released Year: ${widget.movie.year}',
+                                style: const TextStyle(
+                                  color: Colors.white, // Text color changed to white
+                                ),
+                              ),
+                            ),
+                          if (widget.movie.credits?["crew"] != null &&
+                              widget.movie.credits?["crew"].isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Director: ${widget.movie.credits?["crew"][0]["name"]}',
+                                style: const TextStyle(
+                                  color: Colors.white, // Text color changed to white
+                                ),
+                              ),
+                            ),
+                          if (widget.movie.credits?["cast"] != null &&
+                              widget.movie.credits?["cast"].isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Stars: ${widget.movie.credits?["cast"]
+                                    .map((castMember) => castMember["name"])
+                                    .join(", ")}',
+                                style: const TextStyle(
+                                  color: Colors.white, // Text color changed to white
+                                ),
+                              ),
+                            ),
+                          if (widget.movie.runtime != 0)
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 10),
+                                    child: Text(
+                                      'Running Time: ${widget.movie.runtime} minutes',
+                                      style: const TextStyle(
+                                        color: Colors.white, // Text color changed to white
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          if (widget.movie.spec != "ERR404")
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 10),
+                                    child: Text(
+                                      widget.movie.spec,
+                                      style: const TextStyle(
+                                        color: Colors.white, 
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ]
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
-            if (widget.movie.credits?["crew"] != null &&
-                widget.movie.credits?["crew"].isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Crew: ${widget.movie.credits?["crew"]
-                      .map((crewMember) => crewMember["name"])
-                      .join(", ")}',
-                  style: const TextStyle(
-                    color: Colors.blue,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-            if (widget.movie.credits?["cast"] != null &&
-                widget.movie.credits?["cast"].isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Cast: ${widget.movie.credits?["cast"]
-                      .map((castMember) => castMember["name"])
-                      .join(", ")}',
-                  style: const TextStyle(
-                    color: Colors.blue,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-          ],
-        ),
+            ],
+          )
+        ],
       ),
     );
   }
@@ -158,7 +216,7 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
             ),
             SizedBox(height: 10),
             Text(
-              'Trailer is not released yet',
+              'Trailer is not available',
               style: TextStyle(color: Colors.red, fontSize: 16),
             ),
             SizedBox(height: 10),

@@ -2,8 +2,8 @@
 const appTitle = "World Movie Trailer";
 
 // Constants for app bar titles
-const countryAppBarEn = "World Movie Trailers";
-const countryAppBarKr = '월드 무비 트레일러';
+const countryAppBarEn = "World\r\nMovie\r\nTrailers";
+const countryAppBarKr = '월드\r\n무비\r\n트레일러';
 const countryAppBarJp = 'ワールドムービートレーラー';
 const countryAppBarFr = 'Bande-annonces de films du monde'; 
 const countryAppBarCn = '世界电影预告片';

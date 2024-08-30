@@ -118,8 +118,8 @@ exports.fetchMovieListTW = functions
     .schedule("0 9 * * 4")
     .timeZone("America/Toronto")
     .onRun(async (context) => {
-      // Fetch movie name, country, source from TW theaters (ShowTime)
-      const allMovies = await fetchMovieListFromCineplex();
+      // Fetch all movie info from TW theaters (ShowTime)
+      const allMovies = await fetchMovieListFromShowTime();
 
       // Save movies to storage
       await saveMoviesAsJson("tw", allMovies);

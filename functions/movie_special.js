@@ -10,7 +10,7 @@ async function fetchMovieInSpecialSection() {
   const movies = [];
   try {
     const response = await axios.get(
-        "https://docs.google.com/spreadsheets/d/1GAVRJu8eY9ZArRX7pBrb427Ps6NCHiOsBhbQ6QV6ce4/export?format=tsv&gid=2145613691&range=A1:F9",
+        "https://docs.google.com/spreadsheets/d/1GAVRJu8eY9ZArRX7pBrb427Ps6NCHiOsBhbQ6QV6ce4/export?format=tsv&gid=2145613691&range=A1:H9",
     );
 
     if (response.status === 200) {
@@ -30,10 +30,12 @@ async function fetchMovieInSpecialSection() {
           const movie = {
             localTitle: row["Movie"] || "",
             posterUrl: row["Poster"] || "",
-            country: row["Title"] || "",
+            country: row["Natinality"] || "",
             source: row["Director"] || "",
             trailerUrl: row["Trailer"] || "",
             tid: row["Tid"] || "",
+            special: row["Title"] || "",
+            year: row["Year"] || "",
           };
 
           movies.push(movie);

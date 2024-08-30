@@ -146,6 +146,8 @@ class MovieService {
             runtime: json.runtime ?? 0,
             credits: json.credits as Map<String, dynamic>? ?? {},
             status: json.status as String? ?? 'Upcoming',
+            special: json.special as String? ?? '',
+            year: json.year as String? ?? '',
           );
         }).toList();
 
