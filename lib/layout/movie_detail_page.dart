@@ -66,7 +66,7 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
           // Background Image
           if(!_isFullScreen)
             Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 image: DecorationImage(
                   image: AssetImage('assets/images/background.png'), // Replace with your actual background image path
                   fit: BoxFit.cover,
@@ -90,7 +90,10 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                       ),
                       Center(
                         child: Text(
-                          widget.movie.localTitle,
+                          widget.movie.localTitle.length > 15 
+                            ? '${widget.movie.localTitle.substring(0, 15)}...' 
+                            : widget.movie.localTitle,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 20,
@@ -152,7 +155,7 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                                 ),
                               ),
                             ),
-                          if (widget.movie.runtime != 0)
+                          if (widget.movie.runtime.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text(
