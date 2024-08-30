@@ -155,40 +155,24 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                           if (widget.movie.runtime != 0)
                             Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 10),
-                                    child: Text(
-                                      'Running Time: ${widget.movie.runtime} minutes',
-                                      style: const TextStyle(
-                                        color: Colors.white, // Text color changed to white
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                              child: Text(
+                                'Running Time: ${widget.movie.runtime} minutes',
+                                style: const TextStyle(
+                                  color: Colors.white, // Text color changed to white
+                                ),
                               ),
                             ),
                           if (widget.movie.spec != "ERR404")
                             Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 10),
-                                    child: Text(
-                                      widget.movie.spec,
-                                      style: const TextStyle(
-                                        color: Colors.white, 
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                              child: Text(
+                                widget.movie.spec,
+                                style: const TextStyle(
+                                  color: Colors.white, 
+                                ),
                               ),
                             ),
-                        ]
+                        ],
                       ],
                     ),
                   );

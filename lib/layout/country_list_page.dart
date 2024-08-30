@@ -216,7 +216,9 @@ class _CountryListPageState extends State<CountryListPage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${specialSection!.source} (${specialSection!.country})',
+                            specialSection!.originName != '' && specialSection!.source == specialSection!.originName
+                                ? '${specialSection!.source} (${specialSection!.country})'
+                                : '${specialSection!.source} | ${specialSection!.originName} (${specialSection!.country})',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
