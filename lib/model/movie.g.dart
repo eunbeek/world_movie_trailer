@@ -29,13 +29,14 @@ class MovieAdapter extends TypeAdapter<Movie> {
       status: fields[9] as String?,
       special: fields[10] as String?,
       year: fields[11] as String?,
+      originName: fields[12] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Movie obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.localTitle)
       ..writeByte(1)
@@ -59,7 +60,9 @@ class MovieAdapter extends TypeAdapter<Movie> {
       ..writeByte(10)
       ..write(obj.special)
       ..writeByte(11)
-      ..write(obj.year);
+      ..write(obj.year)
+      ..writeByte(12)
+      ..write(obj.originName);
   }
 
   @override

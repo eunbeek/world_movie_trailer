@@ -148,6 +148,7 @@ class MovieService {
             status: json.status as String? ?? 'Upcoming',
             special: json.special as String? ?? '',
             year: json.year as String? ?? '',
+            originName: json.originName as String? ?? '',
           );
         }).toList();
 
