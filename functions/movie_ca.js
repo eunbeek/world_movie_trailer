@@ -46,6 +46,7 @@ async function fetchMovieListFromCineplex() {
           posterUrl: item.largePosterImageUrl,
           country: "ca",
           source: "cineplex",
+          batch: false,
         });
       });
     } else {

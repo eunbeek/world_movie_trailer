@@ -46,6 +46,7 @@ async function fetchMovieListFromUga() {
           posterUrl: aTag.find("img").attr("data-src"),
           country: "fr",
           source: "ugc",
+          batch: false,
         };
         movies.push(movie);
       });

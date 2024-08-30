@@ -26,13 +26,21 @@ async function fetchMovieListFromTraumpalast() {
         const aTag = $(movieBox).find("a.no-decoration");
         const imgTag = $(aTag).find("img");
         const titleTag = $(movieBox).find("h3.headline-blue a");
+        const descriptionTag = $(movieBox).find("p[itemprop='description']");
+        const releaseDateTag = $(movieBox).find("time[itemprop='datePublished']");
+        const runtimeTag = $(movieBox).find("span[itemprop='duration']");
 
         const movie = {
           localTitle: titleTag.text().trim(),
           posterUrl: "https://leonberg.traumpalast.de" + imgTag.attr("data-srcset").split(" ")[0],
           country: "de",
           source: "traumpalast",
+          spec: descriptionTag.text().trim(),
+          releaseDate: releaseDateTag.attr("datetime"),
+          runtime: runtimeTag.text().replace(" Minuten", "").trim(),
+          batch: false,
         };
+
         movies.push(movie);
       });
     } catch (err) {

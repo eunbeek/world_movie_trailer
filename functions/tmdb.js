@@ -29,6 +29,8 @@ async function searchMovieInfoByTitle(countryCode, query) {
       const fullMovieInfo = await fetchFullMovieInfo(movie.id, countryCode);
       return fullMovieInfo;
     } else {
+      const trailerLink = await fetchFirstYouTubeVideoId(query + " trailer");
+      if (trailerLink) return {trailerLink: trailerLink};
       console.log("No results found");
       return null;
     }
@@ -88,7 +90,61 @@ async function searchSpecialMovieInfoByTid(movie) {
   }
 }
 
+/**
+ * Fetches the special movie info from TMDb based on tmdb id
+ * @param {String} country - Country
+ * @param {String} countryCode - Country Code
+ * @param {String} page - page number
+ * @return {Promise<List<Object>|null>} - A promise that resolves to the movies
+ */
+async function fetchRunningMovieByCountryCode(country, countryCode, page) {
+  try {
+    const response = await fetch(`https://api.themoviedb.org/3/movie/now_playing?language=${countryCode}&page=${page}&region=${country}`, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+
+    if (data.results && data.results.length > 0) {
+      return data.results;
+    } else {
+      return null;
+    }
+  } catch (err) {
+    console.error("Error fetching movie information:", err);
+    return null;
+  }
+}
+
+/**
+ * Fetches the special movie info from TMDb based on tmdb id
+ * @param {String} country - Country
+ * @param {String} countryCode - Country Code
+ * @param {String} page - page number
+ * @return {Promise<List<Object>|null>} - A promise that resolves to the movies
+ */
+async function fetchUpcomingMovieByCountryCode(country, countryCode, page) {
+  try {
+    const response = await fetch(`https://api.themoviedb.org/3/movie/upcoming?language=${countryCode}&page=${page}&region=${country}`, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+
+    if (data.results && data.results.length > 0) {
+      return data.results;
+    } else {
+      return null;
+    }
+  } catch (err) {
+    console.error("Error fetching movie information:", err);
+    return null;
+  }
+}
+
 module.exports = {
   searchMovieInfoByTitle,
   searchSpecialMovieInfoByTid,
+  fetchRunningMovieByCountryCode,
+  fetchUpcomingMovieByCountryCode,
 };

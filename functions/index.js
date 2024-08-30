@@ -7,185 +7,196 @@ const {fetchMovieListFromCineplex} = require("./movie_ca");
 const {fetchMovieListFromShowTime} = require("./movie_tw");
 const {fetchMovieListFromUga} = require("./movie_fr");
 const {fetchMovieListFromTraumpalast} = require("./movie_de");
+const {fetchMovieListFromTMDBByUS} = require("./movie_us");
 const {fetchMovieInSpecialSection} = require("./movie_special");
 const {searchMovieInfoByTitle, searchSpecialMovieInfoByTid} = require("./tmdb");
 
 admin.initializeApp();
 
-/**
- * Fetches movies from CGV and Lotte, processes trailers, and saves the result.
- * Scheduled to run every Monday at 09:00 AM KST.
- *
- * @returns {Promise<null>} Returns null when the function completes.
- */
-exports.fetchMovieListKR = functions
-    .runWith({timeoutSeconds: 540})
-    .pubsub
-    .schedule("0 9 * * 1")
-    .timeZone("America/Toronto")
-    .onRun(async (context) => {
-      const processedCount = 0;
-      const startTime = Date.now();
+// /**
+//  * Fetches movies from CGV and Lotte, processes trailers, and saves the result.
+//  * Scheduled to run every Monday at 09:00 AM KST.
+//  *
+//  * @returns {Promise<null>} Returns null when the function completes.
+//  */
+// exports.fetchMovieListKR = functions
+//     .runWith({timeoutSeconds: 540})
+//     .pubsub
+//     .schedule("0 9 * * 1")
+//     .timeZone("America/Toronto") // Ensure timezone is KST if required
+//     .onRun(async () => {
+//       const processedCount = 0;
+//       const startTime = Date.now();
 
-      // Fetch movie name, country, source from KR theater
-      const lotteMovies = await fetchMovieListFromLotte();
-      const cgvMovies = await fetchMovieListFromCgv(lotteMovies);
-      const allMovies = [...lotteMovies, ...cgvMovies];
+//       const lotteMovies = await fetchMovieListFromLotte();
+//       const cgvMovies = await fetchMovieListFromCgv(lotteMovies);
+//       const allMovies = [...lotteMovies, ...cgvMovies];
 
-      // Fetch movie trailer, spec, poster, release date from TMDB
-      const moviesWithDetails = await processBatch("ko-KR", allMovies, processedCount, startTime);
+//       const moviesWithDetails = await processBatch("ko-KR", allMovies, processedCount, startTime);
 
-      // Save movies to storage
-      await saveMoviesAsJson("kr", moviesWithDetails);
+//       await saveMoviesAsJson("kr", moviesWithDetails);
 
-      const timestamp = new Date().toISOString();
-      console.log(`Success: [${timestamp}] Country: KR, Movie Count: ${moviesWithDetails.length}`);
+//       const timestamp = new Date().toISOString();
+//       console.log(`Success: [${timestamp}] Country: KR, Movie Count: ${moviesWithDetails.length}`);
 
-      return null;
-    });
+//       return null;
+//     });
 
-/**
- * Fetches movies from EIGA, processes trailers, and saves the result.
- * Scheduled to run every Tuesday at 09:00 AM JST.
- *
- * @returns {Promise<null>} Returns null when the function completes.
- */
-exports.fetchMovieListJP = functions
-    .runWith({timeoutSeconds: 540})
-    .pubsub
-    .schedule("0 9 * * 2")
-    .timeZone("America/Toronto")
-    .onRun(async (context) => {
-      const processedCount = 0;
-      const startTime = Date.now();
+// /**
+//  * Fetches movies from EIGA, processes trailers, and saves the result.
+//  * Scheduled to run every Tuesday at 09:00 AM JST.
+//  *
+//  * @returns {Promise<null>} Returns null when the function completes.
+//  */
+// exports.fetchMovieListJP = functions
+//     .runWith({timeoutSeconds: 540})
+//     .pubsub
+//     .schedule("0 9 * * 2")
+//     .timeZone("America/Toronto") // Ensure timezone is JST if required
+//     .onRun(async () => {
+//       const processedCount = 0;
+//       const startTime = Date.now();
 
-      // Fetch movie name, country, source from JP theater
-      const runningMovies = await fetchRunningFromEIGA(false);
-      const upcomingMovies = await fetchUpcomingFromEIGA(false);
-      const allMovies = [...runningMovies, ...upcomingMovies];
+//       const runningMovies = await fetchRunningFromEIGA(false);
+//       const upcomingMovies = await fetchUpcomingFromEIGA(false);
+//       const allMovies = [...runningMovies, ...upcomingMovies];
 
-      // Fetch movie trailer, spec, poster, release date from TMDB
-      const moviesWithTrailer = await processBatch("ja-JP", allMovies, processedCount, startTime);
+//       const moviesWithTrailer = await processBatch("ja-JP", allMovies, processedCount, startTime);
 
-      // Save movies to storage
-      await saveMoviesAsJson("jp", moviesWithTrailer);
+//       await saveMoviesAsJson("jp", moviesWithTrailer);
 
-      const timestamp = new Date().toISOString();
-      console.log(`Success: [${timestamp}] Country: JP, Movie Count: ${moviesWithTrailer.length}`);
+//       const timestamp = new Date().toISOString();
+//       console.log(`Success: [${timestamp}] Country: JP, Movie Count: ${moviesWithTrailer.length}`);
 
-      return null;
-    });
+//       return null;
+//     });
 
-/**
- * Fetches movies from Cineplex, processes trailers, and saves the result.
- * Scheduled to run every Wednesday at 09:00 AM EST.
- *
- * @returns {Promise<null>} Returns null when the function completes.
- */
-exports.fetchMovieListCA = functions
-    .runWith({timeoutSeconds: 540})
-    .pubsub
-    .schedule("0 9 * * 3")
-    .timeZone("America/Toronto")
-    .onRun(async (context) => {
-      const processedCount = 0;
-      const startTime = Date.now();
+// /**
+//  * Fetches movies from Cineplex, processes trailers, and saves the result.
+//  * Scheduled to run every Wednesday at 09:00 AM EST.
+//  *
+//  * @returns {Promise<null>} Returns null when the function completes.
+//  */
+// exports.fetchMovieListCA = functions
+//     .runWith({timeoutSeconds: 540})
+//     .pubsub
+//     .schedule("0 9 * * 3")
+//     .timeZone("America/Toronto")
+//     .onRun(async () => {
+//       const processedCount = 0;
+//       const startTime = Date.now();
 
-      // Fetch movie name, country, source from CA theaters (Cineplex)
-      const allMovies = await fetchMovieListFromCineplex();
+//       const allMovies = await fetchMovieListFromCineplex();
 
-      // Fetch movie trailer, spec, poster, release date from TMDB
-      const moviesWithDetails = await processBatch("en-US", allMovies, processedCount, startTime);
+//       const moviesWithDetails = await processBatch("en-CA", allMovies, processedCount, startTime);
 
-      // Save movies to storage
-      await saveMoviesAsJson("ca", moviesWithDetails);
+//       await saveMoviesAsJson("ca", moviesWithDetails);
 
-      const timestamp = new Date().toISOString();
-      console.log(`Success: [${timestamp}] Country: CA, Movie Count: ${moviesWithDetails.length}`);
+//       const timestamp = new Date().toISOString();
+//       console.log(`Success: [${timestamp}] Country: CA, Movie Count: ${moviesWithDetails.length}`);
 
-      return null;
-    });
+//       return null;
+//     });
 
-/**
- * Fetches movies from ShowTime, processes trailers, and saves the result.
- * Scheduled to run every Thursday at 09:00 AM EST.
- *
- * @returns {Promise<null>} Returns null when the function completes.
- */
-exports.fetchMovieListTW = functions
-    .runWith({timeoutSeconds: 540})
-    .pubsub
-    .schedule("0 9 * * 4")
-    .timeZone("America/Toronto")
-    .onRun(async (context) => {
-      // Fetch all movie info from TW theaters (ShowTime)
-      const allMovies = await fetchMovieListFromShowTime();
+// /**
+//  * Fetches movies from ShowTime, processes trailers, and saves the result.
+//  * Scheduled to run every Thursday at 09:00 AM CST.
+//  *
+//  * @returns {Promise<null>} Returns null when the function completes.
+//  */
+// exports.fetchMovieListTW = functions
+//     .runWith({timeoutSeconds: 540})
+//     .pubsub
+//     .schedule("0 9 * * 4")
+//     .timeZone("America/Toronto") // Ensure timezone is CST if required
+//     .onRun(async () => {
+//       const allMovies = await fetchMovieListFromShowTime();
 
-      // Save movies to storage
-      await saveMoviesAsJson("tw", allMovies);
+//       await saveMoviesAsJson("tw", allMovies);
 
-      const timestamp = new Date().toISOString();
-      console.log(`Success: [${timestamp}] Country: TW, Movie Count: ${allMovies.length}`);
+//       const timestamp = new Date().toISOString();
+//       console.log(`Success: [${timestamp}] Country: TW, Movie Count: ${allMovies.length}`);
 
-      return null;
-    });
+//       return null;
+//     });
 
-/**
- * Fetches movies from UGA, processes trailers, and saves the result.
- * Scheduled to run every Friday at 09:00 AM EST.
- *
- * @returns {Promise<null>} Returns null when the function completes.
- */
-exports.fetchMovieListFR = functions
-    .runWith({timeoutSeconds: 540})
-    .pubsub
-    .schedule("0 9 * * 5")
-    .timeZone("America/Toronto")
-    .onRun(async (context) => {
-      const processedCount = 0;
-      const startTime = Date.now();
+// /**
+//  * Fetches movies from UGA, processes trailers, and saves the result.
+//  * Scheduled to run every Friday at 09:00 AM CET.
+//  *
+//  * @returns {Promise<null>} Returns null when the function completes.
+//  */
+// exports.fetchMovieListFR = functions
+//     .runWith({timeoutSeconds: 540})
+//     .pubsub
+//     .schedule("0 9 * * 5")
+//     .timeZone("America/Toronto") // Ensure timezone is CET if required
+//     .onRun(async () => {
+//       const processedCount = 0;
+//       const startTime = Date.now();
 
-      // Fetch movie name, country, source from FR theaters (UGA)
-      const allMovies = await fetchMovieListFromUga();
+//       const allMovies = await fetchMovieListFromUga();
 
-      // Fetch movie trailer, spec, poster, release date from TMDB
-      const moviesWithDetails = await processBatch("fr-FR", allMovies, processedCount, startTime);
+//       const moviesWithDetails = await processBatch("fr-FR", allMovies, processedCount, startTime);
 
-      // Save movies to storage
-      await saveMoviesAsJson("fr", moviesWithDetails);
+//       await saveMoviesAsJson("fr", moviesWithDetails);
 
-      const timestamp = new Date().toISOString();
-      console.log(`Success: [${timestamp}] Country: FR, Movie Count: ${moviesWithDetails.length}`);
+//       const timestamp = new Date().toISOString();
+//       console.log(`Success: [${timestamp}] Country: FR, Movie Count: ${moviesWithDetails.length}`);
 
-      return null;
-    });
+//       return null;
+//     });
 
-/**
- * Fetches movies from Traumpalast, processes trailers, and saves the result.
- * Scheduled to run every Saturday at 09:00 AM EST.
- *
- * @returns {Promise<null>} Returns null when the function completes.
- */
+// /**
+//  * Fetches movies from Traumpalast, processes trailers, and saves the result.
+//  * Scheduled to run every Saturday at 09:00 AM CET.
+//  *
+//  * @returns {Promise<null>} Returns null when the function completes.
+//  */
 // exports.fetchMovieListDE = functions
 //     .runWith({timeoutSeconds: 540})
 //     .pubsub
 //     .schedule("0 9 * * 6")
-//     .timeZone("America/Toronto")
-//     .onRun(async (context) => {
+//     .timeZone("America/Toronto") // Ensure timezone is CET if required
+//     .onRun(async () => {
 //       const processedCount = 0;
 //       const startTime = Date.now();
 
-//       // Fetch movie name, country, source from DE theaters (Traumpalast)
 //       const allMovies = await fetchMovieListFromTraumpalast();
 
-//       // Fetch movie trailer, spec, poster, release date from TMDB
 //       const moviesWithDetails = await processBatch("de-DE", allMovies, processedCount, startTime);
 
-//       // Save movies to storage
 //       await saveMoviesAsJson("de", moviesWithDetails);
 
 //       const timestamp = new Date().toISOString();
 //       console.log(`Success: [${timestamp}] Country: DE, Movie Count: ${moviesWithDetails.length}`);
+
+//       return null;
+//     });
+
+// /**
+//  * Fetches movies from TMDB by US region, processes trailers, and saves the result.
+//  * Scheduled to run every Sunday at 09:00 AM EST.
+//  *
+//  * @returns {Promise<null>} Returns null when the function completes.
+//  */
+// exports.fetchMovieListUS = functions
+//     .runWith({timeoutSeconds: 540})
+//     .pubsub
+//     .schedule("0 9 * * 7")
+//     .timeZone("America/Toronto")
+//     .onRun(async () => {
+//       const processedCount = 0;
+//       const startTime = Date.now();
+
+//       const allMovies = await fetchMovieListFromTMDBByUS();
+
+//       const moviesWithDetails = await processBatch("en-US", allMovies, processedCount, startTime, true);
+
+//       await saveMoviesAsJson("us", moviesWithDetails);
+
+//       const timestamp = new Date().toISOString();
+//       console.log(`Success: [${timestamp}] Country: US, Movie Count: ${moviesWithDetails.length}`);
 
 //       return null;
 //     });
@@ -236,14 +247,14 @@ exports.fetchSpeicalSectionByDirector = functions.runWith({timeoutSeconds: 540})
  * @return {Promise<Array>} The updated list of movies.
  */
 async function processBatch(country, moviesData, processedCount, startTime, isSpecial = false) {
-  const unprocessedMovies = moviesData.filter((movie) => !movie.spec);
+  const unprocessedMovies = moviesData.filter((movie) => !movie.batch);
   console.log(`unprocessMovies: ${unprocessedMovies.length}`);
   if (unprocessedMovies.length === 0) {
     console.log("All movies processed. No further action needed.");
     return moviesData;
   }
 
-  const moviesToProcess = unprocessedMovies.slice(0, 10);
+  const moviesToProcess = unprocessedMovies.slice(0, 20);
 
   for (const movie of moviesToProcess) {
     try {
@@ -258,13 +269,13 @@ async function processBatch(country, moviesData, processedCount, startTime, isSp
       if (fetchedMovie) {
         movie.posterUrl = fetchedMovie.poster_path ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${fetchedMovie.poster_path}` : movie.posterUrl;
         movie.trailerUrl = fetchedMovie.trailerLink || "";
-        movie.spec = fetchedMovie.overview || "ERR404";
-        movie.releaseDate = fetchedMovie.release_date || "";
-        movie.runtime = fetchedMovie.runtime || "";
-        movie.credits = fetchedMovie.credits || {};
-      } else {
-        movie.spec = "ERR404";
+        movie.spec = fetchedMovie.overview ? fetchedMovie.overview : movie.spec ? movie.spec: "";
+        movie.releaseDate = fetchedMovie.release_date ? fetchedMovie.release_date : movie.releaseDate? movie.releaseDate : "";
+        movie.runtime = fetchedMovie.runtime ? fetchedMovie.runtime : movie.runtime ? movie.runtime : "";
+        movie.credits = fetchedMovie.credits ? fetchedMovie.credits : movie.credits ? movie.credits : {};
       }
+
+      movie.batch = true;
     } catch (error) {
       console.error(`Error processing movie ${movie.localTitle}:`, error);
     }
@@ -371,15 +382,12 @@ exports.testFetchMovieListJP = functions.runWith({timeoutSeconds: 540}).https.on
     const processedCount = 0;
     const startTime = Date.now();
 
-    // Fetch movie name, country, source from JP theater
     const runningMovies = await fetchRunningFromEIGA(false);
     const upcomingMovies = await fetchUpcomingFromEIGA(false);
     const allMovies = [...runningMovies, ...upcomingMovies];
 
-    // Fetch movie trailer, spec, poster, release date from TMDB
     const moviesWithTrailer = await processBatch("ja-JP", allMovies, processedCount, startTime);
 
-    // Save movies to storage
     await saveMoviesAsJson("jp", moviesWithTrailer);
 
     const timestamp = new Date().toISOString();
@@ -414,7 +422,7 @@ exports.testFetchMovieListCA = functions.runWith({timeoutSeconds: 540}).https.on
     const allMovies = await fetchMovieListFromCineplex();
 
     console.log(`Cineplex Movies: ${allMovies.length}`);
-    const moviesWithTrailer = await processBatch("en-US", allMovies, processedCount, startTime);
+    const moviesWithTrailer = await processBatch("en-CA", allMovies, processedCount, startTime);
 
     await saveMoviesAsJson("ca", moviesWithTrailer);
 
@@ -534,6 +542,83 @@ exports.testFetchMovieListDE = functions.runWith({timeoutSeconds: 540}).https.on
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
+    res.status(500).json({success: false, error: error.message});
+  }
+});
+
+/**
+ * Test function for fetching and processing movie data from TMDB (US).
+ * Can be triggered via an HTTP request.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} Sends a JSON response when the function completes.
+ */
+exports.testFetchMovieListUS = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
+  try {
+    const processedCount = 0;
+    const startTime = Date.now();
+
+    const allMovies = await fetchMovieListFromTMDBByUS();
+
+    console.log(`TMDB US Movies: ${allMovies.length}`);
+    const moviesWithTrailer = await processBatch("en-US", allMovies, processedCount, startTime, true);
+
+    await saveMoviesAsJson("us", moviesWithTrailer);
+
+    const timestamp = new Date().toISOString();
+    console.log(`Success: [${timestamp}] Country: US, Movie Count: ${moviesWithTrailer.length}`);
+
+    res.status(200).json({
+      success: true,
+      timestamp,
+      country: "US",
+      movieCount: moviesWithTrailer.length,
+      movies: moviesWithTrailer,
+    });
+  } catch (error) {
+    console.error("Error fetching movie list:", error);
+    res.status(500).json({success: false, error: error.message});
+  }
+});
+
+/**
+ * Reads a movie list JSON file from Firebase Storage based on the provided country code.
+ * Can be triggered via an HTTP request with a country query parameter.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} Sends a JSON response with the movie list when the function completes.
+ */
+exports.readMovieListByCountry = functions.https.onRequest(async (req, res) => {
+  const country = req.query.country;
+
+  if (!country) {
+    return res.status(400).json({success: false, message: "Country code is required."});
+  }
+
+  try {
+    const bucket = admin.storage().bucket();
+    const fileName = `movies_${country.toLowerCase()}.json`; // Construct the file name based on the country code
+    const file = bucket.file(fileName);
+
+    const exists = await file.exists();
+    if (!exists[0]) {
+      return res.status(404).json({success: false, message: "File not found for the specified country code."});
+    }
+
+    const fileContents = await file.download();
+    const movies = JSON.parse(fileContents.toString());
+
+    res.status(200).json({
+      success: true,
+      country: country.toUpperCase(),
+      movieCount: movies.movies.length,
+      timestamp: movies.timestamp,
+      movies: movies.movies,
+    });
+  } catch (error) {
+    console.error("Error reading movie list:", error);
     res.status(500).json({success: false, error: error.message});
   }
 });

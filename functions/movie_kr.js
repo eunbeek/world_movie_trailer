@@ -82,6 +82,7 @@ async function fetchMovieListFromCgv(lotteMovies) {
           posterUrl: posterUrl,
           country: "kr",
           source: "cgv",
+          batch: false,
         };
 
         movies.push(movie);
@@ -138,6 +139,7 @@ async function _processAdditionalMovies(movieList, movies, lotteMovies) {
         posterUrl: posterUrl,
         country: "kr",
         source: "cgv",
+        batch: false,
       };
 
       movies.push(movie);
@@ -188,6 +190,7 @@ async function fetchMovieListFromLotte() {
           posterUrl: movieJson.PosterURL,
           country: "kr",
           source: "lotte",
+          batch: false,
         });
       });
 

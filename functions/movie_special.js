@@ -37,6 +37,7 @@ async function fetchMovieInSpecialSection() {
             special: row["Title"] || "",
             year: row["Year"] || "",
             originName: row["Origin_Name"] || "",
+            batch: false,
           };
 
           movies.push(movie);

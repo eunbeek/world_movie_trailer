@@ -30,14 +30,55 @@ async function fetchRunningFromEIGA(moviesJP = []) {
       const promises = movieBoxes.map(async (i, movieBox) => {
         const aTag = $(movieBox).find("div.img-box a");
         if (aTag) {
-          const title = $(aTag).find("img").attr("alt");
-          if (moviesJP.length > 0 && moviesJP.some((movieJP) => movieJP.localTitle.trim() === title.trim())) return;
+          const title = $(aTag).find("img").attr("alt").trim();
+          if (moviesJP.length > 0 && moviesJP.some((movieJP) => movieJP.localTitle === title)) return;
+
           const posterUrl = $(aTag).find("img").attr("src");
+          const releaseDate = $(movieBox).find("small.time").text().trim().replace("公開", "");
+
+          // Extract the current year
+          const currentDate = new Date();
+          const year = currentDate.getFullYear();
+
+          // Extract month and day from the release date
+          const [_, month, day] = releaseDate.match(/(\d{1,2})月(\d{1,2})日/) || [];
+          console.log(_);
+          // Create a tentative release date using the current year
+          const tentativeReleaseDate = new Date(year, month - 1, day);
+
+          // Check if the tentative release date is more than 6 months in the future
+          const sixMonthsFromNow = new Date();
+          sixMonthsFromNow.setMonth(currentDate.getMonth() + 6);
+
+          if (tentativeReleaseDate > sixMonthsFromNow) {
+            // If the date is more than 6 months in the future, assume it's for the next year
+            tentativeReleaseDate.setFullYear(year + 1);
+          }
+
+          // Format the date as YYYY-MM-DD
+          const formattedDate = `${tentativeReleaseDate.getFullYear()}-${(tentativeReleaseDate.getMonth() + 1).toString().padStart(2, "0")}-${tentativeReleaseDate.getDate().toString().padStart(2, "0")}`;
+
+          const spec = $(movieBox).find("p.txt").text().trim();
+
+          const director = $(movieBox).find("ul.cast-staff li:first-child span").text().trim();
+          const cast = $(movieBox)
+              .find("ul.cast-staff li:nth-child(2) span")
+              .map((i, el) => $(el).text().trim())
+              .get()
+              .slice(0, 4);
+
           movies.push({
-            localTitle: title.trim(),
+            localTitle: title,
             posterUrl: posterUrl,
             country: "jp",
             source: "eiga",
+            spec: spec,
+            releaseDate: formattedDate,
+            credits: {
+              crew: director ? [{name: director, job: "Director"}] : [],
+              cast: cast.map((name) => ({name: name})), // Assuming no character info available
+            },
+            batch: false,
           });
         }
       }).get();
@@ -74,15 +115,31 @@ async function fetchUpcomingFromEIGA(moviesJP = []) {
       const promises = movieBoxes.map(async (i, movieBox) => {
         const aTag = $(movieBox).find("a");
         if (aTag) {
-          const title = $(movieBox).find("div.img-thumb img").attr("alt");
+          const title = $(movieBox).find("div.img-thumb img").attr("alt").trim();
+          if (moviesJP.length > 0 && moviesJP.some((movieJP) => movieJP.localTitle === title)) return;
 
-          if (moviesJP.length > 0 && moviesJP.some((movieJP) => movieJP.localTitle.trim() === title.trim())) return;
-          const posterUrl = $(movieBox).find("div.img-thumb").find("img").attr("src");
+          const posterUrl = $(movieBox).find("div.img-thumb img").attr("src");
+          const releaseDate = $(movieBox).find("p.published").text().trim().replace("劇場公開日：", "");
+
+          // Convert Japanese date format (e.g., 2024年8月31日) to YYYY-MM-DD
+          const formattedDate = releaseDate.replace(/(\d{4})年(\d{1,2})月(\d{1,2})日/, (match, year, month, day) => {
+            // Ensure month and day are two digits
+            month = month.padStart(2, "0");
+            day = day.padStart(2, "0");
+            return `${year}-${month}-${day}`;
+          });
+
           movies.push({
-            localTitle: title.trim(),
+            localTitle: title,
             posterUrl: posterUrl,
             country: "jp",
             source: "eiga",
+            releaseDate: formattedDate,
+            credits: {
+              crew: [],
+              cast: [],
+            },
+            batch: false,
           });
         }
       }).get();
