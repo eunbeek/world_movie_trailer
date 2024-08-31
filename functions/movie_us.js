@@ -33,7 +33,6 @@ async function fetchMovieListFromTMDBByUS() {
           response.forEach((item) => {
             movies.push({
               localTitle: item.title,
-              country: "us",
               source: "imdb",
               spec: item.overview,
               releaseDate: item.release_date,
@@ -56,6 +55,8 @@ async function fetchMovieListFromTMDBByUS() {
   // Fetch for pages 1 and 2
   await fetchMovies("1");
   await fetchMovies("2");
+  await fetchMovies("3");
+  await fetchMovies("4");
 
   return movies;
 }

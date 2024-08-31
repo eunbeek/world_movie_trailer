@@ -73,7 +73,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                     Text(
-                      listAppBar + widget.country,
+                      widget.country == special && allMovies[0].special =="Director of the Month" ? specialAppBar + 'directed by ' + allMovies[0].source: listAppBar + widget.country,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -89,54 +89,55 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                   ],
                 ),
               ),
-              // Filter Tabs with gradient underline
-              TabBar(
-                controller: _tabController,
-                dividerColor: Colors.transparent,
-                indicator: const TabBarGradientIndicator(
-                  gradientColor: [
-                    Color(0xff2AAFDC),
-                    Color(0xffF11ED6),
+              if(widget.country != special)
+                // Filter Tabs with gradient underline
+                TabBar(
+                  controller: _tabController,
+                  dividerColor: Colors.transparent,
+                  indicator: const TabBarGradientIndicator(
+                    gradientColor: [
+                      Color(0xff2AAFDC),
+                      Color(0xffF11ED6),
+                    ],
+                    insets: EdgeInsets.fromLTRB(0.0, 68.0, 0.0, 0.0),
+                    indicatorWidth: 1.5
+                  ),
+                  labelColor: Colors.white,
+                  unselectedLabelColor: Colors.grey,
+                  labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  tabs: const [
+                    Tab(
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: Text(listFilterAll),
+                      ),
+                    ),
+                    Tab(
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: Text(listFilterRunning),
+                      ),
+                    ),
+                    Tab(
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: Text(listFilterUpcoming),
+                      ),
+                    ),
                   ],
-                  insets: EdgeInsets.fromLTRB(0.0, 68.0, 0.0, 0.0),
-                  indicatorWidth: 1.5
+                  onTap: (index) {
+                    setState(() {
+                      if (index == 0) {
+                        selectedFilter = listFilterAll;
+                      } else if (index == 1) {
+                        selectedFilter = listFilterRunning;
+                      } else if (index == 2) {
+                        selectedFilter = listFilterUpcoming;
+                      }
+                      _applyFilter(false);
+                    });
+                  },
                 ),
-                labelColor: Colors.white,
-                unselectedLabelColor: Colors.grey,
-                labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                tabs: const [
-                  Tab(
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: Text(listFilterAll),
-                    ),
-                  ),
-                  Tab(
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: Text(listFilterRunning),
-                    ),
-                  ),
-                  Tab(
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: Text(listFilterUpcoming),
-                    ),
-                  ),
-                ],
-                onTap: (index) {
-                  setState(() {
-                    if (index == 0) {
-                      selectedFilter = listFilterAll;
-                    } else if (index == 1) {
-                      selectedFilter = listFilterRunning;
-                    } else if (index == 2) {
-                      selectedFilter = listFilterUpcoming;
-                    }
-                    _applyFilter(false);
-                  });
-                },
-              ),
               Expanded(
                 child: TabBarView(
                   controller: _tabController,

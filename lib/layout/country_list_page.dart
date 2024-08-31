@@ -45,24 +45,27 @@ class _CountryListPageState extends State<CountryListPage> {
     }
   }
 
-  String _getAppBarTitle(String languageCode) {
-    switch (languageCode) {
-      case 'ko':
-        return countryAppBarKr;
-      case 'ja':
-        return countryAppBarJp;
-      case 'zh':
-        return countryAppBarTw;
-      case 'fr':
-        return countryAppBarFr;
-      case 'de':
-        return countryAppBarDe;
-      case 'en':
-        return countryAppBarEn;
-      default:
-        return countryAppBarEn;
-    }
+String _getAppBarTitle(String languageCode) {
+  switch (languageCode) {
+    case 'ko':
+      return countryAppBarKR; 
+    case 'ja':
+      return countryAppBarJP;
+    case 'zh':
+      return countryAppBarCN;
+    case 'tw':
+      return countryAppBarTW;
+    case 'fr':
+      return countryAppBarFR;
+    case 'de':
+      return countryAppBarDE;
+    case 'en':
+      return countryAppBarEN;
+    default:
+      return countryAppBarEN;
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

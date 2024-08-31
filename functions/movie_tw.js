@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 const axios = require("axios");
 
-const showTimeUrl = "ttps://capi.showtimes.com.tw/1/app/bootstrap";
+const showTimeUrl = "https://capi.showtimes.com.tw/1/app/bootstrap";
 
 const showTimeHeaders = {
   "accept": "application/json, text/plain, */*",
@@ -40,7 +40,6 @@ async function fetchMovieListFromShowTime() {
           localTitle: item.name,
           runtime: runtime,
           posterUrl: posterUrl,
-          country: "tw",
           source: "showtimes",
           trailerUrl: trailerUrl,
           spec: spec,

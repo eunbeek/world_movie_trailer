@@ -269,6 +269,7 @@ async function processBatch(country, moviesData, processedCount, startTime, isSp
       if (fetchedMovie) {
         movie.posterUrl = fetchedMovie.poster_path ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${fetchedMovie.poster_path}` : movie.posterUrl;
         movie.trailerUrl = fetchedMovie.trailerLink || "";
+        movie.country = movie.country ? movie.country : fetchedMovie.origin_country ? fetchedMovie.origin_country[0]: "";
         movie.spec = fetchedMovie.overview ? fetchedMovie.overview : movie.spec ? movie.spec: "";
         movie.releaseDate = fetchedMovie.release_date ? fetchedMovie.release_date : movie.releaseDate? movie.releaseDate : "";
         movie.runtime = fetchedMovie.runtime ? fetchedMovie.runtime : movie.runtime ? movie.runtime : "";

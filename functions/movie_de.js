@@ -33,7 +33,6 @@ async function fetchMovieListFromTraumpalast() {
         const movie = {
           localTitle: titleTag.text().trim(),
           posterUrl: "https://leonberg.traumpalast.de" + imgTag.attr("data-srcset").split(" ")[0],
-          country: "de",
           source: "traumpalast",
           spec: descriptionTag.text().trim(),
           releaseDate: releaseDateTag.attr("datetime"),

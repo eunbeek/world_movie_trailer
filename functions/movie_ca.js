@@ -44,7 +44,6 @@ async function fetchMovieListFromCineplex() {
           localTitle: item.name,
           runtime: item.runtimeInMinutes,
           posterUrl: item.largePosterImageUrl,
-          country: "ca",
           source: "cineplex",
           batch: false,
         });

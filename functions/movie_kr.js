@@ -137,7 +137,6 @@ async function _processAdditionalMovies(movieList, movies, lotteMovies) {
       const movie = {
         localTitle: processedTitle,
         posterUrl: posterUrl,
-        country: "kr",
         source: "cgv",
         batch: false,
       };
@@ -188,7 +187,6 @@ async function fetchMovieListFromLotte() {
         movies.push({
           localTitle: processedTitle,
           posterUrl: movieJson.PosterURL,
-          country: "kr",
           source: "lotte",
           batch: false,
         });

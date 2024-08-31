@@ -70,7 +70,6 @@ async function fetchRunningFromEIGA(moviesJP = []) {
           movies.push({
             localTitle: title,
             posterUrl: posterUrl,
-            country: "jp",
             source: "eiga",
             spec: spec,
             releaseDate: formattedDate,
@@ -132,7 +131,6 @@ async function fetchUpcomingFromEIGA(moviesJP = []) {
           movies.push({
             localTitle: title,
             posterUrl: posterUrl,
-            country: "jp",
             source: "eiga",
             releaseDate: formattedDate,
             credits: {

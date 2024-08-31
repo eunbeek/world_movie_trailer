@@ -38,7 +38,7 @@ class MovieService {
         countryCode = 'special';
         break;
       default:
-        countryCode = 'na';
+        countryCode = 'us';
         break;
     }
 

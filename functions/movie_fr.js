@@ -44,7 +44,6 @@ async function fetchMovieListFromUga() {
         const movie = {
           localTitle: aTag.attr("title"),
           posterUrl: aTag.find("img").attr("data-src"),
-          country: "fr",
           source: "ugc",
           batch: false,
         };
