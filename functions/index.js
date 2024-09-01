@@ -203,13 +203,39 @@ admin.initializeApp();
 
 /**
  * Fetches movies in the special section by director, processes trailers, and saves the result.
+ * Scheduled to run every Firstday at 19:00 AM EST.
+ *
+ * @returns {Promise<void>} Returns null when the function completes.
+ */
+exports.fetchSpecialSection = functions
+    .pubsub
+    .schedule("0 1 1 * *")
+    .timeZone("America/Toronto") // e.g., 'America/New_York'
+    .onRun(async () => {
+      const processedCount = 0;
+      const startTime = Date.now();
+
+      const specialMovies = await fetchMovieInSpecialSection();
+
+      const moviesWithTrailer = await processBatch("en-US", specialMovies, processedCount, startTime, true);
+
+      await saveMoviesAsJson("special", moviesWithTrailer);
+
+      const timestamp = new Date().toISOString();
+      console.log(`Success: [${timestamp}] Country: Special, Movie Count: ${moviesWithTrailer.length}`);
+
+      return null;
+    });
+
+/**
+ * Fetches movies in the special section by director, processes trailers, and saves the result.
  * Can be triggered via an HTTP request.
  *
  * @param {Object} req - The request object.
  * @param {Object} res - The response object.
  * @returns {Promise<void>} Sends a JSON response when the function completes.
  */
-exports.fetchSpeicalSectionByDirector = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
+exports.testFetchSpeicalSection = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
   try {
     const processedCount = 0;
     const startTime = Date.now();

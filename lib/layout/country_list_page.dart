@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:world_movie_trailer/layout/video_ad_page.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/common/movie_service.dart';
 import 'package:world_movie_trailer/model/movie.dart';
+import 'package:world_movie_trailer/common/providers/settings_provider.dart';
+import 'package:world_movie_trailer/common/translate.dart';
 
 class CountryListPage extends StatefulWidget {
   const CountryListPage({super.key});
@@ -12,73 +15,43 @@ class CountryListPage extends StatefulWidget {
 }
 
 class _CountryListPageState extends State<CountryListPage> {
-  List<String> countries = [];
   Movie? specialSection;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _arrangeCountriesBasedOnLocale();
       _fetchSpecialMovies();
     });
   }
 
-  void _arrangeCountriesBasedOnLocale() {
-    String languageCode = Localizations.localeOf(context).languageCode;
+Future<void> _fetchSpecialMovies() async {
+  try {
+    // Use listen: false to avoid listening to changes outside the build method
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    List<Movie> movies = await MovieService.fetchMovie(special, settingsProvider.language);
     setState(() {
-      countries = countryKeys
-          .map((key) =>
-              localizedCountries[languageCode]?[key] ?? localizedCountries['en']![key]!)
-          .toList();
+      specialSection = movies[0];
     });
-  }
-
-  Future<void> _fetchSpecialMovies() async {
-    try {
-      List<Movie> movies = await MovieService.fetchMovie('Special');
-      setState(() {
-        specialSection = movies[0];
-      });
-    } catch (e) {
-      print('Error fetching special movies: $e');
-    }
-  }
-
-String _getAppBarTitle(String languageCode) {
-  switch (languageCode) {
-    case 'ko':
-      return countryAppBarKR; 
-    case 'ja':
-      return countryAppBarJP;
-    case 'zh':
-      return countryAppBarCN;
-    case 'tw':
-      return countryAppBarTW;
-    case 'fr':
-      return countryAppBarFR;
-    case 'de':
-      return countryAppBarDE;
-    case 'en':
-      return countryAppBarEN;
-    default:
-      return countryAppBarEN;
+  } catch (e) {
+    print('Error fetching special movies: $e');
   }
 }
 
-
   @override
   Widget build(BuildContext context) {
-    String languageCode = Localizations.localeOf(context).languageCode;
+    final settingsProvider = Provider.of<SettingsProvider>(context);
+    final languageCode = settingsProvider.language;
+    final countries = settingsProvider.countryOrder;
 
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image
+          // Background Image based on theme
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/background.png'),
+                image: AssetImage(settingsProvider.background),
                 fit: BoxFit.cover,
               ),
             ),
@@ -93,7 +66,7 @@ String _getAppBarTitle(String languageCode) {
                   crossAxisAlignment: CrossAxisAlignment.start, // 상단에 고정
                   children: [
                     Text(
-                      _getAppBarTitle(languageCode),
+                      getAppBarTitle(languageCode),
                       style: const TextStyle(
                         fontSize: 45,
                         fontWeight: FontWeight.bold,
@@ -127,6 +100,7 @@ String _getAppBarTitle(String languageCode) {
                               }
                               final String item = countries.removeAt(oldIndex);
                               countries.insert(newIndex, item);
+                              settingsProvider.updateCountryOrder(countries); // Save the new order
                             });
                           },
                           children: [
@@ -192,7 +166,7 @@ String _getAppBarTitle(String languageCode) {
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.3),
-                      borderRadius: BorderRadius.only(
+                      borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(20),
                         topRight: Radius.circular(20),
                       ),
@@ -210,7 +184,7 @@ String _getAppBarTitle(String languageCode) {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Special - ${specialSection!.special}',
+                            getSpecialLable(specialSection!, languageCode),
                             style: const TextStyle(
                               color: Colors.redAccent,
                               fontSize: 18,
@@ -219,12 +193,10 @@ String _getAppBarTitle(String languageCode) {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            specialSection!.originName != '' && specialSection!.source == specialSection!.originName
-                                ? '${specialSection!.source} (${specialSection!.country})'
-                                : '${specialSection!.source} | ${specialSection!.originName} (${specialSection!.country})',
+                            getNameBySpecialSource(specialSection!, languageCode),
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),

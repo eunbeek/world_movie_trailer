@@ -8,9 +8,12 @@ const axios = require("axios");
  */
 async function fetchMovieInSpecialSection() {
   const movies = [];
+  const currentDate = new Date();
+  const currentPeriod = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}`;
+
   try {
     const response = await axios.get(
-        "https://docs.google.com/spreadsheets/d/1GAVRJu8eY9ZArRX7pBrb427Ps6NCHiOsBhbQ6QV6ce4/export?format=tsv&gid=2145613691&range=A1:I9",
+        "https://docs.google.com/spreadsheets/d/1GAVRJu8eY9ZArRX7pBrb427Ps6NCHiOsBhbQ6QV6ce4/export?format=tsv&gid=1234673196&range=A1:M",
     );
 
     if (response.status === 200) {
@@ -27,16 +30,23 @@ async function fetchMovieInSpecialSection() {
             row[header] = values[index] || ""; // Safely assign values
           });
 
+          if (row["Period"] !== currentPeriod) {
+            continue;
+          }
+          console.log(row["Period"]);
           const movie = {
             localTitle: row["Movie"] || "",
             posterUrl: row["Poster"] || "",
-            country: row["Natinality"] || "",
-            source: row["Name"] || "",
+            country: row["Nationality"] || "",
+            source: row["English_Name"] || "",
             trailerUrl: row["Trailer"] || "",
             tid: row["Tid"] || "",
             special: row["Title"] || "",
             year: row["Year"] || "",
-            originName: row["Origin_Name"] || "",
+            NameKR: row["Korean_Name"] || "",
+            NameJP: row["Japanese_Name"] || "",
+            NameCH: row["SimplifiedC_Name"] || "",
+            NameTW: row["TraditionalC_Name"] || "",
             batch: false,
           };
 

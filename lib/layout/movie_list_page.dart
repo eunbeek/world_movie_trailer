@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/layout/movie_detail_page.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:world_movie_trailer/common/TabBarGradientIndicator.dart';
+import 'package:world_movie_trailer/common/providers/settings_provider.dart';
+import 'package:world_movie_trailer/common/translate.dart';
 
 class MovieListPage extends StatefulWidget {
   final String country;
@@ -47,14 +50,15 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
+    final settingsProvider = Provider.of<SettingsProvider>(context);
     return Scaffold(
       body: Stack(
         children: [
           // Background Image
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/background.png'),
+                image: AssetImage(settingsProvider.background),
                 fit: BoxFit.cover,
               ),
             ),
@@ -62,29 +66,30 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
           // Main Content
           Column(
             children: [
-              // Custom AppBar
               Padding(
                 padding: const EdgeInsets.only(top: 20.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.arrow_back, color: Colors.white),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
-                    Text(
-                      widget.country == special && allMovies[0].special =="Director of the Month" ? specialAppBar + 'directed by ' + allMovies[0].source: listAppBar + widget.country,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Text(
+                        widget.country == special ? allMovies[0].source : widget.country,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center, // Center the text
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.settings, color: Colors.white),
-                      onPressed: () {
-                        // Handle settings button press
-                      },
+                    // Add an invisible icon button for spacing
+                    const IconButton(
+                      icon: Icon(Icons.arrow_back, color: Colors.transparent), // Invisible icon to balance the space
+                      onPressed: null, // No action
                     ),
                   ],
                 ),
@@ -105,23 +110,38 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.grey,
                   labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  tabs: const [
+                  tabs: [
                     Tab(
                       child: Align(
                         alignment: Alignment.center,
-                        child: Text(listFilterAll),
+                        child: Text(
+                          getFilterLabel(0,settingsProvider.language), 
+                          style: const TextStyle(
+                            fontSize: 13,
+                          ),
+                        ),
                       ),
                     ),
                     Tab(
                       child: Align(
                         alignment: Alignment.center,
-                        child: Text(listFilterRunning),
+                        child: Text(
+                          getFilterLabel(1,settingsProvider.language), 
+                          style: const TextStyle(
+                            fontSize: 13,
+                          ),
+                        ),
                       ),
                     ),
                     Tab(
                       child: Align(
                         alignment: Alignment.center,
-                        child: Text(listFilterUpcoming),
+                        child: Text(
+                          getFilterLabel(2,settingsProvider.language), 
+                          style: const TextStyle(
+                            fontSize: 13,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -156,6 +176,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
   }
 
   Widget _buildMovieGrid(List<Movie> movies) {
+    final settingsProvider = Provider.of<SettingsProvider>(context);
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -174,7 +195,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
               context,
               MaterialPageRoute(
                 builder: (context) =>
-                    MovieDetailPage(country: widget.country, movie: movie),
+                    MovieDetailPage(movie: movie),
               ),
             );
           },
@@ -211,15 +232,15 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.bold, // 텍스트를 조금 더 굵게 설정
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 4), // 텍스트 사이에 간격 추가
+                      const SizedBox(height: 4), 
                       releaseDate != null?
                         Text(
-                          '${releaseDate} 개봉', // 포맷된 개봉일을 사용
+                          '${releaseDate} ' + getReleaseLabel(settingsProvider.language), 
                           style: const TextStyle(
-                            color: Colors.grey, // 개봉일 색상을 회색으로 설정
+                            color: Colors.grey, 
                             fontSize: 12,
                           ),
                         )

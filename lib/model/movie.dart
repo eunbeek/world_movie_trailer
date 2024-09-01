@@ -41,7 +41,16 @@ class Movie extends HiveObject {
   String? year;
 
   @HiveField(12)
-  String? originName;
+  String? nameKR;
+
+  @HiveField(13)
+  String? nameJP;
+
+  @HiveField(14)
+  String? nameCH;
+
+  @HiveField(15)
+  String? nameTW;
 
   Movie({
     required this.localTitle,
@@ -56,7 +65,10 @@ class Movie extends HiveObject {
     this.status,
     this.special,
     this.year,
-    this.originName,
+    this.nameKR,
+    this.nameJP,
+    this.nameCH,
+    this.nameTW,
   });
 
   Map<String, dynamic> toJson() => {
@@ -72,7 +84,10 @@ class Movie extends HiveObject {
     'status': status,
     'special': special,
     'year': year,
-    'originName': originName,
+    'nameKR': nameKR,
+    'nameJP': nameJP,
+    'nameCH': nameCH,
+    'nameTW': nameTW,
   };
 
   factory Movie.fromJson(Map<dynamic, dynamic> json) {
@@ -89,7 +104,10 @@ class Movie extends HiveObject {
       status: json['status'] ?? '',
       special: json['special'] ?? '',
       year: json['year'] ?? '', 
-      originName: json['originName'] ?? '', 
+      nameKR: json['NameKR'] ?? '', 
+      nameJP: json['NameJP'] ?? '', 
+      nameCH: json['NameCH'] ?? '', 
+      nameTW: json['NameTW'] ?? '', 
     );
   }
 }

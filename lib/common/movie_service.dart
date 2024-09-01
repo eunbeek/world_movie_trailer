@@ -10,12 +10,18 @@ class MovieService {
     return await Hive.openBox('moviesBox');
   }
 
-  static Future<List<Movie>> fetchMovie(String country) async {
+  static Future<List<Movie>> fetchMovie(String country, String languageCode) async {
     print('fetchMovie');
     Box box = await _openBox();
     String countryCode;
+    String? countryName = country == special ? special : localizedCountries[languageCode]?.entries
+    .firstWhere(
+        (entry) => entry.value == country,
+        orElse: () => MapEntry('', '')
+    )
+    .key;
 
-    switch (country) {
+    switch (countryName) {
       case kr:
         countryCode = 'kr';
         break;
@@ -47,7 +53,7 @@ class MovieService {
     List<Movie> movies = [];
     String? timestamp = result['timestamp'];
 
-    if (timestamp != null && !_isDataOutdated(DateTime.parse(timestamp))) {
+    if (timestamp != null && !_isDataOutdated(DateTime.parse(timestamp),countryCode == special)) {
       return result['movies'];
     } else {
       // Fetch new data from Firebase Storage
@@ -148,7 +154,10 @@ class MovieService {
             status: json.status as String? ?? 'Upcoming',
             special: json.special as String? ?? '',
             year: json.year as String? ?? '',
-            originName: json.originName as String? ?? '',
+            nameKR: json.nameKR as String? ?? '', 
+            nameJP: json.nameJP as String? ?? '', 
+            nameCH: json.nameCH as String? ?? '', 
+            nameTW: json.nameTW as String? ?? '', 
           );
         }).toList();
 
@@ -171,8 +180,15 @@ class MovieService {
     }
   }
 
+  static bool _isDataOutdated(DateTime lastFetched, bool isSpecial) {
+    final now = DateTime.now();
 
-  static bool _isDataOutdated(DateTime lastFetched) {
-    return DateTime.now().difference(lastFetched).inDays > 7; // Data older than a week is considered outdated
+    if (isSpecial) {
+      // For special sections, check if the year and month are the same
+      return !(lastFetched.year == now.year && lastFetched.month == now.month);
+    } else {
+      // For regular data, consider it outdated if older than 7 days
+      return now.difference(lastFetched).inDays > 7;
+    }
   }
 }

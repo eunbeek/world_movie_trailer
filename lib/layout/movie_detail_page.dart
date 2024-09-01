@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:world_movie_trailer/model/movie.dart';
+import 'package:world_movie_trailer/common/providers/settings_provider.dart';
+import 'package:world_movie_trailer/common/translate.dart';
 
 class MovieDetailPage extends StatefulWidget {
-  final String country;
   final Movie movie;
 
-  MovieDetailPage({required this.country, required this.movie});
+  MovieDetailPage({required this.movie});
 
   @override
   _MovieDetailPageState createState() => _MovieDetailPageState();
@@ -60,15 +62,16 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final settingsProvider = Provider.of<SettingsProvider>(context);
     return Scaffold(
       body: Stack(
         children: [
           // Background Image
           if (!_isFullScreen)
             Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage('assets/images/background.png'), // Replace with your actual background image path
+                  image: AssetImage(settingsProvider.background), 
                   fit: BoxFit.cover,
                 ),
               ),
@@ -78,7 +81,7 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
             children: [
               if (!_isFullScreen)
                 Padding(
-                  padding: const EdgeInsets.only(top: 20.0),
+                  padding: const EdgeInsets.only(top: 20.0, bottom: 10),
                   child: Stack(
                     children: [
                       Align(
@@ -89,16 +92,19 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                         ),
                       ),
                       Center(
-                        child: Text(
-                          widget.movie.localTitle.length > 15
-                              ? '${widget.movie.localTitle.substring(0, 15)}...'
+                        child: Container(
+                          padding: EdgeInsets.only(top:10.0),
+                          child: Text(
+                          widget.movie.localTitle.length > 25
+                              ? '${widget.movie.localTitle.substring(0, 25)}...'
                               : widget.movie.localTitle,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 20,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
+                        ),
                         ),
                       ),
                     ],
@@ -124,20 +130,20 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                             const SizedBox(height: 20),
                             if (widget.movie.special!.isNotEmpty)
                               Padding(
-                                padding: const EdgeInsets.all(8.0),
+                                padding: const EdgeInsets.only(left: 8.0),
                                 child: Text(
-                                  'Released Year: ${widget.movie.year}',
+                                  '${getTranslatedDetail('Year', settingsProvider.language)}: ${widget.movie.year}',
                                   style: const TextStyle(
-                                    color: Colors.white, // Text color changed to white
+                                    color: Colors.white, // Text color set to white
                                   ),
                                 ),
                               ),
                             if (widget.movie.credits?["crew"] != null &&
                                 widget.movie.credits?["crew"].isNotEmpty)
                               Padding(
-                                padding: const EdgeInsets.all(8.0),
+                                padding: const EdgeInsets.only(left: 8.0),
                                 child: Text(
-                                  'Director: ${widget.movie.credits?["crew"][0]["name"]}',
+                                  '${getTranslatedDetail('Director', settingsProvider.language)}: ${widget.movie.credits?["crew"][0]["name"]}',
                                   style: const TextStyle(
                                     color: Colors.white, // Text color changed to white
                                   ),
@@ -146,9 +152,9 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                             if (widget.movie.credits?["cast"] != null &&
                                 widget.movie.credits?["cast"].isNotEmpty)
                               Padding(
-                                padding: const EdgeInsets.all(8.0),
+                                padding: const EdgeInsets.only(left: 8.0),
                                 child: Text(
-                                  'Stars: ${widget.movie.credits?["cast"]
+                                  '${getTranslatedDetail('Stars', settingsProvider.language)}: ${widget.movie.credits?["cast"]
                                       .map((castMember) => castMember["name"])
                                       .join(", ")}',
                                   style: const TextStyle(
@@ -156,16 +162,27 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                                   ),
                                 ),
                               ),
-                            if (widget.movie.runtime != "")
+                            if(widget.movie.country != "")
                               Padding(
-                                padding: const EdgeInsets.all(8.0),
+                                padding: const EdgeInsets.only(left: 8.0),
                                 child: Text(
-                                  'Running Time: ${widget.movie.runtime} minutes',
+                                  '${getTranslatedDetail('Country', settingsProvider.language)}: ${widget.movie.country}',
                                   style: const TextStyle(
                                     color: Colors.white, // Text color changed to white
                                   ),
                                 ),
                               ),
+                            if (widget.movie.runtime != "")
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8.0),
+                                child: Text(
+                                  '${getTranslatedDetail('Running Time', settingsProvider.language)}: ${widget.movie.runtime} minutes',
+                                  style: const TextStyle(
+                                    color: Colors.white, // Text color changed to white
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(height: 10),
                             if (widget.movie.spec != "ERR404")
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
