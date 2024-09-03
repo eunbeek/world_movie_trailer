@@ -2,7 +2,7 @@ name: world_movie_trailer
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.0+2
+version: 1.0.0+4
 
 environment:
   sdk: '>=3.3.3 <4.0.0'
@@ -20,6 +20,8 @@ dependencies:
   hive: ^2.2.3                     # Non-relational database for Flutter
   hive_flutter: ^1.1.0             # Flutter-specific Hive integration
   provider: ^6.0.0
+  url_launcher: ^6.2.4
+  simple_animations: ^5.0.2 
 
 dependency_overrides:
   flutter_math_fork: ^0.4.0
@@ -34,4 +36,11 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/background_dark.png
+    - assets/images/dark/deco_world_map_DT_xxhdpi.png
+    - assets/images/dark/deco_film_reel_DT_xxhdpi.png
+    - assets/images/dark/icon_config_DT_xxhdpi.png
+    - assets/images/dark/icon_reorder_DT_xxhdpi.png
+    - assets/images/light/deco_world_map_LT_xxhdpi.png
+    - assets/images/light/deco_film_reel_LT_xxhdpi.png
+    - assets/images/light/icon_config_LT_xxhdpi.png
+    - assets/images/light/icon_reorder_LT_xxhdpi.png

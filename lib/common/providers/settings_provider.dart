@@ -6,22 +6,20 @@ import 'package:world_movie_trailer/common/constants.dart';
 class SettingsProvider with ChangeNotifier {
   Settings _settings;
 
-  SettingsProvider(this._settings);
-
-  // property & getter
-  String get background {
-    if (_settings.theme == 'dark') {
-      return 'assets/images/background_dark.png';
-    } else if (_settings.theme == 'light') {
-      return 'assets/images/background_light.png';
-    } else {
-      return _settings.theme;
-    }
+  SettingsProvider(Settings newSettings, bool isInitialSetting) 
+    : _settings = newSettings {
+    if (isInitialSetting) _saveSettings();
   }
+  // property & getter
+  bool get isDarkTheme => _settings.theme == 'dark';
 
   String get language => _settings.language;
   
   List<String> get countryOrder => getLocalizedCountryNames();
+  
+  bool get isVibrate => _settings.isVibrate;
+
+  bool get isCaptionOn => _settings.isCaptionOn;
   
   // update & setter
   set language(String newLanguage) {
@@ -48,12 +46,24 @@ class SettingsProvider with ChangeNotifier {
           .key;
       return key;
     }).where((key) => key.isNotEmpty).toList();
-    // Save the converted keys
     _settings.countryOrder = countryKeysToSave;
     _saveSettings();
     notifyListeners();
   }
 
+  void updateIsVibrate(bool vibrate) {
+    print('updateVibrate');
+    _settings.isVibrate = vibrate;
+    _saveSettings();
+    notifyListeners();
+  }
+
+  void updateIsCaptionOn(bool caption) {
+    print('updateCaption');
+    _settings.isCaptionOn = caption;
+    _saveSettings();
+    notifyListeners();
+  }
   // save the setting change in hive
   void _saveSettings() {
     print('_saveSettings');

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/layout/movie_detail_page.dart';
@@ -7,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:world_movie_trailer/common/TabBarGradientIndicator.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
+import 'package:world_movie_trailer/common/background.dart';
 
 class MovieListPage extends StatefulWidget {
   final String country;
@@ -51,126 +53,120 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
-    return Scaffold(
-      body: Stack(
-        children: [
-          // Background Image
-          Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(settingsProvider.background),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          // Main Content
-          Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 20.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                    Expanded(
-                      child: Text(
-                        widget.country == special ? allMovies[0].source : widget.country,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center, // Center the text
+    return SafeArea(
+      child: Scaffold(
+        body: Stack(
+          children: [
+            // Background Image
+            const BackgroundWidget(isPausePage: false,),
+            // Main Content
+            Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 20.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () => Navigator.of(context).pop(),
                       ),
-                    ),
-                    // Add an invisible icon button for spacing
-                    const IconButton(
-                      icon: Icon(Icons.arrow_back, color: Colors.transparent), // Invisible icon to balance the space
-                      onPressed: null, // No action
-                    ),
-                  ],
-                ),
-              ),
-              if(widget.country != special)
-                // Filter Tabs with gradient underline
-                TabBar(
-                  controller: _tabController,
-                  dividerColor: Colors.transparent,
-                  indicator: const TabBarGradientIndicator(
-                    gradientColor: [
-                      Color(0xff2AAFDC),
-                      Color(0xffF11ED6),
+                      Expanded(
+                        child: Text(
+                          widget.country == special ? allMovies[0].source : widget.country,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center, // Center the text
+                        ),
+                      ),
+                      // Add an invisible icon button for spacing
+                      const IconButton(
+                        icon: Icon(Icons.arrow_back, color: Colors.transparent), // Invisible icon to balance the space
+                        onPressed: null, // No action
+                      ),
                     ],
-                    insets: EdgeInsets.fromLTRB(0.0, 68.0, 0.0, 0.0),
-                    indicatorWidth: 1.5
                   ),
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.grey,
-                  labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  tabs: [
-                    Tab(
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: Text(
-                          getFilterLabel(0,settingsProvider.language), 
-                          style: const TextStyle(
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Tab(
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: Text(
-                          getFilterLabel(1,settingsProvider.language), 
-                          style: const TextStyle(
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Tab(
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: Text(
-                          getFilterLabel(2,settingsProvider.language), 
-                          style: const TextStyle(
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                  onTap: (index) {
-                    setState(() {
-                      if (index == 0) {
-                        selectedFilter = listFilterAll;
-                      } else if (index == 1) {
-                        selectedFilter = listFilterRunning;
-                      } else if (index == 2) {
-                        selectedFilter = listFilterUpcoming;
-                      }
-                      _applyFilter(false);
-                    });
-                  },
                 ),
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildMovieGrid(filteredMovies),
-                    _buildMovieGrid(filteredMovies),
-                    _buildMovieGrid(filteredMovies),
-                  ],
+                if(widget.country != special)
+                  // Filter Tabs with gradient underline
+                  TabBar(
+                    controller: _tabController,
+                    dividerColor: Colors.transparent,
+                    indicator: TabBarGradientIndicator(
+                      gradientColor: [
+                        settingsProvider.isDarkTheme ? Color(0xff12d6df) : Color(0xff00ffed),
+                        settingsProvider.isDarkTheme? Color(0xfff70fff) : Color(0xff9d00c6),
+                      ],
+                      insets: EdgeInsets.fromLTRB(0.0, 68.0, 0.0, 0.0),
+                      indicatorWidth: 1.5
+                    ),
+                    unselectedLabelColor: Colors.grey,
+                    labelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: settingsProvider.isDarkTheme ? Color(0xffececec): Color(0xff1a1713)),
+                    tabs: [
+                      Tab(
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: Text(
+                            getFilterLabel(0,settingsProvider.language), 
+                            style: const TextStyle(
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Tab(
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: Text(
+                            getFilterLabel(1,settingsProvider.language), 
+                            style: const TextStyle(
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Tab(
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: Text(
+                            getFilterLabel(2,settingsProvider.language), 
+                            style: const TextStyle(
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                    onTap: (index) {                                        
+                      if(settingsProvider.isVibrate) HapticFeedback.vibrate();
+                      setState(() {
+                        if (index == 0) {
+                          selectedFilter = listFilterAll;
+                        } else if (index == 1) {
+                          selectedFilter = listFilterRunning;
+                        } else if (index == 2) {
+                          selectedFilter = listFilterUpcoming;
+                        }
+                        _applyFilter(false);
+                      });
+                    },
+                  ),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildMovieGrid(filteredMovies),
+                      _buildMovieGrid(filteredMovies),
+                      _buildMovieGrid(filteredMovies),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -195,7 +191,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
               context,
               MaterialPageRoute(
                 builder: (context) =>
-                    MovieDetailPage(movie: movie),
+                    MovieDetailPage(movie: movie, captionFlag: settingsProvider.isCaptionOn,),
               ),
             );
           },

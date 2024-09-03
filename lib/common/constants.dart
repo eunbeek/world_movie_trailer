@@ -6,18 +6,17 @@ const supportedLanguages = ['en', 'ko', 'ja', 'tw', 'fr', 'de', 'zh', 'es', 'hi'
 
 // Constants for app bar titles
 const Map<String, String> countryAppBars = {
-  'EN': "World\r\nMovie\r\nTrailers",  // English
-  'KO': '월드\r\n무비\r\n트레일러',  // Korean
-  'JA': 'ワールドムービートレーラー',  // Japanese
-  'FR': 'Bande-annonce du film World',  // French
-  'ZH': '世界电影预告片',  // Simplified Chinese
-  'TW': '世界電影預告片',  // Traditional Chinese
-  'DE': 'Welt\r\nfilm\r\ntrailer',  // German
-  'ES': 'Tráilers\r\nde\r\npelículas',  // Spanish
-  'HI': 'विश्व\r\nफिल्म\r\nट्रेलर',  // Hindi
-  'TH': 'โลก\r\nภาพยนตร์\r\nตัวอย่าง',  // Thai
+  'EN': "World\nMovie\nTrailers",  // English
+  'KO': '월드\n무비\n트레일러',  // Korean
+  'JA': 'ワールド\nムービー\nトレーラー',  // Japanese
+  'FR': 'World\nMovie\nTrailers',  // French
+  'ZH': '世界\n电影\n预告片',  // Simplified Chinese
+  'TW': '世界\n電影\n預告片',  // Traditional Chinese
+  'DE': 'Welt\nfilm\ntrailer',  // German
+  'ES': 'Tráilers\n de\n películas',  // Spanish
+  'HI': 'विश्व\nफिल्म\nट्रेलर',  // Hindi
+  'TH': 'โลก\nภาพยนตร์\nตัวอย่าง',  // Thai
 };
-
 
 Map<String, Map<String, String>> localizedCountries = {
   'en': {
@@ -32,6 +31,7 @@ Map<String, Map<String, String>> localizedCountries = {
     'india': 'India',
     'canada': 'Canada',
     'australia': 'Australia',
+    'thailand': 'Thailand',
   },
   'ko': {
     'korea': '한국',
@@ -45,6 +45,7 @@ Map<String, Map<String, String>> localizedCountries = {
     'india': '인도',
     'canada': '캐나다',
     'australia': '호주',
+    'thailand': '태국',
   },
   'ja': {
     'japan': '日本',
@@ -58,6 +59,7 @@ Map<String, Map<String, String>> localizedCountries = {
     'india': 'インド',
     'canada': 'カナダ',
     'australia': 'オーストラリア',
+    'thailand': 'タイ',
   },
   'tw': {
     'taiwan': '臺灣',
@@ -71,6 +73,7 @@ Map<String, Map<String, String>> localizedCountries = {
     'india': '印度',
     'canada': '加拿大',
     'australia': '澳洲',
+    'thailand': '泰國',
   },
   'zh': {
     'china': '中国',
@@ -84,6 +87,7 @@ Map<String, Map<String, String>> localizedCountries = {
     'india': '印度',
     'canada': '加拿大',
     'australia': '澳大利亚',
+    'thailand': '泰国',
   },
   'fr': {
     'france': 'France',
@@ -96,6 +100,7 @@ Map<String, Map<String, String>> localizedCountries = {
     'india': 'Inde',
     'canada': 'Canada',
     'australia': 'Australie',
+    'thailand': 'Thaïlande',
   },
   'de': {
     'germany': 'Deutschland',
@@ -108,6 +113,7 @@ Map<String, Map<String, String>> localizedCountries = {
     'india': 'Indien',
     'canada': 'Kanada',
     'australia': 'Australien',
+    'thailand': 'Thailand',
   },
   'es': {
     'spain': 'España',
@@ -120,12 +126,39 @@ Map<String, Map<String, String>> localizedCountries = {
     'india': 'India',
     'canada': 'Canadá',
     'australia': 'Australia',
+    'thailand': 'Tailandia',
+  },
+ 'hi': {
+    'india': 'भारत',
+    'korea': 'कोरिया',
+    'japan': 'जापान',
+    'taiwan': 'ताइवान',
+    'usa': 'संयुक्त राज्य अमेरिका',
+    'canada': 'कनाडा',
+    'france': 'फ्रांस',
+    'germany': 'जर्मनी',
+    'spain': 'स्पेन',
+    'australia': 'ऑस्ट्रेलिया',
+    'thailand': 'थाईलैंड',
+  },
+  'th': {
+    'thailand': 'ประเทศไทย',
+    'usa': 'สหรัฐอเมริกา',
+    'korea': 'เกาหลีใต้',
+    'japan': 'ญี่ปุ่น',
+    'taiwan': 'ไต้หวัน',
+    'canada': 'แคนาดา',
+    'france': 'ฝรั่งเศส',
+    'germany': 'เยอรมนี',
+    'spain': 'สเปน',
+    'india': 'อินเดีย',
+    'australia': 'ออสเตรเลีย',
   },
 };
 
-// Country constants
+// Country constants for fetch data from api
 const kr = 'korea';
-const jp = 'japam';
+const jp = 'japan';
 const ca = 'canada';
 const tw = 'taiwan';
 const us = 'usa';
@@ -257,6 +290,7 @@ const Map<String, Map<String, String>> movieDetailTranslations = {
     'es': 'Director de cine',
     'hi': 'फिल्म निर्देशक',
     'th': 'ผู้กำกับ',
+    'en': 'Director',
   },
   'Stars': {
     'ko': '주연',
@@ -268,6 +302,7 @@ const Map<String, Map<String, String>> movieDetailTranslations = {
     'es': 'Actor principal',
     'hi': 'मुख्य अभिनेता',
     'th': 'นักแสดงนำ',
+    'en': 'Stars',
   },
   'Country': {
     'ko': '국가',
@@ -279,6 +314,7 @@ const Map<String, Map<String, String>> movieDetailTranslations = {
     'es': 'País',
     'hi': 'देश',
     'th': 'ประเทศ',
+    'en': 'Country'
   },
   'Running Time': {
     'ko': '상영시간',
@@ -290,6 +326,7 @@ const Map<String, Map<String, String>> movieDetailTranslations = {
     'es': 'Duración de la película',
     'hi': 'फिल्म की अवधि',
     'th': 'ความยาวของภาพยนตร์',
+    'en': 'Running Time',
   },
   'Year': {
     'ko': '공개년도',
@@ -301,5 +338,6 @@ const Map<String, Map<String, String>> movieDetailTranslations = {
     'es': 'Año de estreno',
     'hi': 'रिलीज़ का वर्ष',
     'th': 'ปีที่ภาพยนตร์ออกฉาย',
+    'en': 'Year',
   },
 };

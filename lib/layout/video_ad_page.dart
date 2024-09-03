@@ -5,6 +5,7 @@ import 'package:world_movie_trailer/common/movie_service.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'dart:async';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
+import 'package:world_movie_trailer/common/background.dart';
 
 class VideoAdPage extends StatefulWidget {
   final String country;
@@ -85,22 +86,17 @@ class _VideoAdPageState extends State<VideoAdPage> {
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
-    return Scaffold(
-      body: Stack(
-        children: [
-          // Background Image
-          Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(settingsProvider.background), // Replace with your actual background image path
-                fit: BoxFit.cover,
-              ),
+    return const SafeArea(
+      child: Scaffold(
+        body: Stack(
+          children: [
+            // Background Image
+            BackgroundWidget(isPausePage: false,),
+            Center(
+              child: CircularProgressIndicator(),
             ),
-          ),
-          const Center(
-            child: CircularProgressIndicator(),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

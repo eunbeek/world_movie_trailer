@@ -20,19 +20,25 @@ class SettingsAdapter extends TypeAdapter<Settings> {
       language: fields[0] as String,
       theme: fields[1] as String,
       countryOrder: (fields[2] as List).cast<String>(),
+      isVibrate: fields[3] as bool,
+      isCaptionOn: fields[4] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, Settings obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.language)
       ..writeByte(1)
       ..write(obj.theme)
       ..writeByte(2)
-      ..write(obj.countryOrder);
+      ..write(obj.countryOrder)
+      ..writeByte(3)
+      ..write(obj.isVibrate)
+      ..writeByte(4)
+      ..write(obj.isCaptionOn);
   }
 
   @override

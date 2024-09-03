@@ -1,6 +1,34 @@
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 
+// Setting
+String getLanguageName(String languageCode) {
+  switch (languageCode) {
+    case 'ko':
+      return '한국어';
+    case 'en':
+      return 'English';
+    case 'ja':
+      return '日本語';
+    case 'zh':
+      return '简体中文';
+    case 'tw':
+      return '繁體中文';
+    case 'fr':
+      return 'Français';
+    case 'de':
+      return 'Deutsch';
+    case 'es':
+      return 'Español';
+    case 'hi':
+      return 'हिन्दी';
+    case 'th':
+      return 'ไทย';
+    default:
+      return 'Unknown';
+  }
+}
+
 // Country list - app bar
 String getAppBarTitle(String languageCode) {
   return countryAppBars[languageCode.toUpperCase()] ?? countryAppBars['EN']!;
@@ -21,19 +49,19 @@ String getNameBySpecialSource(Movie specialSection, String languageCode) {
   switch (languageCode) {
     case 'ko':
       return (specialSection.nameKR != null && specialSection.nameKR!.isNotEmpty) 
-          ? specialSection.nameKR! 
+          ? '${specialSection.source} | ${specialSection.nameKR!}' 
           : specialSection.source;
     case 'ja':
       return (specialSection.nameJP != null && specialSection.nameJP!.isNotEmpty) 
-          ? specialSection.nameJP! 
+          ? '${specialSection.source} | ${specialSection.nameJP!}' 
           : specialSection.source;
     case 'zh':
       return (specialSection.nameCH != null && specialSection.nameCH!.isNotEmpty) 
-          ? specialSection.nameCH! 
+          ? '${specialSection.source} | ${specialSection.nameCH!}' 
           : specialSection.source;
     case 'tw':
       return (specialSection.nameTW != null && specialSection.nameTW!.isNotEmpty) 
-          ? specialSection.nameTW! 
+          ? '${specialSection.source} | ${specialSection.nameTW!}' 
           : specialSection.source;
     default:
       return specialSection.source;
@@ -93,6 +121,6 @@ String getReleaseLabel(String languageCode) {
 }
 
 // Movie detail - info 
-String getTranslatedDetail(String detailKey, String languageCode) {
-  return movieDetailTranslations[detailKey]?[languageCode] ?? '';
+String? getTranslatedDetail(String detailKey, String languageCode) {
+  return movieDetailTranslations[detailKey]?[languageCode] ?? movieDetailTranslations[detailKey]?['en'];
 }
