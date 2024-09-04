@@ -1,4 +1,4 @@
-package com.example.world_movie_trailer
+package com.sunnyinnolab.worldMovieTrailer
 
 import io.flutter.embedding.android.FlutterActivity
 

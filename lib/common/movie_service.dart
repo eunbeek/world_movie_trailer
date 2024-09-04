@@ -40,6 +40,12 @@ class MovieService {
       case de:
         countryCode = 'de';
         break;
+      case th:
+        countryCode = 'th';
+        break;
+      case au:
+        countryCode = 'au';
+        break;
       case special:
         countryCode = 'special';
         break;

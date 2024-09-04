@@ -164,6 +164,8 @@ const tw = 'taiwan';
 const us = 'usa';
 const fr = 'france';
 const de = 'germany';
+const th = 'thailand';
+const au = 'australia';
 const special = 'special';
 
 // country list

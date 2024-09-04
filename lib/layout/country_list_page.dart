@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:world_movie_trailer/layout/video_ad_page.dart';
 import 'package:world_movie_trailer/common/constants.dart';
@@ -21,6 +20,7 @@ class CountryListPage extends StatefulWidget {
 class _CountryListPageState extends State<CountryListPage> {
   Movie? specialSection;
   bool isEditMode = false;
+  List<String>? oldCountryOrder;
 
   @override
   void initState() {
@@ -32,7 +32,6 @@ class _CountryListPageState extends State<CountryListPage> {
 
   Future<void> _fetchSpecialMovies() async {
     try {
-      // Use listen: false to avoid listening to changes outside the build method
       final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
       List<Movie> movies = await MovieService.fetchMovie(special, settingsProvider.language);
       setState(() {
@@ -49,43 +48,53 @@ class _CountryListPageState extends State<CountryListPage> {
     final languageCode = settingsProvider.language;
     final countries = settingsProvider.countryOrder;
 
+    const double specialSectionHeight = 62;
+    double topSectionHeight =  MediaQuery.of(context).size.height * 0.28;
+    print(MediaQuery.of(context).size.height);
+    print(topSectionHeight);
+    final double availableHeight = MediaQuery.of(context).size.height -
+        specialSectionHeight -
+        topSectionHeight;
+
     return Scaffold(
       body: SafeArea(
         child: Stack(
           children: [
             const BackgroundWidget(isPausePage: false,),
-            // Main Content
             Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(top: 20.0, left: 24.0, right: 16.0),
+                  padding: const EdgeInsets.only(top: 20.0, left: 24.0, right: 16.0, bottom: 8.0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // 기존에 'between'으로 설정
-                    crossAxisAlignment: CrossAxisAlignment.start, // 상단에 고정
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start, 
                     children: [
                       Text(
                         getAppBarTitle(languageCode),
                         style: const TextStyle(
                           fontSize: 45,
                           fontWeight: FontWeight.bold,
-                          height: 1.2, // 줄 간격 조정
+                          height: 1.2,
                         ),
                       ),
                       const Spacer(),
                       if (isEditMode) ...[
                         IconButton(
-                          icon: const Icon(Icons.check),
+                          icon: const Icon(Icons.check, size: 24),
                           onPressed: () {
                             setState(() {
-                              settingsProvider.updateCountryOrder(countries); 
+                              settingsProvider.updateCountryOrder(countries);
+                              oldCountryOrder = null;
                               isEditMode = false;
                             });
                           },
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close),
+                          icon: const Icon(Icons.close, size: 24),
                           onPressed: () {
                             setState(() {
+                              if(oldCountryOrder != null) settingsProvider.updateCountryOrder(oldCountryOrder!);
+                              oldCountryOrder = null;
                               isEditMode = false;
                             });
                           },
@@ -100,6 +109,7 @@ class _CountryListPageState extends State<CountryListPage> {
                           onPressed: () {
                             setState(() {
                               isEditMode = !isEditMode;
+                              oldCountryOrder = countries;
                             });
                           },
                         ),
@@ -122,17 +132,13 @@ class _CountryListPageState extends State<CountryListPage> {
                     ],
                   ),
                 ),
-                Expanded(
+                Container(
+                  height: availableHeight,  // Dynamically calculate the height
                   child: countries.isEmpty
                       ? const Center(child: CircularProgressIndicator())
-                      : Theme(
-                          data: Theme.of(context).copyWith(
-                            canvasColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                          ),
-                          child: ReorderableListView(
+                      : ReorderableListView(
                             buildDefaultDragHandles: isEditMode,
-                            padding: const EdgeInsets.all(16.0),
+                            padding: const EdgeInsets.only(top:8.0, bottom: 8.0, left: 24.0, right: 24.0),
                             onReorder: (int oldIndex, int newIndex) {
                               setState(() {
                                 if (newIndex > oldIndex) {
@@ -140,13 +146,15 @@ class _CountryListPageState extends State<CountryListPage> {
                                 }
                                 final String item = countries.removeAt(oldIndex);
                                 countries.insert(newIndex, item);
+                                settingsProvider.updateCountryOrder(countries);
                               });
                             },
                             children: [
                               for (int index = 0; index < countries.length; index++)
-                                Padding(
+                                Container(
                                   key: ValueKey(countries[index]),
-                                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 9.0),
+                                  width: MediaQuery.of(context).size.width * 0.86,
                                   child: Material(
                                     color: Colors.transparent,
                                     child: InkWell(
@@ -161,8 +169,6 @@ class _CountryListPageState extends State<CountryListPage> {
                                           ),
                                         );
                                       },
-                                      highlightColor: Colors.blue.withOpacity(0.05),
-                                      splashColor: Colors.blue.withOpacity(0.1),
                                       child: Stack(
                                         children: [
                                           CustomPaint(
@@ -196,8 +202,8 @@ class _CountryListPageState extends State<CountryListPage> {
                                                 ),
                                                 if (isEditMode)
                                                   const Positioned(
-                                                    top: 16,
-                                                    right: 20, // This will position the icon to the far right
+                                                    top: 10,
+                                                    right: 24,
                                                     child: Icon(Icons.reorder, color: Colors.white),
                                                   ),
                                               ],
@@ -210,64 +216,65 @@ class _CountryListPageState extends State<CountryListPage> {
                                 ),
                             ],
                           ),
-                        ),
                 ),
-                if (specialSection != null)
-                  SizedBox(
-                    height: 100,
-                    width: double.infinity,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.3),
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(20),
-                          topRight: Radius.circular(20),
-                        ),
+              ],
+            ),
+            if (specialSection != null)
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: SizedBox(
+                  height: specialSectionHeight,
+                  width: MediaQuery.of(context).size.width * 0.95,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: settingsProvider.isDarkTheme ? Color.fromARGB(255, 102, 102, 102).withOpacity(0.5) : Color.fromARGB(255, 51, 51, 51).withOpacity(0.5),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
                       ),
-                      child: InkWell(
-                        onTap: () {
-                          if(settingsProvider.isVibrate) HapticFeedback.vibrate();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const VideoAdPage(country: special),
+                    ),
+                    child: InkWell(
+                      onTap: () {
+                        if(settingsProvider.isVibrate) HapticFeedback.vibrate();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const VideoAdPage(country: special),
+                          ),
+                        );
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            getSpecialLable(specialSection!, languageCode),
+                            style: const TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
                             ),
-                          );
-                        },
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              getSpecialLable(specialSection!, languageCode),
-                              style: const TextStyle(
-                                color: Colors.redAccent,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            getNameBySpecialSource(specialSection!, languageCode),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              getNameBySpecialSource(specialSection!, languageCode),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-              ],
-            ),
+                ),
+              ),
           ],
         ),
       ), 
     );
   }
 }
-
 class GradientBorderPainter extends CustomPainter {
   final bool isDark;
   GradientBorderPainter({required this.isDark});
@@ -285,7 +292,7 @@ class GradientBorderPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
-    final radius = const Radius.circular(30.0);
+    const radius = Radius.circular(30.0);
     final rrect = RRect.fromRectAndCorners(rect,
         topLeft: radius,
         topRight: radius,

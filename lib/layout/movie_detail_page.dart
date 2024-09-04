@@ -10,8 +10,9 @@ import 'package:world_movie_trailer/common/background.dart';
 class MovieDetailPage extends StatefulWidget {
   final Movie movie;
   final bool captionFlag;
+  final String captionLan;
 
-  MovieDetailPage({required this.movie, required this.captionFlag});
+  MovieDetailPage({required this.movie, required this.captionFlag, required this.captionLan});
 
   @override
   _MovieDetailPageState createState() => _MovieDetailPageState();
@@ -39,8 +40,8 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
     final youtubeFlags = YoutubePlayerFlags(
       autoPlay: false,
       mute: false,
+      captionLanguage: widget.captionLan,
       enableCaption: widget.captionFlag,
-      loop: true,
     );
 
     _youtubePlayerController = YoutubePlayerController(
@@ -122,8 +123,6 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                     player: YoutubePlayer(
                       controller: _youtubePlayerController,
                       aspectRatio: _isFullScreen ? 16 / 9 : _calculateAspectRatio(context),
-                      showVideoProgressIndicator: true,
-                      progressIndicatorColor: Colors.blueAccent,
                     ),
                     builder: (context, player) {
                       return SingleChildScrollView(

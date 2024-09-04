@@ -191,7 +191,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
               context,
               MaterialPageRoute(
                 builder: (context) =>
-                    MovieDetailPage(movie: movie, captionFlag: settingsProvider.isCaptionOn,),
+                    MovieDetailPage(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language),
               ),
             );
           },
