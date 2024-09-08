@@ -80,7 +80,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                         child: Text(
                           widget.country == special ? allMovies[0].source : widget.country,
                           style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.height * 0.03,
+                            fontSize: MediaQuery.of(context).size.height * 0.02,
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center, // Center the text

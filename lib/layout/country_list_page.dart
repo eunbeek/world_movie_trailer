@@ -50,7 +50,7 @@ class _CountryListPageState extends State<CountryListPage> {
     double boxHeight = MediaQuery.of(context).size.height * 0.075;
     double specialHeight = MediaQuery.of(context).size.height * 0.1;
     double specialWidth =  MediaQuery.of(context).size.width * 0.95;
-    double iconSize = MediaQuery.of(context).size.height * 0.03;
+    double iconSize = MediaQuery.of(context).size.height * 0.035;
 
     return Scaffold(
       body: SafeArea(
