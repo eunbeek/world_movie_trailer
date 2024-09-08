@@ -47,14 +47,10 @@ class _CountryListPageState extends State<CountryListPage> {
     final settingsProvider = Provider.of<SettingsProvider>(context);
     final languageCode = settingsProvider.language;
     final countries = settingsProvider.countryOrder;
-
-    const double specialSectionHeight = 62;
-    double topSectionHeight =  MediaQuery.of(context).size.height * 0.28;
-    print(MediaQuery.of(context).size.height);
-    print(topSectionHeight);
-    final double availableHeight = MediaQuery.of(context).size.height -
-        specialSectionHeight -
-        topSectionHeight;
+    double boxHeight = MediaQuery.of(context).size.height * 0.075;
+    double specialHeight = MediaQuery.of(context).size.height * 0.1;
+    double specialWidth =  MediaQuery.of(context).size.width * 0.95;
+    double iconSize = MediaQuery.of(context).size.height * 0.03;
 
     return Scaffold(
       body: SafeArea(
@@ -63,7 +59,7 @@ class _CountryListPageState extends State<CountryListPage> {
             const BackgroundWidget(isPausePage: false,),
             Column(
               children: [
-                Padding(
+                Container(
                   padding: const EdgeInsets.only(top: 20.0, left: 24.0, right: 16.0, bottom: 8.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -71,8 +67,8 @@ class _CountryListPageState extends State<CountryListPage> {
                     children: [
                       Text(
                         getAppBarTitle(languageCode),
-                        style: const TextStyle(
-                          fontSize: 45,
+                        style: TextStyle(
+                          fontSize:  MediaQuery.of(context).size.height * 0.06,
                           fontWeight: FontWeight.bold,
                           height: 1.2,
                         ),
@@ -80,7 +76,7 @@ class _CountryListPageState extends State<CountryListPage> {
                       const Spacer(),
                       if (isEditMode) ...[
                         IconButton(
-                          icon: const Icon(Icons.check, size: 24),
+                          icon: Icon(Icons.check, size: iconSize),
                           onPressed: () {
                             setState(() {
                               settingsProvider.updateCountryOrder(countries);
@@ -90,7 +86,7 @@ class _CountryListPageState extends State<CountryListPage> {
                           },
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close, size: 24),
+                          icon: Icon(Icons.close, size: iconSize),
                           onPressed: () {
                             setState(() {
                               if(oldCountryOrder != null) settingsProvider.updateCountryOrder(oldCountryOrder!);
@@ -103,8 +99,8 @@ class _CountryListPageState extends State<CountryListPage> {
                         IconButton(
                           icon: Image.asset(
                                   settingsProvider.isDarkTheme ? 'assets/images/dark/icon_reorder_DT_xxhdpi.png' : 'assets/images/light/icon_reorder_LT_xxhdpi.png',
-                                  height: 24,
-                                  width: 24,
+                                  height: iconSize,
+                                  width: iconSize,
                           ),
                           onPressed: () {
                             setState(() {
@@ -116,8 +112,8 @@ class _CountryListPageState extends State<CountryListPage> {
                         IconButton(
                           icon: Image.asset(
                                   settingsProvider.isDarkTheme ? 'assets/images/dark/icon_config_DT_xxhdpi.png' : 'assets/images/light/icon_config_LT_xxhdpi.png',
-                                  height: 24,
-                                  width: 24,
+                                  height: iconSize,
+                                  width: iconSize,
                           ),
                           onPressed: () {
                             Navigator.push(
@@ -132,8 +128,8 @@ class _CountryListPageState extends State<CountryListPage> {
                     ],
                   ),
                 ),
-                Container(
-                  height: availableHeight,  // Dynamically calculate the height
+                Expanded(
+                  flex: 8,
                   child: countries.isEmpty
                       ? const Center(child: CircularProgressIndicator())
                       : ReorderableListView(
@@ -160,7 +156,7 @@ class _CountryListPageState extends State<CountryListPage> {
                                     child: InkWell(
                                       onTap: () {
                                         if (isEditMode) return;
-                                        if (settingsProvider.isVibrate) HapticFeedback.vibrate();
+                                        if (settingsProvider.isVibrate) HapticFeedback.lightImpact();
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
@@ -174,14 +170,14 @@ class _CountryListPageState extends State<CountryListPage> {
                                           CustomPaint(
                                             painter: GradientBorderPainter(isDark: settingsProvider.isDarkTheme),
                                             child: Container(
-                                              height: 45,
+                                              height: boxHeight,
                                               decoration: BoxDecoration(
                                                 borderRadius: BorderRadius.circular(30),
                                               ),
                                             ),
                                           ),
                                           Container(
-                                            height: 45,
+                                            height: boxHeight,
                                             decoration: BoxDecoration(
                                               borderRadius: BorderRadius.circular(28),
                                               color: Colors.transparent,
@@ -193,18 +189,18 @@ class _CountryListPageState extends State<CountryListPage> {
                                                   alignment: Alignment.center,
                                                   child: Text(
                                                     countries[index],
-                                                    style: const TextStyle(
-                                                      fontSize: 18,
+                                                    style:  TextStyle(
+                                                      fontSize: boxHeight * 0.35,
                                                       fontWeight: FontWeight.w500,
                                                     ),
                                                     textAlign: TextAlign.center,
                                                   ),
                                                 ),
                                                 if (isEditMode)
-                                                  const Positioned(
-                                                    top: 10,
+                                                  Positioned(
+                                                    top: boxHeight * 0.3,
                                                     right: 24,
-                                                    child: Icon(Icons.reorder, color: Colors.white),
+                                                    child: Icon(Icons.reorder),
                                                   ),
                                               ],
                                             ),
@@ -217,64 +213,69 @@ class _CountryListPageState extends State<CountryListPage> {
                             ],
                           ),
                 ),
+                Expanded(
+                  flex: 2,
+                  child: SizedBox(),
+                ),
               ],
             ),
             if (specialSection != null)
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: SizedBox(
-                  height: specialSectionHeight,
-                  width: MediaQuery.of(context).size.width * 0.95,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: settingsProvider.isDarkTheme ? Color.fromARGB(255, 102, 102, 102).withOpacity(0.5) : Color.fromARGB(255, 51, 51, 51).withOpacity(0.5),
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(12),
-                        topRight: Radius.circular(12),
-                      ),
-                    ),
-                    child: InkWell(
-                      onTap: () {
-                        if(settingsProvider.isVibrate) HapticFeedback.vibrate();
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const VideoAdPage(country: special),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: SizedBox(
+                      width: specialWidth,
+                      child: Container(
+                        height: specialHeight,
+                        decoration: BoxDecoration(
+                          color: settingsProvider.isDarkTheme ? const Color.fromARGB(255, 102, 102, 102).withOpacity(0.5) : const Color.fromARGB(255, 51, 51, 51).withOpacity(0.5),
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(12),
+                            topRight: Radius.circular(12),
                           ),
-                        );
-                      },
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            getSpecialLable(specialSection!, languageCode),
-                            style: const TextStyle(
-                              color: Colors.redAccent,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        ),
+                        child: InkWell(
+                          onTap: () {
+                            if(settingsProvider.isVibrate) HapticFeedback.lightImpact();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const VideoAdPage(country: special),
+                              ),
+                            );
+                          },
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                getSpecialLable(specialSection!, languageCode),
+                                style: TextStyle(
+                                  color: Colors.redAccent,
+                                  fontSize: specialHeight * 0.2,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                getNameBySpecialSource(specialSection!, languageCode),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: specialHeight * 0.22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            getNameBySpecialSource(specialSection!, languageCode),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
           ],
         ),
       ), 
     );
   }
 }
+
 class GradientBorderPainter extends CustomPainter {
   final bool isDark;
   GradientBorderPainter({required this.isDark});
@@ -282,7 +283,7 @@ class GradientBorderPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final rect = Rect.fromLTWH(0, 0, size.width, size.height);
     final gradient = LinearGradient(
-      colors: isDark ? [Color(0xff12d6df), Color(0xfff70fff)]: [Color(0xff00ffed), Color(0xff9d00c6)],
+      colors: isDark ? [const Color(0xff12d6df), const Color(0xfff70fff)]: [const Color(0xff00ffed), const Color(0xff9d00c6)],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     );

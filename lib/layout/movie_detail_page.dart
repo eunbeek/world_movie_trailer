@@ -7,18 +7,18 @@ import 'package:world_movie_trailer/common/translate.dart';
 import 'package:flutter/services.dart';
 import 'package:world_movie_trailer/common/background.dart';
 
-class MovieDetailPage extends StatefulWidget {
+class MovieDetailPageYouTube extends StatefulWidget {
   final Movie movie;
   final bool captionFlag;
   final String captionLan;
 
-  MovieDetailPage({required this.movie, required this.captionFlag, required this.captionLan});
+  MovieDetailPageYouTube({required this.movie, required this.captionFlag, required this.captionLan});
 
   @override
-  _MovieDetailPageState createState() => _MovieDetailPageState();
+  _MovieDetailPageYouTubeState createState() => _MovieDetailPageYouTubeState();
 }
 
-class _MovieDetailPageState extends State<MovieDetailPage> {
+class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   late YoutubePlayerController _youtubePlayerController;
   String _errorMessage = '';
   bool _isFullScreen = false;
@@ -42,6 +42,7 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
       mute: false,
       captionLanguage: widget.captionLan,
       enableCaption: widget.captionFlag,
+      controlsVisibleAtStart: true,
     );
 
     _youtubePlayerController = YoutubePlayerController(
@@ -82,10 +83,8 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
       child: Scaffold(
         body: Stack(
           children: [
-            // Background Image
             if (!_isFullScreen)
               const BackgroundWidget(isPausePage: true,),
-            // Custom AppBar
             Column(
               children: [
                 if (!_isFullScreen)
@@ -133,56 +132,7 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                               _buildErrorWidget()
                             else
                               player,
-                            if (!_isFullScreen) ...[
-                              const SizedBox(height: 20),
-                              if (widget.movie.special!.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Text(
-                                    '${getTranslatedDetail('Year', settingsProvider.language)}: ${widget.movie.year}',
-                                  ),
-                                ),
-                              if (widget.movie.credits?["crew"] != null &&
-                                  widget.movie.credits?["crew"].isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Text(
-                                    '${getTranslatedDetail('Director', settingsProvider.language)}: ${widget.movie.credits?["crew"][0]["name"]}',
-                                  ),
-                                ),
-                              if (widget.movie.credits?["cast"] != null &&
-                                  widget.movie.credits?["cast"].isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Text(
-                                    '${getTranslatedDetail('Stars', settingsProvider.language)}: ${widget.movie.credits?["cast"]
-                                        .map((castMember) => castMember["name"])
-                                        .join(", ")}',
-                                  ),
-                                ),
-                              if(widget.movie.country != "")
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Text(
-                                    '${getTranslatedDetail('Country', settingsProvider.language)}: ${widget.movie.country}',
-                                  ),
-                                ),
-                              if (widget.movie.runtime != "")
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Text(
-                                    '${getTranslatedDetail('Running Time', settingsProvider.language)}: ${widget.movie.runtime} minutes',
-                                  ),
-                                ),
-                              const SizedBox(height: 10),
-                              if (widget.movie.spec != "ERR404")
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    widget.movie.spec,
-                                  ),
-                                ),
-                            ],
+                            if (!_isFullScreen) _buildMovieDetails(settingsProvider),
                           ],
                         ),
                       );
@@ -219,6 +169,58 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildMovieDetails(SettingsProvider settingsProvider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 20),
+        if (widget.movie.special!.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              '${getTranslatedDetail('Year', settingsProvider.language)}: ${widget.movie.year}',
+            ),
+          ),
+        if (widget.movie.credits?["crew"] != null && widget.movie.credits?["crew"].isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              '${getTranslatedDetail('Director', settingsProvider.language)}: ${widget.movie.credits?["crew"][0]["name"]}',
+            ),
+          ),
+        if (widget.movie.credits?["cast"] != null && widget.movie.credits?["cast"].isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              '${getTranslatedDetail('Stars', settingsProvider.language)}: ${widget.movie.credits?["cast"]
+                  .map((castMember) => castMember["name"])
+                  .join(", ")}',
+            ),
+          ),
+        if(widget.movie.country != "")
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              '${getTranslatedDetail('Country', settingsProvider.language)}: ${convertCountryCodeToName(widget.movie.country)}',
+            ),
+          ),
+        if (widget.movie.runtime != "")
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              '${getTranslatedDetail('Running Time', settingsProvider.language)}: ${widget.movie.runtime} minutes',
+            ),
+          ),
+        const SizedBox(height: 10),
+        if (widget.movie.spec != "ERR404")
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(widget.movie.spec),
+          ),
+      ],
     );
   }
 }

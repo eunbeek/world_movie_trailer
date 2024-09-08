@@ -46,6 +46,15 @@ class MovieService {
       case au:
         countryCode = 'au';
         break;
+      case es:
+        countryCode = 'es';
+      break;
+      case ind:
+        countryCode = 'in';
+      break;
+      case cn:
+        countryCode = 'cn';
+      break;
       case special:
         countryCode = 'special';
         break;
@@ -164,6 +173,7 @@ class MovieService {
             nameJP: json.nameJP as String? ?? '', 
             nameCH: json.nameCH as String? ?? '', 
             nameTW: json.nameTW as String? ?? '', 
+            isYoutube: json.isYoutube as bool? ?? true, 
           );
         }).toList();
 

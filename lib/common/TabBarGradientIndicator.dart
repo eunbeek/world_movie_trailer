@@ -74,9 +74,9 @@ class _UnderlinePainter extends BoxPainter {
           (configuration.size ?? Size(indicatorWidth, indicatorWidth)),
         );
     Rect myRect = Rect.fromLTWH(
-      rect.left - 2.5,
-      rect.top + 40,
-      rect.width + 5,
+      rect.left - 15,
+      rect.top + 47,
+      rect.width + 30, 
       indicatorWidth,  // Ensures that the thickness is enough for visibility
     );
 

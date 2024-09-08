@@ -3,6 +3,198 @@ const appTitle = "World Movie Trailer";
 
 // settings_provider
 const supportedLanguages = ['en', 'ko', 'ja', 'tw', 'fr', 'de', 'zh', 'es', 'hi', 'th'];
+Map<String, Map<String, String>> settingLabel = {
+  'ko': {
+    'userdata': '사용자 데이터',
+    'initdate': '최초 사용일',
+    'totalhour': '총 사용 시간',
+    'lastusage': '마지막 사용 시간',
+    'setting': '설정하기',
+    'vibrate': '진동',
+    'caption': '자막',
+    'language': '언어',
+    'theme': '다크 모드 / 라이트 모드',
+    'sns': 'SNS 링크',
+    'twitter': '트위터',
+    'share': '앱 공유하기',
+    'other': '다른 앱 보기',
+    'review': '리뷰 남기기',
+    'version': '앱 버전',
+    'privacy': '개인정보처리방침',
+    'terms': '서비스 이용약관',
+  },
+  'en': {
+    'userdata': 'User Data',
+    'initdate': 'First Use Date',
+    'totalhour': 'Total Usage Time',
+    'lastusage': 'Last Usage Time',
+    'setting': 'Settings',
+    'vibrate': 'Haptics',
+    'caption': 'Caption',
+    'language': 'Language',
+    'theme': 'Dark Mode / Light Mode',
+    'sns': 'SNS Links',
+    'twitter': 'Twitter',
+    'share': 'Share App',
+    'other': 'View Other Apps',
+    'review': 'Leave a Review',
+    'version': 'App Version',
+    'privacy': 'Privacy Policy',
+    'terms': 'Terms of Service',
+  },
+  'ja': {
+    'userdata': 'ユーザーデータ',
+    'initdate': '最初の使用日',
+    'totalhour': '総使用時間',
+    'lastusage': '最後の使用時間',
+    'setting': '設定',
+    'vibrate': 'バイブレーション',
+    'caption': 'キャプション',
+    'language': '言語',
+    'theme': 'ダークモード / ライトモード',
+    'sns': 'SNSリンク',
+    'twitter': 'ツイッター',
+    'share': 'アプリを共有する',
+    'other': '他のアプリを見る',
+    'review': 'レビューを残す',
+    'version': 'アプリバージョン',
+    'privacy': 'プライバシーポリシー',
+    'terms': '利用規約',
+  },
+  'tw': {
+    'userdata': '用戶數據',
+    'initdate': '首次使用日期',
+    'totalhour': '總使用時間',
+    'lastusage': '最後使用時間',
+    'setting': '設定',
+    'vibrate': '震動',
+    'caption': '字幕',
+    'language': '語言',
+    'theme': '深色模式 / 亮色模式',
+    'sns': 'SNS鏈接',
+    'twitter': '推特',
+    'share': '分享應用',
+    'other': '查看其他應用',
+    'review': '留下評論',
+    'version': '應用版本',
+    'privacy': '隱私政策',
+    'terms': '服務條款',
+  },
+  'fr': {
+    'userdata': 'Données utilisateur',
+    'initdate': 'Date de première utilisation',
+    'totalhour': 'Temps d\'utilisation total',
+    'lastusage': 'Dernière utilisation',
+    'setting': 'Paramètres',
+    'vibrate': 'Vibration',
+    'caption': 'Sous-titres',
+    'language': 'Langue',
+    'theme': 'Mode sombre / Mode clair',
+    'sns': 'Liens SNS',
+    'twitter': 'Twitter',
+    'share': 'Partager l\'application',
+    'other': 'Voir d\'autres applications',
+    'review': 'Laisser un avis',
+    'version': 'Version de l\'application',
+    'privacy': 'Politique de confidentialité',
+    'terms': 'Conditions d\'utilisation',
+  },
+  'de': {
+    'userdata': 'Benutzerdaten',
+    'initdate': 'Erstes Verwendungsdatum',
+    'totalhour': 'Gesamtzeit der Nutzung',
+    'lastusage': 'Letzte Nutzung',
+    'setting': 'Einstellungen',
+    'vibrate': 'Vibration',
+    'caption': 'Untertitel',
+    'language': 'Sprache',
+    'theme': 'Dunkelmodus / Hellmodus',
+    'sns': 'SNS-Links',
+    'twitter': 'Twitter',
+    'share': 'App teilen',
+    'other': 'Andere Apps anzeigen',
+    'review': 'Bewertung abgeben',
+    'version': 'App-Version',
+    'privacy': 'Datenschutzrichtlinie',
+    'terms': 'Nutzungsbedingungen',
+  },
+  'zh': {
+    'userdata': '用户数据',
+    'initdate': '首次使用日期',
+    'totalhour': '总使用时间',
+    'lastusage': '最后使用时间',
+    'setting': '设置',
+    'vibrate': '震动',
+    'caption': '字幕',
+    'language': '语言',
+    'theme': '暗黑模式 / 亮色模式',
+    'sns': 'SNS链接',
+    'twitter': '推特',
+    'share': '分享应用',
+    'other': '查看其他应用',
+    'review': '留下评论',
+    'version': '应用版本',
+    'privacy': '隐私政策',
+    'terms': '服务条款',
+  },
+  'es': {
+    'userdata': 'Datos de usuario',
+    'initdate': 'Fecha de primer uso',
+    'totalhour': 'Tiempo total de uso',
+    'lastusage': 'Último uso',
+    'setting': 'Configuración',
+    'vibrate': 'Vibración',
+    'caption': 'Subtítulos',
+    'language': 'Idioma',
+    'theme': 'Modo oscuro / Modo claro',
+    'sns': 'Enlaces SNS',
+    'twitter': 'Twitter',
+    'share': 'Compartir aplicación',
+    'other': 'Ver otras aplicaciones',
+    'review': 'Dejar una reseña',
+    'version': 'Versión de la aplicación',
+    'privacy': 'Política de privacidad',
+    'terms': 'Términos de servicio',
+  },
+  'hi': {
+    'userdata': 'उपयोगकर्ता डेटा',
+    'initdate': 'प्रथम उपयोग की तारीख',
+    'totalhour': 'कुल उपयोग समय',
+    'lastusage': 'अंतिम उपयोग समय',
+    'setting': 'सेटिंग्स',
+    'vibrate': 'वाइब्रेशन',
+    'caption': 'कैप्शन',
+    'language': 'भाषा',
+    'theme': 'डार्क मोड / लाइट मोड',
+    'sns': 'SNS लिंक',
+    'twitter': 'ट्विटर',
+    'share': 'ऐप साझा करें',
+    'other': 'अन्य ऐप्स देखें',
+    'review': 'समीक्षा छोड़ें',
+    'version': 'ऐप संस्करण',
+    'privacy': 'गोपनीयता नीति',
+    'terms': 'सेवा की शर्तें',
+  },
+  'th': {
+    'userdata': 'ข้อมูลผู้ใช้',
+    'initdate': 'วันที่เริ่มใช้งานครั้งแรก',
+    'totalhour': 'เวลาการใช้งานทั้งหมด',
+    'lastusage': 'เวลาการใช้งานล่าสุด',
+    'setting': 'การตั้งค่า',
+    'vibrate': 'การสั่น',
+    'caption': 'คำบรรยาย',
+    'language': 'ภาษา',
+    'theme': 'โหมดมืด / โหมดสว่าง',
+    'sns': 'ลิงก์ SNS',
+    'twitter': 'ทวิตเตอร์',
+    'share': 'แชร์แอป',
+    'other': 'ดูแอปอื่น ๆ',
+    'review': 'ฝากรีวิว',
+    'version': 'เวอร์ชันแอป',
+    'privacy': 'นโยบายความเป็นส่วนตัว',
+    'terms': 'เงื่อนไขการให้บริการ',
+  },
+};
 
 // Constants for app bar titles
 const Map<String, String> countryAppBars = {
@@ -140,6 +332,7 @@ Map<String, Map<String, String>> localizedCountries = {
     'spain': 'स्पेन',
     'australia': 'ऑस्ट्रेलिया',
     'thailand': 'थाईलैंड',
+   'china': 'चीन'
   },
   'th': {
     'thailand': 'ประเทศไทย',
@@ -153,6 +346,7 @@ Map<String, Map<String, String>> localizedCountries = {
     'spain': 'สเปน',
     'india': 'อินเดีย',
     'australia': 'ออสเตรเลีย',
+     'china': 'จีน'
   },
 };
 
@@ -166,6 +360,9 @@ const fr = 'france';
 const de = 'germany';
 const th = 'thailand';
 const au = 'australia';
+const es = 'spain';
+const ind = 'india';
+const cn = 'china';
 const special = 'special';
 
 // country list
@@ -278,6 +475,18 @@ const labelReleaseFR = "Sortie";
 const labelReleaseES = "Estreno";
 const labelReleaseHI = "रिलीज़";
 const labelReleaseTH = "เข้าฉาย"; 
+
+// movie error 
+const labelNetworkErrorKR = "서버 네트워크가 원활하지 않습니다.\r\n조금있다 다시 시도해 주세요.";
+const labelNetworkErrorEN = "The server network is not up.\r\nPlease try again later.";
+const labelNetworkErrorJP = "サーバーネットワークが円滑ではありません。\r\n少し後でもう一度お試しください。";
+const labelNetworkErrorZH = "服务器网络不畅。\r\n请稍后再试。";
+const labelNetworkErrorTW = "伺服器網絡不暢。\r\n請稍後再試。";
+const labelNetworkErrorFR = "Le réseau du serveur est instable.\r\nVeuillez réessayer plus tard.";
+const labelNetworkErrorDE = "Das Servernetzwerk ist instabil.\r\nBitte versuchen Sie es später noch einmal.";	
+const labelNetworkErrorES = "La red del servidor está inestable.\r\nPor favor, inténtelo de nuevo más tarde.";
+const labelNetworkErrorHI = "सर्वर नेटवर्क अस्थिर है। कृपया कुछ\r\nसमय बाद पुनः प्रयास करें।";
+const labelNetworkErrorTH = "เครือข่ายเซิร์ฟเวอร์ไม่เสถียร\r\nกรุณาลองอีกครั้งในภายหลัง";
 
 // movie detail
 // movie info label

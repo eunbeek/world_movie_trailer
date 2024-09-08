@@ -10,6 +10,20 @@ const options = {
   },
 };
 
+const trailerQuery = {
+  "ko-KR": " 영화 예고편",
+  "ja-JP": " 映画 予告編",
+  "fr-FR": " Bande-annonce Film",
+  "en-CA": " Movie Trailer",
+  "zh-TW": " 電影 預告片",
+  "de-DE": " Film-Trailer",
+  "en-US": " Movie Trailer",
+  "hi-IN": " Movie Trailer",
+  "zh-CN": " 电影 预告片",
+  "es-ES": " Trailers de películas",
+  "en-AU": " Movie Trailer",
+  "th-TH": " มูฟวี่เทรลเลอร์",
+};
 /**
  * Fetches the first movie info from TMDb based on the title.
  * @param {String} countryCode - Country Code
@@ -33,7 +47,9 @@ async function searchMovieInfoByTitle(countryCode, query) {
       const fullMovieInfo = await fetchFullMovieInfo(bestMatch.movie.id, countryCode);
       return fullMovieInfo;
     } else {
-      const trailerLink = await fetchFirstYouTubeVideoId(query + " trailer");
+      const trailerSearchTerm = trailerQuery[countryCode] || trailerQuery["en-US"];
+      const trailerLink = await fetchFirstYouTubeVideoId(query + trailerSearchTerm);
+
       if (trailerLink) return {trailerLink: trailerLink};
       console.log("No results found");
       return null;

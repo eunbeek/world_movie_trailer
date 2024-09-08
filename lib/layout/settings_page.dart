@@ -18,21 +18,21 @@ class SettingsPage extends StatelessWidget {
             pinned: true,
             leading: GestureDetector(
               onTap: () => Navigator.of(context).pop(),
-              child: Icon(Icons.arrow_back),
+              child: const Icon(Icons.arrow_back),
             ),
             flexibleSpace: LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
                 var top = constraints.biggest.height;
                 return FlexibleSpaceBar(
-                  titlePadding: EdgeInsets.only(bottom: 13),
+                  titlePadding: const EdgeInsets.only(bottom: 13),
                   centerTitle: true,
                   title: AnimatedOpacity(
                     opacity: top < 80.0 ? 1.0 : 0.0,
                     duration: const Duration(milliseconds: 300),
-                    child: const Text("설정하기"),
+                    child: Text(getSettingsLabel(settingsProvider.language,"setting")),
                   ),
                   background: Container(
-                    margin: EdgeInsets.only(top: 40),
+                    margin: const EdgeInsets.only(top: 40),
                     child:Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
@@ -43,11 +43,11 @@ class SettingsPage extends StatelessWidget {
                                 height: 32,
                                 width: 32,
                               )
-                            : SizedBox.shrink(),
+                            : const SizedBox.shrink(),
                         const SizedBox(width: 20),
-                        const Text(
-                          "설정하기",
-                          style: TextStyle(
+                        Text(
+                          getSettingsLabel(settingsProvider.language,"setting"),
+                          style: const TextStyle(
                             fontSize: 30,
                             fontWeight: FontWeight.bold,
                           ),
@@ -64,7 +64,7 @@ class SettingsPage extends StatelessWidget {
               [
                 const Divider(),
                 ListTile(
-                  title: const Text('진동'),
+                  title: Text(getSettingsLabel(settingsProvider.language,"vibrate")),
                   trailing: Switch(
                     value: settingsProvider.isVibrate,
                     onChanged: (bool value) {
@@ -74,7 +74,7 @@ class SettingsPage extends StatelessWidget {
                 ),
                 const Divider(),
                 ListTile(
-                  title: const Text('영화 예고편 자막'),
+                  title: Text(getSettingsLabel(settingsProvider.language,"caption")),
                   trailing: Switch(
                     value: settingsProvider.isCaptionOn,
                     onChanged: (bool value) {
@@ -84,7 +84,7 @@ class SettingsPage extends StatelessWidget {
                 ),
                 const Divider(),
                 ListTile(
-                  title: const Text('언어'),
+                  title: Text(getSettingsLabel(settingsProvider.language,"language")),
                   trailing: DropdownButton<String>(
                     value: settingsProvider.language,
                     onChanged: (String? newValue) {
@@ -102,7 +102,7 @@ class SettingsPage extends StatelessWidget {
                 ),
                 const Divider(),
                 ListTile(
-                  title: const Text('다크 모드'),
+                  title: Text(getSettingsLabel(settingsProvider.language,"theme")),
                   trailing: Switch(
                     value: settingsProvider.isDarkTheme,
                     onChanged: (bool value) {
@@ -112,7 +112,7 @@ class SettingsPage extends StatelessWidget {
                 ),
                 const Divider(),
                 ListTile(
-                  title: const Text('SNS 링크'),
+                  title: Text(getSettingsLabel(settingsProvider.language,"sns")),
                   trailing: TextButton(
                     onPressed: () async {
                       const url = 'https://x.com/Sunnyinnolab';
@@ -122,13 +122,13 @@ class SettingsPage extends StatelessWidget {
                         throw 'Could not launch $url';
                       }
                     },
-                    child: const Text('트위터'),
+                    child: Text(getSettingsLabel(settingsProvider.language,"twitter")),
                   ),
                 ),
                 const Divider(),
-                const ListTile(
-                  title: Text('앱 버전'),
-                  trailing: Text('v 1.0.0'),
+                ListTile(
+                  title: Text(getSettingsLabel(settingsProvider.language,"version")),
+                  trailing: const Text('v 1.0.0'),
                 ),
               ],
             ),
@@ -154,8 +154,8 @@ class SettingsPage extends StatelessWidget {
                       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
                     }
                   },
-                  child: const Text(
-                    '서비스 이용약관',
+                  child: Text(
+                    getSettingsLabel(settingsProvider.language,"terms"),
                     style: TextStyle(decoration: TextDecoration.underline),
                   ),
                 ),
@@ -169,8 +169,8 @@ class SettingsPage extends StatelessWidget {
                       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
                     }
                   },
-                  child: const Text(
-                    '개인정보처리방침',
+                  child: Text(
+                   getSettingsLabel(settingsProvider.language,"privacy"),
                     style: TextStyle(decoration: TextDecoration.underline),
                   ),
                 ),

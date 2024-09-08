@@ -1,5 +1,6 @@
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/model/movie.dart';
+import 'package:world_movie_trailer/common/iso3166.dart';
 
 // Setting
 String getLanguageName(String languageCode) {
@@ -27,6 +28,11 @@ String getLanguageName(String languageCode) {
     default:
       return 'Unknown';
   }
+}
+
+// setting label
+String getSettingsLabel(String languageCode, String field){
+  return settingLabel[languageCode.toLowerCase()]?[field] ?? '';
 }
 
 // Country list - app bar
@@ -120,7 +126,37 @@ String getReleaseLabel(String languageCode) {
   }
 }
 
+// Movie List - Error Message
+String getErrorMessage(String languageCode){
+    switch (languageCode) {
+    case 'ko':
+      return labelNetworkErrorKR;
+    case 'ja':
+      return labelNetworkErrorJP;
+    case 'zh':
+      return labelNetworkErrorZH;
+    case 'tw':
+      return labelNetworkErrorTW;
+    case 'fr':
+      return labelNetworkErrorFR;
+    case 'de':
+      return labelNetworkErrorDE;
+    case 'es':
+      return labelNetworkErrorES;
+    case 'hi':
+      return labelNetworkErrorHI;
+    case 'th':
+      return labelNetworkErrorTH;
+    default:
+      return labelNetworkErrorEN;
+    };
+}
+
 // Movie detail - info 
 String? getTranslatedDetail(String detailKey, String languageCode) {
   return movieDetailTranslations[detailKey]?[languageCode] ?? movieDetailTranslations[detailKey]?['en'];
+}
+
+String convertCountryCodeToName(String code) {
+  return countryCodeToName[code.toUpperCase()] ?? 'Unknown Country';
 }
