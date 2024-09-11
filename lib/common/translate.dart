@@ -3,31 +3,8 @@ import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/common/iso3166.dart';
 
 // Setting
-String getLanguageName(String languageCode) {
-  switch (languageCode) {
-    case 'ko':
-      return '한국어';
-    case 'en':
-      return 'English';
-    case 'ja':
-      return '日本語';
-    case 'zh':
-      return '简体中文';
-    case 'tw':
-      return '繁體中文';
-    case 'fr':
-      return 'Français';
-    case 'de':
-      return 'Deutsch';
-    case 'es':
-      return 'Español';
-    case 'hi':
-      return 'हिन्दी';
-    case 'th':
-      return 'ไทย';
-    default:
-      return 'Unknown';
-  }
+String getLanguageName(String languageCode, String settingLan) {
+  return countryNameByLan[settingLan]?[languageCode] ?? 'UnKnown';
 }
 
 // setting label
@@ -55,19 +32,19 @@ String getNameBySpecialSource(Movie specialSection, String languageCode) {
   switch (languageCode) {
     case 'ko':
       return (specialSection.nameKR != null && specialSection.nameKR!.isNotEmpty) 
-          ? '${specialSection.source} | ${specialSection.nameKR!}' 
+          ? specialSection.nameKR!
           : specialSection.source;
     case 'ja':
       return (specialSection.nameJP != null && specialSection.nameJP!.isNotEmpty) 
-          ? '${specialSection.source} | ${specialSection.nameJP!}' 
+          ? specialSection.nameJP!
           : specialSection.source;
     case 'zh':
       return (specialSection.nameCH != null && specialSection.nameCH!.isNotEmpty) 
-          ? '${specialSection.source} | ${specialSection.nameCH!}' 
+          ? specialSection.nameCH!
           : specialSection.source;
     case 'tw':
       return (specialSection.nameTW != null && specialSection.nameTW!.isNotEmpty) 
-          ? '${specialSection.source} | ${specialSection.nameTW!}' 
+          ? specialSection.nameTW!
           : specialSection.source;
     default:
       return specialSection.source;

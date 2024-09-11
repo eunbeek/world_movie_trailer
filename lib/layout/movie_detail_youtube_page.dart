@@ -23,6 +23,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   String _errorMessage = '';
   bool _isFullScreen = false;
 
+
   @override
   void initState() {
     super.initState();
@@ -37,37 +38,54 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
       return;
     }
 
-    final youtubeFlags = YoutubePlayerFlags(
-      autoPlay: false,
-      mute: false,
-      captionLanguage: widget.captionLan,
-      enableCaption: widget.captionFlag,
-      controlsVisibleAtStart: true,
-    );
-
     _youtubePlayerController = YoutubePlayerController(
       initialVideoId: widget.movie.trailerUrl,
-      flags: youtubeFlags,
+      flags: YoutubePlayerFlags(
+        autoPlay: false,
+        enableCaption: widget.captionFlag,
+        captionLanguage: widget.captionLan,
+      ),
     );
 
     _youtubePlayerController.addListener(() {
       if (_youtubePlayerController.value.isFullScreen && !_isFullScreen) {
-        setState(() {
-          _isFullScreen = true;
-          SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-        });
+        _enterFullScreen();
       } else if (!_youtubePlayerController.value.isFullScreen && _isFullScreen) {
-        setState(() {
-          _isFullScreen = false;
-          SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-        });
+        _exitFullScreen();
       }
+    });
+  }
+
+  void _enterFullScreen() {
+    setState(() {
+      _isFullScreen = true;
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    });
+  }
+
+  void _exitFullScreen() {
+    setState(() {
+      _isFullScreen = false;
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     });
   }
 
   @override
   void dispose() {
     _youtubePlayerController.dispose();
+    // Ensure portrait mode after exiting
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     super.dispose();
   }
 
@@ -106,7 +124,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                           child: Text(
                             widget.movie.localTitle.length > 25 ? '${widget.movie.localTitle.substring(0, 25)}...' :  widget.movie.localTitle,
                             style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.height * 0.03,
+                              fontSize: MediaQuery.of(context).size.height * 0.02,
                               fontWeight: FontWeight.bold,
                             ),
                             textAlign: TextAlign.center, // Center the text
@@ -146,7 +164,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                   child: Text(
                                     '${getTranslatedDetail('Year', settingsProvider.language)}: ${widget.movie.year}',
                                     style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.02,
+                                      fontSize: MediaQuery.of(context).size.height * 0.015,
                                     ),
                                   ),
                                 ),
@@ -157,7 +175,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                   child: Text(
                                     '${getTranslatedDetail('Director', settingsProvider.language)}: ${widget.movie.credits?["crew"][0]["name"]}',
                                     style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.02,
+                                      fontSize: MediaQuery.of(context).size.height * 0.015,
                                     ),
                                   ),
                                 ),
@@ -170,7 +188,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                         .map((castMember) => castMember["name"])
                                         .join(", ")}',
                                     style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.02,
+                                      fontSize: MediaQuery.of(context).size.height * 0.015,
                                     ),
                                   ),
                                 ),
@@ -180,7 +198,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                   child: Text(
                                     '${getTranslatedDetail('Country', settingsProvider.language)}: ${convertCountryCodeToName(widget.movie.country)}',
                                     style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.02,
+                                      fontSize: MediaQuery.of(context).size.height * 0.015,
                                     ),
                                   ),
                                 ),
@@ -190,7 +208,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                   child: Text(
                                     '${getTranslatedDetail('Running Time', settingsProvider.language)}: ${widget.movie.runtime} minutes',
                                     style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.02,
+                                      fontSize: MediaQuery.of(context).size.height * 0.015,
                                     ),
                                   ),
                                 ),
@@ -201,7 +219,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                   child: Text(
                                     widget.movie.spec,
                                     style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.02,
+                                      fontSize: MediaQuery.of(context).size.height * 0.015,
                                     ),
                                   ),
                                 ),

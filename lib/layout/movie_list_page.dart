@@ -78,7 +78,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                       ),
                       Expanded(
                         child: Text(
-                          widget.country == special ? allMovies[0].source : widget.country,
+                          widget.country == special ? getNameBySpecialSource(allMovies[0], settingsProvider.language) : widget.country,
                           style: TextStyle(
                             fontSize: MediaQuery.of(context).size.height * 0.02,
                             fontWeight: FontWeight.bold,
@@ -148,7 +148,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                       ),
                     ],
                     onTap: (index) {                                        
-                      if(settingsProvider.isVibrate) HapticFeedback.lightImpact();
+                      if(settingsProvider.isVibrate) HapticFeedback.mediumImpact();
                       setState(() {
                         if (index == 0) {
                           selectedFilter = listFilterAll;
@@ -203,6 +203,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
 
           return GestureDetector(
             onTap: () {
+              HapticFeedback.mediumImpact();
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -246,7 +247,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                           style: TextStyle(
                             color: const Color(0xffececec),
                             fontWeight: FontWeight.bold,
-                            fontSize: MediaQuery.of(context).size.height * 0.02,
+                            fontSize: MediaQuery.of(context).size.height * 0.017,
                           ),
                         ),
                         const SizedBox(height: 4), 
@@ -255,7 +256,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                             '${releaseDate} ' + getReleaseLabel(settingsProvider.language), 
                             style: TextStyle(
                               color: const Color(0xffc7c7c7),
-                              fontSize: MediaQuery.of(context).size.height * 0.015,
+                              fontSize: MediaQuery.of(context).size.height * 0.013,
                             ),
                           )
                         :const Text(''),

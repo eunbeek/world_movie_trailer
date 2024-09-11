@@ -1,8 +1,8 @@
 /* eslint-disable max-len */
 const axios = require("axios");
 
-const wandaHotShowUrl = `https://www.wandacinemas.com/api/proxy/content/pc/movie/hot_show.api?tt=1725769547277`;
-const wandaComingSoonUrl = `https://www.wandacinemas.com/api/proxy/content/pc/movie/coming.api?tt=1725769547279`;
+const wandaHotShowUrl = `https://www.wandacinemas.com/api/proxy/content/pc/movie/hot_show.api?tt=1725872034582`;
+const wandaComingSoonUrl = `https://www.wandacinemas.com/api/proxy/content/pc/movie/coming.api?tt=1725872034583`;
 
 /**
  * Common headers for Wanda API requests
@@ -42,7 +42,7 @@ async function fetchMovieListFromWanda() {
         const formattedMovie = {
           localTitle: item.nameCN,
           releaseDate: new Date(item.releaseDate).toISOString().split("T")[0], // convert Unix timestamp to YYYY-MM-DD
-          runtime: item.duration + " minutes",
+          runtime: item.duration,
           posterUrl: item.coverUrl,
           spec: item.shortComment || "No synopsis available",
           batch: false,
@@ -56,18 +56,21 @@ async function fetchMovieListFromWanda() {
     // Fetch Wanda movies (coming soon)
     const comingSoonResponse = await axios.get(wandaComingSoonUrl, {headers: wandaHeaders});
     if (comingSoonResponse.status === 200) {
-      const upcomingMovies = comingSoonResponse.data.data.incomingMovie;
-
-      upcomingMovies.forEach((item) => {
-        const formattedMovie = {
-          localTitle: item.nameCN,
-          releaseDate: new Date(item.releaseDate * 1000).toISOString().split("T")[0], // convert Unix timestamp to YYYY-MM-DD
-          runtime: item.duration + " minutes",
-          posterUrl: item.coverUrl,
-          spec: item.shortComment || "No synopsis available",
-          batch: false,
-        };
-        movies.push(formattedMovie);
+      let upcomingMovies = comingSoonResponse.data.data.incomingMovie;
+      // Limit to the first 50 movies
+      upcomingMovies = upcomingMovies.slice(0, 50);
+      upcomingMovies.forEach((upcomingMovie) => {
+        upcomingMovie.incomingMovie.forEach((item)=>{
+          const formattedMovie = {
+            localTitle: item.nameCN,
+            releaseDate: new Date(item.releaseDate).toISOString().split("T")[0], // convert Unix timestamp to YYYY-MM-DD
+            runtime: item.duration,
+            posterUrl: item.coverUrl,
+            spec: item.shortComment || "No synopsis available",
+            batch: false,
+          };
+          movies.push(formattedMovie);
+        });
       });
     } else {
       console.error("Failed to fetch Wanda Coming Soon data:", comingSoonResponse.status);

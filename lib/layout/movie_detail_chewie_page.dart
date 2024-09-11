@@ -36,39 +36,82 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
       setState(() {
         _errorMessage = 'Trailer not available';
       });
-    return;
+      return;
     }
 
-    // Example of using a video URL, you can replace with your real movie trailer URL
-    // _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(widget.movie.trailerUrl))
     _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(widget.movie.trailerUrl))
       ..initialize().then((_) {
         setState(() {
           _chewieController = ChewieController(
             videoPlayerController: _videoPlayerController!,
             autoPlay: false,
-            autoInitialize: true, // 자동 초기화 설정
+            autoInitialize: true,
             looping: false,
             allowFullScreen: true,
-            allowPlaybackSpeedChanging: true,
+            placeholder: Container(
+              color: Colors.black,
+            ),
           );
 
           _chewieController!.addListener(() {
             if (_chewieController!.isFullScreen && !_isFullScreen) {
-              setState(() {
-                _isFullScreen = true;
-                SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-              });
+              _enterFullScreen();
             } else if (!_chewieController!.isFullScreen && _isFullScreen) {
-              setState(() {
-                _isFullScreen = false;
-                SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-              });
+              _exitFullScreen();
             }
           });
-
         });
       });
+  }
+
+  // Force fullscreen mode
+  void _enterFullScreen() {
+    setState(() {
+      _isFullScreen = true;
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeRight,
+        DeviceOrientation.landscapeLeft,
+      ]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    });
+  }
+
+  // Force exit fullscreen mode and ensure portrait orientation
+  void _exitFullScreen() {
+    setState(() {
+      _isFullScreen = false;
+
+      // Enforce portrait mode strictly after fullscreen
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+
+      // Restore the normal system UI mode
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
+      // Add a short delay to ensure system UI resets properly
+      Future.delayed(const Duration(milliseconds: 300), () {
+        SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+        ]);
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    // Ensure portrait mode is enforced upon exit
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
+    _videoPlayerController?.dispose();
+    _chewieController?.dispose();
+    super.dispose();
   }
 
   double _calculateAspectRatio(BuildContext context) {
@@ -77,23 +120,13 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
   }
 
   @override
-  void dispose() {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge); // 기본 UI로 복구
-    _videoPlayerController?.dispose();
-    _chewieController?.dispose();
-    super.dispose();
-  }
-
-
-  @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
     return SafeArea(
       child: Scaffold(
         body: Stack(
           children: [
-            if (!_isFullScreen) 
-              const BackgroundWidget(isPausePage: true,),
+            if (!_isFullScreen) const BackgroundWidget(isPausePage: true),
             Column(
               children: [
                 if (!_isFullScreen)
@@ -111,9 +144,11 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                         ),
                         Expanded(
                           child: Text(
-                            widget.movie.localTitle.length > 25 ? '${widget.movie.localTitle.substring(0, 25)}...' : widget.movie.localTitle,
+                            widget.movie.localTitle.length > 25
+                                ? '${widget.movie.localTitle.substring(0, 25)}...'
+                                : widget.movie.localTitle,
                             style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.height * 0.03,
+                              fontSize: MediaQuery.of(context).size.height * 0.02,
                               fontWeight: FontWeight.bold,
                             ),
                             textAlign: TextAlign.center,
@@ -121,7 +156,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                         ),
                         const IconButton(
                           icon: Icon(
-                            Icons.arrow_back, 
+                            Icons.arrow_back,
                             color: Colors.transparent,
                           ),
                           onPressed: null,
@@ -130,19 +165,22 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                     ),
                   ),
                 Expanded(
-                  child: SingleChildScrollView( // 스크롤 가능하게 수정
+                  child: SingleChildScrollView(
                     child: Column(
                       children: [
                         _videoPlayerController != null &&
                                 _videoPlayerController!.value.isInitialized
-                            ? Padding(
-                                padding: const EdgeInsets.all(8.0),
+                            ? Container(
                                 child: AspectRatio(
-                                  aspectRatio: _isFullScreen ? 16 / 9 : _calculateAspectRatio(context), // 비디오 플레이어 비율 맞추기
+                                  aspectRatio: _isFullScreen
+                                      ? 16 / 9
+                                      : _calculateAspectRatio(context),
                                   child: Chewie(controller: _chewieController!),
                                 ),
                               )
-                            : _buildErrorWidget(),
+                            : widget.movie.trailerUrl.isEmpty
+                                ? _buildErrorWidget()
+                                : Center(child: CircularProgressIndicator()),
                         if (!_isFullScreen) _buildMovieDetails(settingsProvider),
                       ],
                     ),
@@ -192,7 +230,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
             child: Text(
               '${getTranslatedDetail('Year', settingsProvider.language)}: ${widget.movie.year}',
               style: TextStyle(
-                fontSize: MediaQuery.of(context).size.height * 0.02,
+                fontSize: MediaQuery.of(context).size.height * 0.015,
               ),
             ),
           ),
@@ -202,7 +240,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
             child: Text(
               '${getTranslatedDetail('Director', settingsProvider.language)}: ${widget.movie.credits?["crew"][0]["name"]}',
               style: TextStyle(
-                fontSize: MediaQuery.of(context).size.height * 0.02,
+                fontSize: MediaQuery.of(context).size.height * 0.015,
               ),
             ),
           ),
@@ -214,17 +252,17 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                   .map((castMember) => castMember["name"])
                   .join(", ")}',
               style: TextStyle(
-                fontSize: MediaQuery.of(context).size.height * 0.02,
+                fontSize: MediaQuery.of(context).size.height * 0.015,
               ),
             ),
           ),
-        if(widget.movie.country != "")
+        if (widget.movie.country != "")
           Padding(
             padding: const EdgeInsets.only(left: 8.0),
             child: Text(
               '${getTranslatedDetail('Country', settingsProvider.language)}: ${convertCountryCodeToName(widget.movie.country)}',
               style: TextStyle(
-                fontSize: MediaQuery.of(context).size.height * 0.02,
+                fontSize: MediaQuery.of(context).size.height * 0.015,
               ),
             ),
           ),
@@ -234,7 +272,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
             child: Text(
               '${getTranslatedDetail('Running Time', settingsProvider.language)}: ${widget.movie.runtime} minutes',
               style: TextStyle(
-                fontSize: MediaQuery.of(context).size.height * 0.02,
+                fontSize: MediaQuery.of(context).size.height * 0.015,
               ),
             ),
           ),
@@ -245,7 +283,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
             child: Text(
               widget.movie.spec,
               style: TextStyle(
-                fontSize: MediaQuery.of(context).size.height * 0.02,
+                fontSize: MediaQuery.of(context).size.height * 0.015,
               ),
             ),
           ),

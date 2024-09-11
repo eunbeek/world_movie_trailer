@@ -4,15 +4,16 @@ const youtube = google.youtube("v3");
 /**
  * Fetches the first video ID from YouTube using the YouTube Data API.
  * @param {string} query - The search query.
+ * @param {string} country - The region code.
  * @return {Promise<string>} - A promise that resolves to the first video ID.
  */
-async function fetchFirstYouTubeVideoId(query) {
+async function fetchFirstYouTubeVideoId(query, country) {
   try {
     const response = await youtube.search.list({
       q: query,
       part: "id",
       maxResults: 1,
-      type: "video",
+      regionCode: country,
       key: "AIzaSyD5D-K3UTFbBr5aBwrHCzciDYjPaa4bi2I",
     });
 

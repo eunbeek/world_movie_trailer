@@ -47,8 +47,8 @@ class _CountryListPageState extends State<CountryListPage> {
     final settingsProvider = Provider.of<SettingsProvider>(context);
     final languageCode = settingsProvider.language;
     final countries = settingsProvider.countryOrder;
-    double boxHeight = MediaQuery.of(context).size.height * 0.075;
-    double specialHeight = MediaQuery.of(context).size.height * 0.1;
+    double boxHeight = MediaQuery.of(context).size.height * 0.070;
+    double specialHeight = MediaQuery.of(context).size.height * 0.09;
     double specialWidth =  MediaQuery.of(context).size.width * 0.95;
     double iconSize = MediaQuery.of(context).size.height * 0.035;
 
@@ -129,7 +129,7 @@ class _CountryListPageState extends State<CountryListPage> {
                   ),
                 ),
                 Expanded(
-                  flex: 8,
+                  flex: 10,
                   child: countries.isEmpty
                       ? const Center(child: CircularProgressIndicator())
                       : ReorderableListView(
@@ -156,7 +156,7 @@ class _CountryListPageState extends State<CountryListPage> {
                                     child: InkWell(
                                       onTap: () {
                                         if (isEditMode) return;
-                                        if (settingsProvider.isVibrate) HapticFeedback.lightImpact();
+                                        if (settingsProvider.isVibrate) HapticFeedback.mediumImpact();
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
@@ -190,8 +190,8 @@ class _CountryListPageState extends State<CountryListPage> {
                                                   child: Text(
                                                     countries[index],
                                                     style:  TextStyle(
-                                                      fontSize: boxHeight * 0.35,
-                                                      fontWeight: FontWeight.w500,
+                                                      fontSize: boxHeight * 0.3,
+                                                      fontWeight: FontWeight.w900,
                                                     ),
                                                     textAlign: TextAlign.center,
                                                   ),
@@ -235,7 +235,7 @@ class _CountryListPageState extends State<CountryListPage> {
                         ),
                         child: InkWell(
                           onTap: () {
-                            if(settingsProvider.isVibrate) HapticFeedback.lightImpact();
+                            if(settingsProvider.isVibrate) HapticFeedback.mediumImpact();
                             Navigator.push(
                               context,
                               MaterialPageRoute(

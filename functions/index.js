@@ -188,7 +188,7 @@ exports.fetchMovieListDE = functions
 exports.fetchMovieListUS = functions
     .runWith({timeoutSeconds: 540})
     .pubsub
-    .schedule("0 9 * * 7")
+    .schedule("0 7 * * 3")
     .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;

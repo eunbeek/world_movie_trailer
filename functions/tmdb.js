@@ -48,7 +48,7 @@ async function searchMovieInfoByTitle(countryCode, query) {
       return fullMovieInfo;
     } else {
       const trailerSearchTerm = trailerQuery[countryCode] || trailerQuery["en-US"];
-      const trailerLink = await fetchFirstYouTubeVideoId(query + trailerSearchTerm);
+      const trailerLink = await fetchFirstYouTubeVideoId(query + trailerSearchTerm, countryCode.slice(-2));
 
       if (trailerLink) return {trailerLink: trailerLink};
       console.log("No results found");
@@ -107,8 +107,13 @@ async function fetchFullMovieInfo(movieId, countryCode) {
     }
     const data = await response.json();
 
-    const youtubeVideo = data.videos.results.find((video) => video.site === "YouTube");
-    const trailerLink = youtubeVideo ? youtubeVideo.key : await fetchFirstYouTubeVideoId(data.original_title + " trailer");
+    let youtubeVideo = data.videos.results.find((video) => video.site === "YouTube" && video.type === "Trailer");
+
+    if (!youtubeVideo) {
+      youtubeVideo = data.videos.results.find((video) => video.site === "YouTube" && video.type === "Teaser");
+    }
+
+    const trailerLink = youtubeVideo ? youtubeVideo.key : await fetchFirstYouTubeVideoId(data.original_title + trailerQuery[countryCode], countryCode.slice(-2));
 
     // Limit the cast and crew to 4 members each
     const limitedCast = data.credits.cast.slice(0, 4);
