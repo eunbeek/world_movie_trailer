@@ -2,7 +2,7 @@
 // ignore_for_file: type=lint
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, kIsWeb, TargetPlatform;
+    show defaultTargetPlatform, TargetPlatform;
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -16,50 +16,32 @@ import 'package:flutter/foundation.dart'
 /// ```
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
-    if (kIsWeb) {
-      return web;
-    }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for android - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
-      case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
-      case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
-      case TargetPlatform.linux:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for linux - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
         );
     }
   }
-
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAMubXNoFSBtIZOH_uD3zR7cmMEP_keyjA',
-    appId: '1:917295366628:web:7d4255ebcc6aeb4a0cc7f1',
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyA323GF95NhZ7QjhMZKit5uF1IJaVeTgY8',
+    appId: '1:917295366628:ios:9d8fac6dab626ddc0cc7f1',
     messagingSenderId: '917295366628',
     projectId: 'world-movie-trailer',
-    authDomain: 'world-movie-trailer.firebaseapp.com',
     storageBucket: 'world-movie-trailer.appspot.com',
-    measurementId: 'G-NT1KH6LBJ1',
+    iosBundleId: 'com.sunnyinnolab.worldMovieTrailer',
+  );
+
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyCK6OJdTlKcu-lQ0WVX8lw3Zs8RZeP_Xg0',
+    appId: '1:917295366628:android:a8b49633b9b83a870cc7f1',
+    messagingSenderId: '917295366628',
+    projectId: 'world-movie-trailer',
+    storageBucket: 'world-movie-trailer.appspot.com',
   );
 
 }

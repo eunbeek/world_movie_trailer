@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "917295366628",
+    "project_id": "world-movie-trailer",
+    "storage_bucket": "world-movie-trailer.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:917295366628:android:a8b49633b9b83a870cc7f1",
+        "android_client_info": {
+          "package_name": "com.sunnyinnolab.worldMovieTrailer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCK6OJdTlKcu-lQ0WVX8lw3Zs8RZeP_Xg0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

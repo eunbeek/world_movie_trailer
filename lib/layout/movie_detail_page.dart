@@ -1,167 +1,152 @@
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
-import 'package:chewie/chewie.dart';
-import 'package:world_movie_trailer/common/movie_service.dart';
+import 'package:provider/provider.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:world_movie_trailer/model/movie.dart';
+import 'package:world_movie_trailer/common/providers/settings_provider.dart';
+import 'package:world_movie_trailer/common/translate.dart';
+import 'package:flutter/services.dart';
+import 'package:world_movie_trailer/common/background.dart';
 
-class MovieDetailPage extends StatefulWidget {
-  final String country;
+class MovieDetailPageYouTube extends StatefulWidget {
   final Movie movie;
+  final bool captionFlag;
+  final String captionLan;
 
-  MovieDetailPage({required this.country, required this.movie});
+  MovieDetailPageYouTube({required this.movie, required this.captionFlag, required this.captionLan});
 
   @override
-  _MovieDetailPageState createState() => _MovieDetailPageState();
+  _MovieDetailPageYouTubeState createState() => _MovieDetailPageYouTubeState();
 }
 
-class _MovieDetailPageState extends State<MovieDetailPage> {
-  late VideoPlayerController _videoPlayerController;
-  ChewieController? _chewieController;
+class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
+  late YoutubePlayerController _youtubePlayerController;
   String _errorMessage = '';
-  String? _trailerUrl;
-  String? _engTitle;
-  String? _tmdbOverview;
-  String? _displayLink;
+  bool _isFullScreen = false;
 
   @override
   void initState() {
     super.initState();
-    _fetchDetailsAndInitializeVideo();
-    _fetchMovieDetailsFromTMDB();
+    _initializeYoutubePlayer();
   }
 
-  // Fetch details and initialize the video player
-  void _fetchDetailsAndInitializeVideo() async {
-    try {
-      Map<String, String?> trailerData = await MovieService.fetchMovieDetails(widget.country, widget.movie);
-    
-      setState(() {
-        _trailerUrl = trailerData['trailerUrl'];
-        _engTitle = trailerData['engTitle'] ?? widget.movie.localTitle;
-      });
-
-      _initializeVideoPlayer();
-
-    } catch (error) {
-      print('Error fetching trailer details: $error');
-      setState(() {
-        _errorMessage = 'Error loading video: $error';
-      });
-    }
-  }
-
-  void _fetchMovieDetailsFromTMDB() async {
-    try {
-      final tmdbData = await MovieService.fetchMovieInfoFromTMDB(widget.country, widget.movie);
-      setState(() {
-        _tmdbOverview = tmdbData['overview'];
-      });
-    } catch (error) {
-      print('Error fetching TMDB details: $error');
-    }
-  }
-
-  void _initializeVideoPlayer() {
-    if (_trailerUrl == null || _trailerUrl!.isEmpty) {
+  void _initializeYoutubePlayer() {
+    if (widget.movie.trailerUrl.isEmpty) {
       setState(() {
         _errorMessage = 'Trailer not available';
       });
       return;
     }
 
-    _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(_trailerUrl!));
-
-    // 비디오 초기화 및 ChewieController 설정을 동시에 처리
-    final initializeFuture = _videoPlayerController.initialize();
-    _chewieController = ChewieController(
-      videoPlayerController: _videoPlayerController,
+    final youtubeFlags = YoutubePlayerFlags(
       autoPlay: false,
-      looping: false,
+      mute: false,
+      captionLanguage: widget.captionLan,
+      enableCaption: widget.captionFlag,
+      controlsVisibleAtStart: true,
     );
 
-    // initialize가 완료될 때까지 기다리기
-    initializeFuture.then((_) {
-      setState(() {});
-    }).catchError((error) {
-      print('Video Initialization Error: $error');
-      setState(() {
-        _errorMessage = 'Error initializing video: $error';
-      });
+    _youtubePlayerController = YoutubePlayerController(
+      initialVideoId: widget.movie.trailerUrl,
+      flags: youtubeFlags,
+    );
+
+    _youtubePlayerController.addListener(() {
+      if (_youtubePlayerController.value.isFullScreen && !_isFullScreen) {
+        setState(() {
+          _isFullScreen = true;
+          SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+        });
+      } else if (!_youtubePlayerController.value.isFullScreen && _isFullScreen) {
+        setState(() {
+          _isFullScreen = false;
+          SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+        });
+      }
     });
   }
 
   @override
   void dispose() {
-    _videoPlayerController.dispose();
-    _chewieController?.dispose();
+    _youtubePlayerController.dispose();
     super.dispose();
+  }
+
+  double _calculateAspectRatio(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    return screenSize.height / screenSize.width;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_engTitle ?? widget.movie.localTitle),
-      ),
-      body: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  _errorMessage.isNotEmpty
-                      ? _buildErrorWidget()  // Build the error widget
-                      : _chewieController != null && _videoPlayerController.value.isInitialized
-                          ? AspectRatio(
-                              aspectRatio: _videoPlayerController.value.aspectRatio,
-                              child: Chewie(
-                                controller: _chewieController!,
+    final settingsProvider = Provider.of<SettingsProvider>(context);
+    return SafeArea(
+      child: Scaffold(
+        body: Stack(
+          children: [
+            if (!_isFullScreen)
+              const BackgroundWidget(isPausePage: true,),
+            Column(
+              children: [
+                if (!_isFullScreen)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 20.0, bottom: 10),
+                    child: Stack(
+                      children: [
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: IconButton(
+                            icon: Icon(Icons.arrow_back),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                        ),
+                        Center(
+                          child: Container(
+                            padding: EdgeInsets.only(top:10.0),
+                            child: Text(
+                              widget.movie.localTitle.length > 25
+                                  ? '${widget.movie.localTitle.substring(0, 25)}...'
+                                  : widget.movie.localTitle,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
                               ),
-                            )
-                          : const Center(child: CircularProgressIndicator()),
-                  const SizedBox(height: 20),
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      'Movie Details',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  _tmdbOverview != null
-                      ? Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ElevatedButton(
-                                onPressed: () {
-                                  // link 아래에 출력
-                                  setState(() {
-                                    _displayLink = _tmdbOverview;
-                                  });
-                                },
-                                child: const Text('Details'),
-                              ),
-                              if (_displayLink != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 10),
-                                  child: Text(
-                                    '$_displayLink',
-                                    style: const TextStyle(
-                                      color: Colors.blue,
-                                      decoration: TextDecoration.underline,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ],
-              ),
-            ),
-    );
+                Expanded(
+                  child: YoutubePlayerBuilder(
+                    player: YoutubePlayer(
+                      controller: _youtubePlayerController,
+                      aspectRatio: _isFullScreen ? 16 / 9 : _calculateAspectRatio(context),
+                    ),
+                    builder: (context, player) {
+                      return SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (_errorMessage.isNotEmpty)
+                              _buildErrorWidget()
+                            else
+                              player,
+                            if (!_isFullScreen) _buildMovieDetails(settingsProvider),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
+    ); 
   }
 
-  // Build the error widget with retry button
   Widget _buildErrorWidget() {
     return const Center(
       child: Padding(
@@ -177,13 +162,65 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
             ),
             SizedBox(height: 10),
             Text(
-              'Trailer is not released yet',
+              'Trailer is not available',
               style: TextStyle(color: Colors.red, fontSize: 16),
             ),
             SizedBox(height: 10),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildMovieDetails(SettingsProvider settingsProvider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 20),
+        if (widget.movie.special!.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              '${getTranslatedDetail('Year', settingsProvider.language)}: ${widget.movie.year}',
+            ),
+          ),
+        if (widget.movie.credits?["crew"] != null && widget.movie.credits?["crew"].isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              '${getTranslatedDetail('Director', settingsProvider.language)}: ${widget.movie.credits?["crew"][0]["name"]}',
+            ),
+          ),
+        if (widget.movie.credits?["cast"] != null && widget.movie.credits?["cast"].isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              '${getTranslatedDetail('Stars', settingsProvider.language)}: ${widget.movie.credits?["cast"]
+                  .map((castMember) => castMember["name"])
+                  .join(", ")}',
+            ),
+          ),
+        if(widget.movie.country != "")
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              '${getTranslatedDetail('Country', settingsProvider.language)}: ${convertCountryCodeToName(widget.movie.country)}',
+            ),
+          ),
+        if (widget.movie.runtime != "")
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              '${getTranslatedDetail('Running Time', settingsProvider.language)}: ${widget.movie.runtime} minutes',
+            ),
+          ),
+        const SizedBox(height: 10),
+        if (widget.movie.spec != "ERR404")
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(widget.movie.spec),
+          ),
+      ],
     );
   }
 }

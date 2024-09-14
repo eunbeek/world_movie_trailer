@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:world_movie_trailer/layout/movie_list_page.dart';
 import 'package:world_movie_trailer/common/movie_service.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'dart:async';
+import 'package:world_movie_trailer/common/providers/settings_provider.dart';
+import 'package:world_movie_trailer/common/background.dart';
 
 class VideoAdPage extends StatefulWidget {
   final String country;
@@ -27,8 +30,10 @@ class _VideoAdPageState extends State<VideoAdPage> {
   }
 
   Future<void> _fetchMovies() async {
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final language = settingsProvider.language; // Get the current language
     try {
-      final movies = await MovieService.fetchMovie(widget.country);
+      final movies = await MovieService.fetchMovie(widget.country, language);
       setState(() {
         allMovies = movies;
         fetchComplete = true; 
@@ -80,12 +85,18 @@ class _VideoAdPageState extends State<VideoAdPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ad Page'),
-      ),
-      body: const Center(
-        child: CircularProgressIndicator(),
+    final settingsProvider = Provider.of<SettingsProvider>(context);
+    return const SafeArea(
+      child: Scaffold(
+        body: Stack(
+          children: [
+            // Background Image
+            BackgroundWidget(isPausePage: false,),
+            Center(
+              child: CircularProgressIndicator(),
+            ),
+          ],
+        ),
       ),
     );
   }

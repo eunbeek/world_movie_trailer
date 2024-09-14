@@ -1,121 +1,215 @@
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/common/constants.dart';
-import 'package:world_movie_trailer/common/movie_service_kr.dart';
-import 'package:world_movie_trailer/common/movie_service_jp.dart';
-import 'package:http/http.dart' as http;
-import 'package:html/parser.dart' as html;
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:hive/hive.dart';
+import 'dart:convert';
+import 'package:intl/intl.dart';
 
 class MovieService {
-  // Entry point for fetching movies based on status and country
-  static Future<List<Movie>> fetchMovie(String country) async {
-    switch (country) {
+  static Future<Box> _openBox() async {
+    return await Hive.openBox('moviesBox');
+  }
+
+  static Future<List<Movie>> fetchMovie(String country, String languageCode) async {
+    print('fetchMovie');
+    Box box = await _openBox();
+    String countryCode;
+    String? countryName = country == special ? special : localizedCountries[languageCode]?.entries
+    .firstWhere(
+        (entry) => entry.value == country,
+        orElse: () => MapEntry('', '')
+    )
+    .key;
+
+    switch (countryName) {
       case kr:
-        return fetchKRMovie();
+        countryCode = 'kr';
+        break;
       case jp:
-        return fetchJPMovie();
+        countryCode = 'jp';
+        break;
+      case ca:
+        countryCode = 'ca';
+        break;
+      case tw:
+        countryCode = 'tw';
+        break;
+      case fr:
+        countryCode = 'fr';
+        break;
+      case de:
+        countryCode = 'de';
+        break;
+      case th:
+        countryCode = 'th';
+        break;
+      case au:
+        countryCode = 'au';
+        break;
+      case es:
+        countryCode = 'es';
+      break;
+      case ind:
+        countryCode = 'in';
+      break;
+      case cn:
+        countryCode = 'cn';
+      break;
+      case special:
+        countryCode = 'special';
+        break;
       default:
-        return fetchKRMovie();
+        countryCode = 'us';
+        break;
+    }
+
+    // Check if movies are stored in Hive
+    Map<String, dynamic> result = await _getMoviesFromHive(box, countryCode);
+    List<Movie> movies = [];
+    String? timestamp = result['timestamp'];
+
+    if (timestamp != null && !_isDataOutdated(DateTime.parse(timestamp),countryCode == special)) {
+      return result['movies'];
+    } else {
+      // Fetch new data from Firebase Storage
+      Map<String, dynamic> newResult = await readMoviesFromStorage(countryCode);
+      movies = newResult['movies'];
+      // Save the new data to Hive
+      await _saveMoviesToHive(box, countryCode, newResult);
+      return movies;
     }
   }
 
-  static Future<List<Movie>> fetchMovieMore(String country, List<Movie> countryMovies) async {
-    switch (country) {
-      case kr:
-        return fetchKRMovieMore(countryMovies);
-      case jp:
-        return fetchJPMovieMore(countryMovies);
-      default:
-        return fetchKRMovieMore(countryMovies);
+  static Future<Map<String, dynamic>> readMoviesFromStorage(String countryCode) async {
+    try {
+      print('readMoviesFromStorage');
+      final ref = FirebaseStorage.instance.ref().child('movies_$countryCode.json');
+      final data = await ref.getData();
+      final jsonString = utf8.decode(data!);
+
+      // Decode the JSON string into a List
+      final Map<String, dynamic> jsonData = json.decode(jsonString);
+
+      // Assuming jsonData[0] contains the timestamp and jsonData[1] contains the movies
+      final String timestamp = jsonData['timestamp'];
+
+      final List<dynamic> movieList = jsonData['movies'];
+
+      // Process each movie
+      DateTime today = DateTime.now();
+      final DateFormat dateFormat = DateFormat('yyyy-MM-dd');
+
+      List<Movie> movies = movieList.map((json) {
+        final movie = Movie.fromJson(json);
+
+        DateTime? releaseDate;
+        try {
+          releaseDate = movie.releaseDate.isNotEmpty ? dateFormat.parseStrict(movie.releaseDate) : null;
+        } catch (e) {
+          print('Invalid date format: ${movie.releaseDate}');
+          releaseDate = null;
+        }
+
+        if (releaseDate != null && (releaseDate.isBefore(today) || releaseDate.isAtSameMomentAs(today))) {
+          movie.status = 'Running';
+        } else {
+          movie.status = 'Upcoming';
+        }
+
+        return movie;
+      }).where((movie)=> movie.trailerUrl.isNotEmpty)
+      .toList();
+
+      // Return a Map containing the timestamp and the processed movies
+      return {
+        'timestamp': timestamp,
+        'movies': movies,
+      };
+    } catch (e) {
+      print('Error reading movies: $e');
+      return {
+        'timestamp': null,
+        'movies': [],
+      }; // Return an empty list and null timestamp in case of an error
     }
   }
 
-  static Future<Map<String, String?>> fetchMovieDetails(String country, Movie movie) async {
-    switch (country) {
-      case kr:
-        return fetchKRMovieDetails(movie);
-      case jp:
-        return fetchJPMovieDetails(movie);
-      default:
-        return fetchKRMovieDetails(movie);
+  static Future<void> _saveMoviesToHive(Box box, String countryCode, Map<String, dynamic> newUpdate) async {
+    try {
+      print('_saveMoviesToHive');
+
+      Map<String, dynamic> dataToSave = newUpdate;
+
+      await box.put('movies_$countryCode', dataToSave);
+      print('Movies saved to Hive successfully');
+    } catch (err) {
+      print('Error saving movies to Hive: $err');
     }
   }
 
-  static Future<List<Movie>> fetchKRMovie() async {
-    final stopWatch = Stopwatch()..start();
-    List<Movie> lotteMovies = await MovieServiceKR.fetchNoTrailerFromLOTTE();
-    stopWatch.stop();
-    return lotteMovies;
-  }
+  static Future<Map<String, dynamic>> _getMoviesFromHive(Box box, String countryCode) async {
+    print('_getMoviesFromHive');
+    try {
+      // Retrieve data as dynamic first
+      Map<dynamic, dynamic>? storedData = box.get('movies_$countryCode');
 
-  static Future<List<Movie>> fetchKRMovieMore(List<Movie> moviesKR) async {
-    final stopWatch = Stopwatch()..start();
-    List<Movie> cgvMovies = await MovieServiceKR.fetchNoTrailerFromCGV(moviesKR);
-    stopWatch.stop();
-    return cgvMovies;
-  }
+      if (storedData != null) {
+        // Convert JSON data back to Movie objects
+        List<Movie> movies = (storedData["movies"] as List<dynamic>).map((json) {
+          return Movie(
+            localTitle: json.localTitle as String,
+            posterUrl: json.posterUrl as String,
+            trailerUrl: json.trailerUrl ?? '',
+            country: json.country as String,
+            source: json.source as String,
+            spec: json.spec as String,
+            releaseDate: json.releaseDate ?? '',
+            runtime: json.runtime ?? 0,
+            credits: json.credits as Map<String, dynamic>? ?? {},
+            status: json.status as String? ?? 'Upcoming',
+            special: json.special as String? ?? '',
+            year: json.year as String? ?? '',
+            nameKR: json.nameKR as String? ?? '', 
+            nameJP: json.nameJP as String? ?? '', 
+            nameCH: json.nameCH as String? ?? '', 
+            nameTW: json.nameTW as String? ?? '', 
+            nameFR: json.nameFR as String? ?? '', 
+            nameDE: json.nameDE as String? ?? '', 
+            nameES: json.nameES as String? ?? '', 
+            nameHI: json.nameHI as String? ?? '', 
+            nameTH: json.nameTH as String? ?? '', 
+            isYoutube: json.isYoutube as bool? ?? true, 
+          );
+        }).toList();
 
-  static Future<Map<String, String?>> fetchKRMovieDetails(Movie movie) async {
-      Map<String, String?> trailerData = movie.source == cgv ? 
-        await MovieServiceKR.fetchTrailerFromCGV(movie.sourceIdx.toString()) 
-        : {'trailerUrl': movie.trailerUrl};
-      return trailerData;
-  }
+        return {
+          'timestamp': storedData["timestamp"] as String?,
+          'movies': movies,
+        };
+      }
 
-  static Future<List<Movie>> fetchJPMovie() async {
-    final stopWatchJP = Stopwatch()..start();
-    List<Movie> eigaMovies = await MovieServiceJP.fetchRunningFromEIGA(false);
-    List<Movie> eigaUpcomingMovies = await MovieServiceJP.fetchUpcomingFromEIGA(false);
-    stopWatchJP.stop();
-    print('fetchJP: ${stopWatchJP.elapsedMilliseconds}ms');
-    return [...eigaMovies, ...eigaUpcomingMovies];
-  }
-
-  static Future<List<Movie>> fetchJPMovieMore(List<Movie> moviesJP) async {
-    final stopWatchJP = Stopwatch()..start();
-    List<Movie> eigaMovies = await MovieServiceJP.fetchRunningFromEIGA(true, moviesJP: moviesJP);
-    List<Movie> eigaUpcomingMovies = await MovieServiceJP.fetchUpcomingFromEIGA(true, moviesJP: moviesJP);
-    stopWatchJP.stop();
-    print('fetchJPMore: ${stopWatchJP.elapsedMilliseconds}ms');
-    return [...eigaMovies, ...eigaUpcomingMovies];
-  }
-
-  static Future<Map<String, String?>> fetchJPMovieDetails(Movie movie) async {
-      Map<String, String?> trailerData = 
-        await MovieServiceJP.fetchMovieinfoJP(movie.sourceIdx.toString());
-
-      return trailerData;
-  }
-  static Future<Map<String, String?>> fetchMovieInfoFromTMDB(String country, Movie movie) async {
-
-    final response = await http.get(Uri.parse('https://www.themoviedb.org/search?query=${Uri.encodeComponent(movie.localTitle)}'));
-    
-    if (response.statusCode != 200) {
-      throw Exception('Failed to search movie');
+      return {
+        'timestamp': null,
+        'movies': [],
+      };
+    } catch (err) {
+      print('Error retrieving movies from Hive: $err');
+      return {
+        'timestamp': null,
+        'movies': [],
+      };
     }
+  }
 
-    final document = html.parse(response.body);
-    final movieBox = document.querySelector('div.details');
-    String? link;
-    if (movieBox != null) {
-      link = movieBox.querySelector('a')?.attributes['href'];
+  static bool _isDataOutdated(DateTime lastFetched, bool isSpecial) {
+    final now = DateTime.now();
+
+    if (isSpecial) {
+      // For special sections, check if the year and month are the same
+      return !(lastFetched.year == now.year && lastFetched.month == now.month);
+    } else {
+      // For regular data, consider it outdated if older than 7 days
+      return now.difference(lastFetched).inDays > 7;
     }
-
-    if (link == null) {
-      throw Exception('Failed to find movie link');
-    }
-
-    final res = await http.get(Uri.parse('https://www.themoviedb.org$link?language=${countryCodeByTMDB[country]}'));
-    if (res.statusCode != 200) {
-      throw Exception('Failed to load movie detail');
-    }
-
-    final docu = html.parse(res.body);
-    final score = docu.querySelector('div.user_score_chart')?.attributes['data-percent'];
-    final overview = docu.querySelector('div.overview > p')?.text;
-
-    return {
-      'score': score ?? 'No score available',
-      'overview': overview ?? 'No overview available',
-    };
   }
 }

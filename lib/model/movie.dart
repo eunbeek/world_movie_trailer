@@ -1,49 +1,149 @@
-class Movie {
+import 'package:hive/hive.dart';
+
+part 'movie.g.dart'; // This part file will be generated later
+
+@HiveType(typeId: 0)
+class Movie extends HiveObject {
+  @HiveField(0)
   final String localTitle;
-  final String engTitle;
+
+  @HiveField(1)
   final String posterUrl;
+
+  @HiveField(2)
   final String trailerUrl;
+
+  @HiveField(3)
   final String country;
+
+  @HiveField(4)
   final String source;
-  final String sourceIdx;
+
+  @HiveField(5)
   final String spec;
-  final String status;
+
+  @HiveField(6)
+  final String releaseDate;
+
+  @HiveField(7)
+  dynamic runtime;
+
+  @HiveField(8)
+  Map<String, dynamic>? credits;
+
+  @HiveField(9)
+  String? status;
+
+  @HiveField(10)
+  String? special;
+
+  @HiveField(11)
+  String? year;
+
+  @HiveField(12)
+  String? nameKR;
+
+  @HiveField(13)
+  String? nameJP;
+
+  @HiveField(14)
+  String? nameCH;
+
+  @HiveField(15)
+  String? nameTW;
+
+  @HiveField(16)
+  String? nameFR;
+
+  @HiveField(17)
+  String? nameDE;
+
+  @HiveField(18)
+  String? nameES;
+
+  @HiveField(19)
+  String? nameHI;
+
+  @HiveField(20)
+  String? nameTH;
+
+  @HiveField(21)
+  bool? isYoutube;
 
   Movie({
     required this.localTitle,
-    required this.engTitle,
     required this.posterUrl,
     required this.trailerUrl,
     required this.country,
     required this.source,
-    required this.sourceIdx,
     required this.spec,
-    required this.status,
+    required this.releaseDate,
+    this.runtime,
+    this.credits,
+    this.status,
+    this.special,
+    this.year,
+    this.nameKR,
+    this.nameJP,
+    this.nameCH,
+    this.nameTW,
+    this.nameFR,
+    this.nameDE,
+    this.nameES,
+    this.nameHI,
+    this.nameTH,
+    this.isYoutube,
   });
 
   Map<String, dynamic> toJson() => {
     'localTitle': localTitle,
-    'engTitle': engTitle,
     'posterUrl': posterUrl,
     'trailerUrl': trailerUrl,
     'country': country,
     'source': source,
-    'sourceIdx': sourceIdx,
     'spec': spec,
-    'status': status
+    'releaseDate': releaseDate,
+    'runtime': runtime,
+    'credits': credits,
+    'status': status,
+    'special': special,
+    'year': year,
+    'nameKR': nameKR,
+    'nameJP': nameJP,
+    'nameCH': nameCH,
+    'nameTW': nameTW,
+    'nameFR': nameFR,
+    'nameDE': nameDE,
+    'nameES': nameES,
+    'nameHI': nameHI,
+    'nameTH': nameTH,
+    'isYoutube': isYoutube,
   };
 
-  factory Movie.fromJson(Map<String, dynamic> json) {
+  factory Movie.fromJson(Map<dynamic, dynamic> json) {
     return Movie(
-      localTitle: json['local_title'],
-      engTitle: json['eng_title'],
-      posterUrl: json['poster_url'],
-      trailerUrl: json['trailer_url'],
-      country: json['country'],
-      source: json['source'],
-      sourceIdx: json['source_idx'],
-      spec: json['spec'],
-      status: json['status'],
+      localTitle: json['localTitle'] ?? '',
+      posterUrl: json['posterUrl'] ?? '',
+      trailerUrl: json['trailerUrl'] ?? '',
+      country: json['country'] ?? '',
+      source: json['source'] ?? '',
+      spec: json['spec'] ?? '',
+      releaseDate: json['releaseDate'] ?? '',
+      runtime: json['runtime'] ?? 0,
+      credits: json['credits'] ?? {},
+      status: json['status'] ?? '',
+      special: json['special'] ?? '',
+      year: json['year'] ?? '', 
+      nameKR: json['NameKR'] ?? '', 
+      nameJP: json['NameJP'] ?? '', 
+      nameCH: json['NameCH'] ?? '', 
+      nameTW: json['NameTW'] ?? '', 
+      nameFR: json['NameFR'] ?? '', 
+      nameDE: json['NameDE'] ?? '', 
+      nameES: json['NameES'] ?? '', 
+      nameHI: json['NameHI'] ?? '', 
+      nameTH: json['NameTH'] ?? '', 
+      isYoutube: json['isYoutube'] ??  true,
     );
   }
 }
