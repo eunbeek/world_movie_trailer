@@ -53,6 +53,21 @@ class Movie extends HiveObject {
   String? nameTW;
 
   @HiveField(16)
+  String? nameFR;
+
+  @HiveField(17)
+  String? nameDE;
+
+  @HiveField(18)
+  String? nameES;
+
+  @HiveField(19)
+  String? nameHI;
+
+  @HiveField(20)
+  String? nameTH;
+
+  @HiveField(21)
   bool? isYoutube;
 
   Movie({
@@ -72,6 +87,11 @@ class Movie extends HiveObject {
     this.nameJP,
     this.nameCH,
     this.nameTW,
+    this.nameFR,
+    this.nameDE,
+    this.nameES,
+    this.nameHI,
+    this.nameTH,
     this.isYoutube,
   });
 
@@ -92,6 +112,11 @@ class Movie extends HiveObject {
     'nameJP': nameJP,
     'nameCH': nameCH,
     'nameTW': nameTW,
+    'nameFR': nameFR,
+    'nameDE': nameDE,
+    'nameES': nameES,
+    'nameHI': nameHI,
+    'nameTH': nameTH,
     'isYoutube': isYoutube,
   };
 
@@ -113,6 +138,11 @@ class Movie extends HiveObject {
       nameJP: json['NameJP'] ?? '', 
       nameCH: json['NameCH'] ?? '', 
       nameTW: json['NameTW'] ?? '', 
+      nameFR: json['NameFR'] ?? '', 
+      nameDE: json['NameDE'] ?? '', 
+      nameES: json['NameES'] ?? '', 
+      nameHI: json['NameHI'] ?? '', 
+      nameTH: json['NameTH'] ?? '', 
       isYoutube: json['isYoutube'] ??  true,
     );
   }

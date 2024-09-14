@@ -13,7 +13,7 @@ async function fetchMovieInSpecialSection() {
 
   try {
     const response = await axios.get(
-        "https://docs.google.com/spreadsheets/d/1GAVRJu8eY9ZArRX7pBrb427Ps6NCHiOsBhbQ6QV6ce4/export?format=tsv&gid=1234673196&range=A1:M",
+        "https://docs.google.com/spreadsheets/d/1GAVRJu8eY9ZArRX7pBrb427Ps6NCHiOsBhbQ6QV6ce4/export?format=tsv&gid=1234673196&range=A1:R",
     );
 
     if (response.status === 200) {
@@ -47,6 +47,11 @@ async function fetchMovieInSpecialSection() {
             NameJP: row["Japanese_Name"] || "",
             NameCH: row["SimplifiedC_Name"] || "",
             NameTW: row["TraditionalC_Name"] || "",
+            NameFR: row["French_Name"] || "",
+            NameDE: row["German_Name"] || "",
+            NameES: row["Spanish_Name"] || "",
+            NameHI: row["Hindi_Name"] || "",
+            NameTH: row["Thai_Name"] || "",
             batch: false,
           };
 

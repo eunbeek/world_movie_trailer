@@ -695,4 +695,16 @@ const Map<String, Map<String, String>> movieDetailTranslations = {
     'th': 'ปีที่ภาพยนตร์ออกฉาย',
     'en': 'Year',
   },
+   'Minute': {
+    'ko': '분',
+    'ja': '分',
+    'zh': '分',
+    'tw': '分',
+    'fr': 'minutes',
+    'de': 'minuten',
+    'es': 'minutos',
+    'hi': 'मिनट',
+    'th': 'นาที',
+    'en': 'minutes',
+  },
 };

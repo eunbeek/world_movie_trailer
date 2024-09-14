@@ -203,27 +203,33 @@ class SettingsPage extends StatelessWidget {
                       fontSize: MediaQuery.of(context).size.height * 0.02,
                     ),
                   ),
-                  trailing: DropdownButton<String>(
-                    value: settingsProvider.language,
-                    underline: const SizedBox(),
-                    onChanged: (String? newValue) {
-                      if (newValue != null) {
-                        settingsProvider.language = newValue;
-                      }
-                    },
-                    items: supportedLanguages.map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(
-                          getLanguageName(value, settingsProvider.language),
-                          style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.height * 0.02,
+                  trailing: Container(
+                    width: 150,
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      value: settingsProvider.language,
+                      underline: const SizedBox(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          settingsProvider.language = newValue;
+                        }
+                      },
+                      items: supportedLanguages.map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(
+                            getLanguageName(value, settingsProvider.language),
+                            style: TextStyle(
+                              fontSize: MediaQuery.of(context).size.height * 0.02,
+                            ),
+                            overflow: TextOverflow.ellipsis, // This ensures text does not overflow
                           ),
-                        ),
-                      );
-                    }).toList(),
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
+
                 const Divider(),
                 ListTile(
                   title: Text(
@@ -297,7 +303,7 @@ class SettingsPage extends StatelessWidget {
                       MaterialPageRoute(
                         builder: (context) =>
                           AppListPage(),
-                        ),
+                      ),
                     )
                   },
                   title: Text(
@@ -322,7 +328,7 @@ class SettingsPage extends StatelessWidget {
                     }
                     
                     if (await canLaunchUrl(Uri.parse(url))) {
-                      await launchUrl(Uri.parse(url));
+                      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
                     } else {
                       throw 'Could not launch $url';
                     }

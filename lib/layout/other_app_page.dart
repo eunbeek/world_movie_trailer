@@ -136,7 +136,7 @@ class AppListPage extends StatelessWidget {
       trailing: GestureDetector(
         onTap: () async {
           if (await canLaunchUrl(Uri.parse(appLink))) {
-            await launchUrl(Uri.parse(appLink));
+            await launchUrl(Uri.parse(appLink), mode: LaunchMode.externalApplication);
           }
         },
         child: Text(

@@ -230,7 +230,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
             child: Text(
               '${getTranslatedDetail('Year', settingsProvider.language)}: ${widget.movie.year}',
               style: TextStyle(
-                fontSize: MediaQuery.of(context).size.height * 0.015,
+                fontSize: MediaQuery.of(context).size.height * 0.018,
               ),
             ),
           ),
@@ -240,7 +240,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
             child: Text(
               '${getTranslatedDetail('Director', settingsProvider.language)}: ${widget.movie.credits?["crew"][0]["name"]}',
               style: TextStyle(
-                fontSize: MediaQuery.of(context).size.height * 0.015,
+                fontSize: MediaQuery.of(context).size.height * 0.018,
               ),
             ),
           ),
@@ -252,7 +252,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                   .map((castMember) => castMember["name"])
                   .join(", ")}',
               style: TextStyle(
-                fontSize: MediaQuery.of(context).size.height * 0.015,
+                fontSize: MediaQuery.of(context).size.height * 0.018,
               ),
             ),
           ),
@@ -262,7 +262,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
             child: Text(
               '${getTranslatedDetail('Country', settingsProvider.language)}: ${convertCountryCodeToName(widget.movie.country)}',
               style: TextStyle(
-                fontSize: MediaQuery.of(context).size.height * 0.015,
+                fontSize: MediaQuery.of(context).size.height * 0.018,
               ),
             ),
           ),
@@ -272,7 +272,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
             child: Text(
               '${getTranslatedDetail('Running Time', settingsProvider.language)}: ${widget.movie.runtime} minutes',
               style: TextStyle(
-                fontSize: MediaQuery.of(context).size.height * 0.015,
+                fontSize: MediaQuery.of(context).size.height * 0.018,
               ),
             ),
           ),
@@ -283,7 +283,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
             child: Text(
               widget.movie.spec,
               style: TextStyle(
-                fontSize: MediaQuery.of(context).size.height * 0.015,
+                fontSize: MediaQuery.of(context).size.height * 0.018,
               ),
             ),
           ),

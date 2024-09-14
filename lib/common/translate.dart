@@ -46,6 +46,26 @@ String getNameBySpecialSource(Movie specialSection, String languageCode) {
       return (specialSection.nameTW != null && specialSection.nameTW!.isNotEmpty) 
           ? specialSection.nameTW!
           : specialSection.source;
+    case 'fr':
+      return (specialSection.nameFR != null && specialSection.nameFR!.isNotEmpty) 
+          ? specialSection.nameFR!
+          : specialSection.source;
+    case 'de':
+      return (specialSection.nameDE != null && specialSection.nameDE!.isNotEmpty) 
+          ? specialSection.nameDE!
+          : specialSection.source;
+    case 'es':
+      return (specialSection.nameES != null && specialSection.nameES!.isNotEmpty) 
+          ? specialSection.nameES!
+          : specialSection.source;
+    case 'hi':
+      return (specialSection.nameHI != null && specialSection.nameHI!.isNotEmpty) 
+          ? specialSection.nameHI!
+          : specialSection.source;
+    case 'th':
+      return (specialSection.nameTH != null && specialSection.nameTH!.isNotEmpty) 
+          ? specialSection.nameTH!
+          : specialSection.source;
     default:
       return specialSection.source;
   }

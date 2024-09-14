@@ -2,7 +2,7 @@ name: world_movie_trailer
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.0+7
+version: 1.0.0+8
 
 environment:
   sdk: '>=3.3.3 <4.0.0'
@@ -35,6 +35,12 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   hive_generator: ^1.0.0
   build_runner: ^2.0.0
+  flutter_launcher_icons: ^0.11.0
+flutter_icons:
+  android: true
+  ios: true
+  image_path_android: "icons/playstore.png"
+  image_path_ios: "icons/appstore.png"
 
 flutter:
   uses-material-design: true

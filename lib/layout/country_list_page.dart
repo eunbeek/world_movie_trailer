@@ -68,7 +68,7 @@ class _CountryListPageState extends State<CountryListPage> {
                       Text(
                         getAppBarTitle(languageCode),
                         style: TextStyle(
-                          fontSize:  MediaQuery.of(context).size.height * 0.06,
+                          fontSize:  MediaQuery.of(context).size.height * 0.055,
                           fontWeight: FontWeight.bold,
                           height: 1.2,
                         ),
@@ -200,7 +200,7 @@ class _CountryListPageState extends State<CountryListPage> {
                                                   Positioned(
                                                     top: boxHeight * 0.3,
                                                     right: 24,
-                                                    child: Icon(Icons.reorder),
+                                                    child: const Icon(Icons.reorder),
                                                   ),
                                               ],
                                             ),
@@ -213,7 +213,7 @@ class _CountryListPageState extends State<CountryListPage> {
                             ],
                           ),
                 ),
-                Expanded(
+                const Expanded(
                   flex: 2,
                   child: SizedBox(),
                 ),

@@ -141,6 +141,7 @@ async function fetchFullMovieInfo(movieId, countryCode) {
 async function searchSpecialMovieInfoByTid(movie) {
   try {
     const fetchedMovie = await fetchFullMovieInfo(movie.tid, "en-US");
+    if (movie.trailerUrl) fetchedMovie.trailerLink = movie.trailerUrl;
     return fetchedMovie;
   } catch (err) {
     console.error("Error fetching special movie information:", err);

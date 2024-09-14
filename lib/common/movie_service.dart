@@ -173,6 +173,11 @@ class MovieService {
             nameJP: json.nameJP as String? ?? '', 
             nameCH: json.nameCH as String? ?? '', 
             nameTW: json.nameTW as String? ?? '', 
+            nameFR: json.nameFR as String? ?? '', 
+            nameDE: json.nameDE as String? ?? '', 
+            nameES: json.nameES as String? ?? '', 
+            nameHI: json.nameHI as String? ?? '', 
+            nameTH: json.nameTH as String? ?? '', 
             isYoutube: json.isYoutube as bool? ?? true, 
           );
         }).toList();

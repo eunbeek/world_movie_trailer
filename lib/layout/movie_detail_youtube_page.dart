@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
@@ -70,9 +71,12 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   void _exitFullScreen() {
     setState(() {
       _isFullScreen = false;
+      // SystemChrome.setPreferredOrientations([
+      //   DeviceOrientation.portraitUp,
+      //   DeviceOrientation.portraitDown,
+      // ]);
       SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
+
       ]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     });
@@ -131,12 +135,17 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                           ),
                         ),
                         // Add an invisible icon button for spacing
-                        const IconButton(
-                          icon: Icon(
-                            Icons.arrow_back, 
-                            color: Colors.transparent,
-                          ), // Invisible icon to balance the space
-                          onPressed: null, // No action
+                        IconButton(
+                          icon: const Icon(
+                            Icons.ios_share_outlined , 
+                          ),
+                          onPressed: () => {
+                            Share.share(
+                              'https://www.youtube.com/watch?v=${widget.movie.trailerUrl}',
+                              subject: 'Share ${widget.movie.localTitle} Movie Trailer',
+                              sharePositionOrigin: Rect.fromLTWH(0, 0, MediaQuery.of(context).size.width, MediaQuery.of(context).size.height / 2),
+                            )
+                          }, // No action
                         ),
                       ],
                     ),
@@ -160,11 +169,11 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                               const SizedBox(height: 20),
                               if (widget.movie.special!.isNotEmpty)
                                 Padding(
-                                  padding: EdgeInsets.only(left: 8.0),
+                                  padding: const EdgeInsets.only(left: 8.0),
                                   child: Text(
                                     '${getTranslatedDetail('Year', settingsProvider.language)}: ${widget.movie.year}',
                                     style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.015,
+                                      fontSize: MediaQuery.of(context).size.height * 0.018,
                                     ),
                                   ),
                                 ),
@@ -175,7 +184,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                   child: Text(
                                     '${getTranslatedDetail('Director', settingsProvider.language)}: ${widget.movie.credits?["crew"][0]["name"]}',
                                     style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.015,
+                                      fontSize: MediaQuery.of(context).size.height * 0.018,
                                     ),
                                   ),
                                 ),
@@ -188,7 +197,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                         .map((castMember) => castMember["name"])
                                         .join(", ")}',
                                     style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.015,
+                                      fontSize: MediaQuery.of(context).size.height * 0.018,
                                     ),
                                   ),
                                 ),
@@ -198,7 +207,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                   child: Text(
                                     '${getTranslatedDetail('Country', settingsProvider.language)}: ${convertCountryCodeToName(widget.movie.country)}',
                                     style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.015,
+                                      fontSize: MediaQuery.of(context).size.height * 0.018,
                                     ),
                                   ),
                                 ),
@@ -206,9 +215,9 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                 Padding(
                                   padding: const EdgeInsets.only(left: 8.0),
                                   child: Text(
-                                    '${getTranslatedDetail('Running Time', settingsProvider.language)}: ${widget.movie.runtime} minutes',
+                                    '${getTranslatedDetail('Running Time', settingsProvider.language)}: ${widget.movie.runtime} ${getTranslatedDetail('Minute', settingsProvider.language)}',
                                     style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.015,
+                                      fontSize: MediaQuery.of(context).size.height * 0.018,
                                     ),
                                   ),
                                 ),
@@ -219,7 +228,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                   child: Text(
                                     widget.movie.spec,
                                     style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.015,
+                                      fontSize: MediaQuery.of(context).size.height * 0.018,
                                     ),
                                   ),
                                 ),
