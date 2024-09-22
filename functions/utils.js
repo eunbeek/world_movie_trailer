@@ -98,7 +98,41 @@ async function saveMoviesAsJson(country, movies) {
   }
 }
 
+/**
+   * Saves the list of quotes as a JSON file in Firebase Storage.
+   *
+   * @param {string} country - The country code for the movies.
+   * @param {Array} quotes - The list of quotes to save.
+   * @return {Promise<void>} Saves the quote list in Firebase Storage.
+   */
+async function saveQuotesAsJson(country, quotes) {
+  const bucket = admin.storage().bucket();
+  const mainFileName = `quotes_${country}.json`;
+  const timestamp = new Date().toISOString(); // Get the current timestamp
+
+  // Add the timestamp to each quote object or at the beginning of the JSON structure
+  const dataToSave = {
+    timestamp: timestamp, // Add the timestamp here
+    quotes: quotes,
+  };
+
+  const jsonData = JSON.stringify(dataToSave, null, 2);
+
+  try {
+    // Overwrite the main file
+    await bucket.file(mainFileName).save(jsonData, {
+      metadata: {
+        contentType: "application/json",
+      },
+    });
+    console.log(`File ${mainFileName} saved successfully with timestamp ${timestamp}`);
+  } catch (error) {
+    console.error("Error saving file to Firebase Storage:", error);
+  }
+}
+
 module.exports = {
   processBatch,
   saveMoviesAsJson,
+  saveQuotesAsJson,
 };

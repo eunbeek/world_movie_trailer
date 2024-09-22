@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
+import 'package:world_movie_trailer/common/ad_helper.dart';
+import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/layout/video_ad_page.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/common/movie_service.dart';
@@ -21,13 +24,21 @@ class _CountryListPageState extends State<CountryListPage> {
   Movie? specialSection;
   bool isEditMode = false;
   List<String>? oldCountryOrder;
+  RewardedAd? _preloadedRewardedAd;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchSpecialMovies();
+      preloadRewardedAd();
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    preloadRewardedAd();
   }
 
   Future<void> _fetchSpecialMovies() async {
@@ -40,6 +51,23 @@ class _CountryListPageState extends State<CountryListPage> {
     } catch (e) {
       print('Error fetching special movies: $e');
     }
+  }
+
+  void preloadRewardedAd() {
+    RewardedAd.load(
+      adUnitId: AdHelper.rewardedAdUnitId,
+      request: AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (ad) {
+          _preloadedRewardedAd = ad;
+          print('Rewarded Ad preloaded');
+        },
+        onAdFailedToLoad: (error) {
+          print('Rewarded Ad failed to preload: $error');
+          _preloadedRewardedAd = null; // Reset the ad
+        },
+      ),
+    );
   }
 
   @override
@@ -154,62 +182,76 @@ class _CountryListPageState extends State<CountryListPage> {
                                   child: Material(
                                     color: Colors.transparent,
                                     child: InkWell(
-                                      onTap: () {
-                                        if (isEditMode) return;
-                                        if (settingsProvider.isVibrate) HapticFeedback.mediumImpact();
+                                     onTap: () {
+                                      if (isEditMode) return;
+                                      if (settingsProvider.isVibrate) HapticFeedback.mediumImpact();
+
+                                      if (_preloadedRewardedAd != null) {
+                                        LogHelper().logEvent('country_clicked', parameters: {'country_name': countries[index]},);
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) =>
-                                                VideoAdPage(country: countries[index]),
+                                            builder: (context) => VideoAdPage(
+                                              country: countries[index],
+                                              preloadedAd: _preloadedRewardedAd,
+                                            ),
                                           ),
                                         );
-                                      },
-                                      child: Stack(
-                                        children: [
-                                          CustomPaint(
-                                            painter: GradientBorderPainter(isDark: settingsProvider.isDarkTheme),
-                                            child: Container(
-                                              height: boxHeight,
-                                              decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(30),
-                                              ),
-                                            ),
+                                      } else {
+                                        // Handle the case when ad is not preloaded
+                                        print('Ad is not preloaded');
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Ad is not ready yet. Please try again later.'),
                                           ),
-                                          Container(
+                                        );
+                                      }
+                                    },
+                                    child: Stack(
+                                      children: [
+                                        CustomPaint(
+                                          painter: GradientBorderPainter(isDark: settingsProvider.isDarkTheme),
+                                          child: Container(
                                             height: boxHeight,
                                             decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(28),
-                                              color: Colors.transparent,
-                                            ),
-                                            alignment: Alignment.center,
-                                            child: Stack(
-                                              children: [
-                                                Align(
-                                                  alignment: Alignment.center,
-                                                  child: Text(
-                                                    countries[index],
-                                                    style:  TextStyle(
-                                                      fontSize: boxHeight * 0.3,
-                                                      fontWeight: FontWeight.w900,
-                                                    ),
-                                                    textAlign: TextAlign.center,
-                                                  ),
-                                                ),
-                                                if (isEditMode)
-                                                  Positioned(
-                                                    top: boxHeight * 0.3,
-                                                    right: 24,
-                                                    child: const Icon(Icons.reorder),
-                                                  ),
-                                              ],
+                                              borderRadius: BorderRadius.circular(30),
                                             ),
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                        Container(
+                                          height: boxHeight,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(28),
+                                            color: Colors.transparent,
+                                          ),
+                                          alignment: Alignment.center,
+                                          child: Stack(
+                                            children: [
+                                              Align(
+                                                alignment: Alignment.center,
+                                                child: Text(
+                                                  countries[index],
+                                                  style:  TextStyle(
+                                                    fontSize: boxHeight * 0.3,
+                                                    fontWeight: FontWeight.w900,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                              if (isEditMode)
+                                                Positioned(
+                                                  top: boxHeight * 0.3,
+                                                  right: 24,
+                                                  child: const Icon(Icons.reorder),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
+                              ),
                             ],
                           ),
                 ),
@@ -220,55 +262,66 @@ class _CountryListPageState extends State<CountryListPage> {
               ],
             ),
             if (specialSection != null)
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: SizedBox(
-                      width: specialWidth,
-                      child: Container(
-                        height: specialHeight,
-                        decoration: BoxDecoration(
-                          color: settingsProvider.isDarkTheme ? const Color.fromARGB(255, 102, 102, 102).withOpacity(0.5) : const Color.fromARGB(255, 51, 51, 51).withOpacity(0.5),
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(12),
-                            topRight: Radius.circular(12),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: SizedBox(
+                  width: specialWidth,
+                  child: Container(
+                    height: specialHeight,
+                    decoration: BoxDecoration(
+                      color: settingsProvider.isDarkTheme ? const Color.fromARGB(255, 102, 102, 102).withOpacity(0.5) : const Color.fromARGB(255, 51, 51, 51).withOpacity(0.5),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
+                      ),
+                    ),
+                    child: InkWell(
+                      onTap: () {
+                        if(settingsProvider.isVibrate) HapticFeedback.mediumImpact();
+                        if (_preloadedRewardedAd != null) {
+                          LogHelper().logEvent('country_clicked', parameters: {'country_name': 'special'},);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => VideoAdPage(country: special, preloadedAd: _preloadedRewardedAd != null ? _preloadedRewardedAd : null,),
+                            ),
+                          );
+                        } else {
+                          // Handle the case when ad is not preloaded
+                          print('Ad is not preloaded');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Ad is not ready yet. Please try again later.'),
+                            ),
+                          );
+                        }
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            settingsProvider.isQuotes? getSpecialQuoteLable(languageCode) : getSpecialLable(specialSection!, languageCode),
+                            style: TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: specialHeight * 0.2,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        child: InkWell(
-                          onTap: () {
-                            if(settingsProvider.isVibrate) HapticFeedback.mediumImpact();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const VideoAdPage(country: special),
-                              ),
-                            );
-                          },
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                getSpecialLable(specialSection!, languageCode),
-                                style: TextStyle(
-                                  color: Colors.redAccent,
-                                  fontSize: specialHeight * 0.2,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                getNameBySpecialSource(specialSection!, languageCode),
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: specialHeight * 0.22,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
+                          const SizedBox(height: 4),
+                          Text(
+                            settingsProvider.isQuotes ? getSpecialQuoteSource(languageCode) : getNameBySpecialSource(specialSection!, languageCode),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: specialHeight * 0.22,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                   ),
+                ),
+              ),            
           ],
         ),
       ), 

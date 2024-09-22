@@ -6,6 +6,7 @@ import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
+import 'package:intl/intl.dart';
 
 import 'package:world_movie_trailer/layout/other_app_page.dart';
 
@@ -33,7 +34,7 @@ class SettingsPage extends StatelessWidget {
       child: Text(
         theme == 'dark' ? getSettingsLabel(settingsProvider.language, "dark") : getSettingsLabel(settingsProvider.language, "light"),
         style: TextStyle(
-          color: Colors.white,
+          color:  Colors.white,
           fontSize: MediaQuery.of(context).size.height * 0.015,
         ),
       ),
@@ -126,13 +127,13 @@ class SettingsPage extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "${getSettingsLabel(settingsProvider.language, "initdate")}",
+                              getSettingsLabel(settingsProvider.language, "initdate"),
                               style: TextStyle(
                                 fontSize: MediaQuery.of(context).size.height * 0.018,
                               ),
                             ),
                             Text(
-                              "2023-09-01",
+                              DateFormat('yyyy-MM-dd').format(settingsProvider.startDate),
                               style: TextStyle(
                                 fontSize: MediaQuery.of(context).size.height * 0.018,
                               ),
@@ -148,13 +149,13 @@ class SettingsPage extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "${getSettingsLabel(settingsProvider.language, "totalhour")}",
+                              getSettingsLabel(settingsProvider.language, "totalhour"),
                               style: TextStyle(
                                 fontSize: MediaQuery.of(context).size.height * 0.018,
                               ),
                             ),
                             Text(
-                              "122 hours",
+                              '${settingsProvider.totalHours} hours',
                               style: TextStyle(
                                 fontSize: MediaQuery.of(context).size.height * 0.018,
                               ),
@@ -379,8 +380,8 @@ class SettingsPage extends StatelessWidget {
                 }
               },
               child: Image.asset(
-                'assets/images/dark/logo_sil_white_1024.png',
-                height: MediaQuery.of(context).size.height * 0.05, // Adjust size as needed
+                'assets/images/SIL_logo_h_xxhdpi.png',
+                height: MediaQuery.of(context).size.height * 0.045, // Adjust size as needed
               ),
             ),
             SizedBox(height: MediaQuery.of(context).size.height * 0.12 * 0.1),

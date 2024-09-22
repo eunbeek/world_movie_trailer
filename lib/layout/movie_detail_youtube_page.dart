@@ -24,11 +24,18 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   String _errorMessage = '';
   bool _isFullScreen = false;
 
-
   @override
   void initState() {
     super.initState();
     _initializeYoutubePlayer();
+
+    // Enable both landscape and portrait mode when the page is opened
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
   }
 
   void _initializeYoutubePlayer() {
@@ -45,6 +52,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
         autoPlay: false,
         enableCaption: widget.captionFlag,
         captionLanguage: widget.captionLan,
+        useHybridComposition: false,
       ),
     );
 
@@ -71,12 +79,9 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   void _exitFullScreen() {
     setState(() {
       _isFullScreen = false;
-      // SystemChrome.setPreferredOrientations([
-      //   DeviceOrientation.portraitUp,
-      //   DeviceOrientation.portraitDown,
-      // ]);
       SystemChrome.setPreferredOrientations([
-
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
       ]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     });
@@ -85,13 +90,14 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   @override
   void dispose() {
     _youtubePlayerController.dispose();
-    // Ensure portrait mode after exiting
+    // Ensure the portrait mode is enforced when leaving the page
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
     super.dispose();
   }
+
 
   double _calculateAspectRatio(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;

@@ -28,6 +28,20 @@ String getSpecialLable(Movie specialSection, String languageCode){
   return '$specialPrefix - $specialTranslation';
 }
 
+// Country list - special section
+String getSpecialQuoteLable(String languageCode){
+  final specialPrefix = specialLabelTranslations['Special']?[languageCode] ?? 'Special';
+
+  return specialPrefix;
+}
+
+// Country list - special section
+String getSpecialQuoteSource(String languageCode){
+  final specialSource = movieQuoteTranslations[languageCode] ?? 'Movie Quotes';
+
+  return specialSource;
+}
+
 String getNameBySpecialSource(Movie specialSection, String languageCode) {
   switch (languageCode) {
     case 'ko':

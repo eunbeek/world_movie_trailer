@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:world_movie_trailer/layout/country_list_page.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/layout/movie_detail_youtube_page.dart';
 import 'package:world_movie_trailer/layout/movie_detail_chewie_page.dart';
@@ -52,6 +53,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
     });
   }
 
+
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
@@ -74,7 +76,13 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                           Icons.arrow_back,
                           size: MediaQuery.of(context).size.height * 0.03,
                         ),
-                        onPressed: () => Navigator.of(context).pop(),
+                        onPressed: () {
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (context) => CountryListPage()),
+                            (Route<dynamic> route) => false,
+                          );
+                        },
                       ),
                       Expanded(
                         child: Text(

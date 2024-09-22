@@ -22,13 +22,16 @@ class SettingsAdapter extends TypeAdapter<Settings> {
       countryOrder: (fields[2] as List).cast<String>(),
       isVibrate: fields[3] as bool,
       isCaptionOn: fields[4] as bool,
+      isQuotes: fields[5] as bool,
+      startDate: fields[6] as DateTime,
+      totalHours: fields[7] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, Settings obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.language)
       ..writeByte(1)
@@ -38,7 +41,13 @@ class SettingsAdapter extends TypeAdapter<Settings> {
       ..writeByte(3)
       ..write(obj.isVibrate)
       ..writeByte(4)
-      ..write(obj.isCaptionOn);
+      ..write(obj.isCaptionOn)
+      ..writeByte(5)
+      ..write(obj.isQuotes)
+      ..writeByte(6)
+      ..write(obj.startDate)
+      ..writeByte(7)
+      ..write(obj.totalHours);
   }
 
   @override

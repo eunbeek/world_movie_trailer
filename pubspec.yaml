@@ -25,6 +25,9 @@ dependencies:
   video_player: ^2.5.1  
   chewie: ^1.3.4     
   share_plus: ^6.3.0
+  firebase_analytics: ^11.2.1
+  google_mobile_ads: ^5.1.0
+  amplitude_flutter: ^3.16.4
 
 dependency_overrides:
   flutter_math_fork: ^0.4.0
@@ -55,3 +58,5 @@ flutter:
     - assets/images/light/icon_config_LT_xxhdpi.png
     - assets/images/light/icon_reorder_LT_xxhdpi.png
     - assets/images/light/logo_sil_black_1024.png
+    - assets/images/deco_film_reel_02_DT_xxhdpi.png
+    - assets/images/SIL_logo_h_xxhdpi.png

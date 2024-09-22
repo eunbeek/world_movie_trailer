@@ -21,15 +21,33 @@ class Settings extends HiveObject {
   @HiveField(4)
   bool isCaptionOn;
 
-  Settings({required this.language, required this.theme, required this.countryOrder, required this.isVibrate, required this.isCaptionOn});
+  @HiveField(5)
+  bool isQuotes;
+
+  @HiveField(6)
+  DateTime startDate;
+
+  @HiveField(7)
+  int totalHours;
+
+  Settings({
+    required this.language,
+    required this.theme,
+    required this.countryOrder,
+    required this.isVibrate,
+    required this.isCaptionOn,
+    required this.isQuotes,
+    required this.startDate,
+    required this.totalHours,
+  });
 
   // Factory constructor to create default settings
   factory Settings.defaultSettings() {
     // Determine the device's locale and brightness 
-   
-    final String newLanguage =  PlatformDispatcher.instance.locale.languageCode;
+    final String newLanguage = PlatformDispatcher.instance.locale.languageCode;
     final String deviceLanguage = supportedLanguages.contains(newLanguage) ? newLanguage : 'en';
 
+    // Country order based on the selected language
     List<String> getLocalizedCountryKeys(String lcode) {
       if (localizedCountries.containsKey(lcode)) {
         return localizedCountries[lcode]!.keys.toList();
@@ -37,12 +55,16 @@ class Settings extends HiveObject {
         return [];
       }
     }
+
     return Settings(
       language: deviceLanguage,
       theme: 'dark',
       countryOrder: getLocalizedCountryKeys(deviceLanguage),
       isVibrate: true,
       isCaptionOn: false,
+      isQuotes: true,
+      startDate: DateTime.now(), // 수정: DateTime.now() 사용
+      totalHours: 0, // int로 누적 시간을 의미하는 값
     );
   }
 }

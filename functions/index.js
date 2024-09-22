@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-const functions = require("firebase-functions");
+const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 const {fetchMovieListFromCgv, fetchMovieListFromLotte} = require("./movie_kr");
 const {fetchRunningFromEIGA, fetchUpcomingFromEIGA} = require("./movie_jp");
@@ -14,7 +14,8 @@ const {fetchMovieListFromKinepolis} = require("./movie_es");
 const {fetchMovieListFromInox} = require("./movie_in");
 const {fetchMovieListFromWanda} = require("./movie_cn");
 const {fetchMovieInSpecialSection} = require("./movie_special");
-const {processBatch, saveMoviesAsJson} = require("./utils");
+const {fetchQuotesInSpecialSection} = require("./quote_special");
+const {processBatch, saveMoviesAsJson, saveQuotesAsJson} = require("./utils");
 
 admin.initializeApp();
 
@@ -338,6 +339,7 @@ exports.fetchMovieListCN = functions
  * @returns {Promise<void>} Returns null when the function completes.
  */
 exports.fetchMovieListSpecial = functions
+    .runWith({timeoutSeconds: 540})
     .pubsub
     .schedule("0 1 1 * *")
     .timeZone("America/Toronto")
@@ -353,6 +355,28 @@ exports.fetchMovieListSpecial = functions
 
       const timestamp = new Date().toISOString();
       console.log(`Success: [${timestamp}] Country: Special, Movie Count: ${moviesWithTrailer.length}`);
+
+      return null;
+    });
+
+/**
+ * Fetches quotes in the special section
+ * Scheduled to run every First day of the 6 month at 1:00 AM EST.
+ *
+ * @returns {Promise<void>} Returns null when the function completes.
+ */
+exports.fetchQuoteListSpecial = functions
+    .runWith({timeoutSeconds: 540})
+    .pubsub
+    .schedule("0 1 1 */6 *")
+    .timeZone("America/Toronto")
+    .onRun(async () => {
+      const specialQuotes = await fetchQuotesInSpecialSection();
+
+      await saveQuotesAsJson("special", specialQuotes);
+
+      const timestamp = new Date().toISOString();
+      console.log(`Success: [${timestamp}] Country: Special, Quote Count: ${specialQuotes.length}`);
 
       return null;
     });
@@ -807,6 +831,36 @@ exports.testFetchMovieListSpecial = functions.runWith({timeoutSeconds: 540}).htt
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
+    res.status(500).json({success: false, error: error.message});
+  }
+});
+
+/**
+ * Test function for fetching and processing quote data from Special Excel.
+ * Can be triggered via an HTTP request.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} Sends a JSON response when the function completes.
+ */
+exports.testFetchQuoteListSpecial = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
+  try {
+    const specialQuotes = await fetchQuotesInSpecialSection();
+
+    await saveQuotesAsJson("special", specialQuotes);
+
+    const timestamp = new Date().toISOString();
+    console.log(`Success: [${timestamp}] Country: Special, Quote Count: ${specialQuotes.length}`);
+
+    res.status(200).json({
+      success: true,
+      timestamp,
+      country: "Special",
+      quoteCount: specialQuotes.length,
+      quotes: specialQuotes,
+    });
+  } catch (error) {
+    console.error("Error fetching quote list:", error);
     res.status(500).json({success: false, error: error.message});
   }
 });

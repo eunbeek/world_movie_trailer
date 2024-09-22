@@ -21,6 +21,12 @@ class SettingsProvider with ChangeNotifier {
 
   bool get isCaptionOn => _settings.isCaptionOn;
   
+  bool get isQuotes => _settings.isQuotes;
+
+  DateTime get startDate => _settings.startDate;
+
+  int get totalHours => _settings.totalHours;
+
   // update & setter
   set language(String newLanguage) {
     print('updateLanguage');
@@ -61,6 +67,19 @@ class SettingsProvider with ChangeNotifier {
   void updateIsCaptionOn(bool caption) {
     print('updateCaption');
     _settings.isCaptionOn = caption;
+    _saveSettings();
+    notifyListeners();
+  }
+
+  void updateIsQuotes(bool quote) {
+    print('updateQuote');
+    _settings.isQuotes = quote;
+    _saveSettings();
+    notifyListeners();
+  }
+
+  void updateTotalHours(int hours){
+    _settings.totalHours += hours;
     _saveSettings();
     notifyListeners();
   }
