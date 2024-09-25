@@ -24,7 +24,7 @@ class SettingsAdapter extends TypeAdapter<Settings> {
       isCaptionOn: fields[4] as bool,
       isQuotes: fields[5] as bool,
       startDate: fields[6] as DateTime,
-      totalHours: fields[7] as int,
+      totalHours: fields[7] as double,
     );
   }
 

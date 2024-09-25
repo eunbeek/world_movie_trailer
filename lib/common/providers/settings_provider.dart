@@ -25,7 +25,7 @@ class SettingsProvider with ChangeNotifier {
 
   DateTime get startDate => _settings.startDate;
 
-  int get totalHours => _settings.totalHours;
+  double get totalHours => _settings.totalHours;
 
   // update & setter
   set language(String newLanguage) {
@@ -78,7 +78,7 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void updateTotalHours(int hours){
+  void updateTotalHours(double hours){
     _settings.totalHours += hours;
     _saveSettings();
     notifyListeners();

@@ -43,6 +43,18 @@ class QuoteService {
     await box.put(quote.quoteKey, quote);
   }
 
+  // 개별 Quote의 isShowed 필드를 false로 변경
+  static Future<void> unmarkQuoteAsShown(Quote quote) async {
+    print('markQuoteAsShown');
+    Box box = await _openBox();
+    
+    // isShowed를 true로 설정하고 Hive에 저장
+    quote.isShowed = false;
+    
+    // quoteKey로 저장
+    await box.put(quote.quoteKey, quote);
+  }
+
   // Firebase에서 데이터를 불러오고 Hive에 저장
   static Future<Map<String, dynamic>> readQuotesFromStorage() async {
     try {

@@ -4,26 +4,55 @@ import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
 import 'package:world_movie_trailer/model/quote.dart';
 import 'package:world_movie_trailer/common/background.dart';
-import 'package:world_movie_trailer/layout/country_list_page.dart';
 import 'package:world_movie_trailer/common/quote_service.dart';
 
 class QuoteListPage extends StatefulWidget {
-  final List<Quote> quotes;
-
-  const QuoteListPage({Key? key, required this.quotes}) : super(key: key);
+  const QuoteListPage({Key? key}) : super(key: key);
 
   @override
   _QuoteListPageState createState() => _QuoteListPageState();
 }
 
 class _QuoteListPageState extends State<QuoteListPage> {
-  late List<Quote> filterQuotes;
+  List<Quote> allQuotes = [];
+  List<Quote> filterQuotes = [];
+  bool fetchComplete = false;
 
   @override
   void initState() {
     super.initState();
-    // Filter quotes that have not been shown
-    filterQuotes = widget.quotes.where((quote) => !quote.isShowed).toList();
+    _fetchQuotes();
+  }
+
+  Future<void> _fetchQuotes() async {
+    try {
+      final quotes = await QuoteService.fetchQuote();
+      setState(() {
+        allQuotes = quotes;
+        filterQuotes = allQuotes.where((quote) => !quote.isShowed).toList();
+
+        // If fewer than 2 quotes are left to show, reset and start over
+        if (filterQuotes.length < 2) {
+          allQuotes.map((quote) {
+            QuoteService.unmarkQuoteAsShown(quote);
+          });
+          filterQuotes = allQuotes; // Reset filterQuotes to include all quotes
+        }
+
+        // Marking the first two quotes as shown if they exist
+        if (filterQuotes.length > 1) {
+          QuoteService.markQuoteAsShown(filterQuotes[0]);
+          QuoteService.markQuoteAsShown(filterQuotes[1]);
+        } 
+
+        fetchComplete = true;
+      });
+    } catch (e) {
+      print('Error fetching quotes: $e');
+      setState(() {
+        fetchComplete = true;
+      });
+    }
   }
 
   @override
@@ -33,9 +62,7 @@ class _QuoteListPageState extends State<QuoteListPage> {
 
     // Check if the language is English
     bool isEnglish = languageCode == 'en';
-    QuoteService.markQuoteAsShown(filterQuotes[0]);
-    QuoteService.markQuoteAsShown(filterQuotes[1]);
-    
+
     return SafeArea(
       child: Scaffold(
         body: Stack(
@@ -57,11 +84,7 @@ class _QuoteListPageState extends State<QuoteListPage> {
                           size: MediaQuery.of(context).size.height * 0.03,
                         ),
                         onPressed: () {
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(builder: (context) => const CountryListPage()), // Your CountryListPage route
-                            (Route<dynamic> route) => false,
-                          );
+                          Navigator.pop(context,);
                         },
                       ),
                       Expanded(
@@ -71,10 +94,9 @@ class _QuoteListPageState extends State<QuoteListPage> {
                             fontSize: MediaQuery.of(context).size.height * 0.03,
                             fontWeight: FontWeight.bold,
                           ),
-                          textAlign: TextAlign.center, // Ensure the title text is centered
+                          textAlign: TextAlign.center,
                         ),
                       ),
-                      // Add a Spacer() to balance out the arrow
                       SizedBox(width: MediaQuery.of(context).size.height * 0.03),
                     ],
                   ),
@@ -84,47 +106,51 @@ class _QuoteListPageState extends State<QuoteListPage> {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        // If the language is English, show two separate quotes
-                        if (isEnglish && filterQuotes.length > 1) ...[
-                          Flexible(
-                            child: QuoteCard(
-                              quote: filterQuotes[0],
-                              languageCode: languageCode,
-                              showEnglishOnly: true, // Show only the English part
-                            ),
-                          ),
-                          const SizedBox(height: 16), // Space between cards
-                          Flexible(
-                            child: QuoteCard(
-                              quote: filterQuotes[1], // Second English Quote
-                              languageCode: languageCode,
-                              showEnglishOnly: true,
-                            ),
-                          ),
-                        ],
+                    child: fetchComplete
+                        ? filterQuotes.isNotEmpty
+                            ? Column(
+                                children: [
+                                  // If the language is English, show two separate quotes
+                                  if (isEnglish && filterQuotes.length > 1) ...[
+                                    Flexible(
+                                      child: QuoteCard(
+                                        quote: filterQuotes[0],
+                                        languageCode: languageCode,
+                                        showEnglishOnly: true,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Flexible(
+                                      child: QuoteCard(
+                                        quote: filterQuotes[1],
+                                        languageCode: languageCode,
+                                        showEnglishOnly: true,
+                                      ),
+                                    ),
+                                  ],
 
-                        // If the language is not English, show one quote in English and one in the translated language
-                        if (!isEnglish) ...[
-                          Flexible(
-                            child: QuoteCard(
-                              quote: filterQuotes[0],
-                              languageCode: languageCode,
-                              showEnglishOnly: true, // Show only the English part
-                            ),
-                          ),
-                          const SizedBox(height: 16), // Space between cards
-                          Flexible(
-                            child: QuoteCard(
-                              quote: filterQuotes[0],
-                              languageCode: languageCode,
-                              showTranslationOnly: true, // Show only the translation part
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
+                                  // If the language is not English, show one quote in English and one in the translated language
+                                  if (!isEnglish && filterQuotes.isNotEmpty) ...[
+                                    Flexible(
+                                      child: QuoteCard(
+                                        quote: filterQuotes[0],
+                                        languageCode: languageCode,
+                                        showEnglishOnly: true,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Flexible(
+                                      child: QuoteCard(
+                                        quote: filterQuotes[0],
+                                        languageCode: languageCode,
+                                        showTranslationOnly: true,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              )
+                            : const Center(child: Text('No more quotes available.'))
+                        : const Center(child: CircularProgressIndicator()),
                   ),
                 ),
               ],
@@ -158,17 +184,17 @@ class QuoteCard extends StatelessWidget {
       ),
       elevation: 4,
       color: Colors.grey.shade800,
-      child: Padding(
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.9,
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Show only English Quote
             if (showEnglishOnly) ...[
               Text(
                 quote.quoteEN,
-                style: const TextStyle(
-                  fontSize: 18,
+                style: TextStyle(
+                  fontSize: MediaQuery.of(context).size.height * 0.03,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                   height: 1.5,
@@ -178,8 +204,8 @@ class QuoteCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 "- ${quote.movieEN} -",
-                style: const TextStyle(
-                  fontSize: 14,
+                style: TextStyle(
+                  fontSize: MediaQuery.of(context).size.height * 0.02,
                   fontWeight: FontWeight.normal,
                   color: Colors.white70,
                 ),
@@ -187,12 +213,11 @@ class QuoteCard extends StatelessWidget {
               ),
             ],
 
-            // Show only Translated Quote
             if (showTranslationOnly) ...[
               Text(
                 languageCode == 'ko' ? quote.quoteKR : quote.quoteJP,
-                style: const TextStyle(
-                  fontSize: 16,
+                style: TextStyle(
+                  fontSize: MediaQuery.of(context).size.height * 0.03,
                   fontWeight: FontWeight.normal,
                   color: Colors.white,
                   height: 1.5,
@@ -202,8 +227,8 @@ class QuoteCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 languageCode == 'ko' ? "- ${quote.movieKR} -" : "- ${quote.movieJP} -",
-                style: const TextStyle(
-                  fontSize: 14,
+                style: TextStyle(
+                  fontSize: MediaQuery.of(context).size.height * 0.02,
                   fontWeight: FontWeight.normal,
                   color: Colors.white70,
                 ),

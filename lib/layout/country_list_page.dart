@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
-import 'package:world_movie_trailer/common/ad_helper.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
-import 'package:world_movie_trailer/layout/video_ad_page.dart';
+import 'package:world_movie_trailer/layout/movie_list_page.dart';
+import 'package:world_movie_trailer/layout/quote_list_page.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/common/movie_service.dart';
 import 'package:world_movie_trailer/model/movie.dart';
@@ -24,21 +23,13 @@ class _CountryListPageState extends State<CountryListPage> {
   Movie? specialSection;
   bool isEditMode = false;
   List<String>? oldCountryOrder;
-  RewardedAd? _preloadedRewardedAd;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchSpecialMovies();
-      preloadRewardedAd();
     });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    preloadRewardedAd();
   }
 
   Future<void> _fetchSpecialMovies() async {
@@ -51,23 +42,6 @@ class _CountryListPageState extends State<CountryListPage> {
     } catch (e) {
       print('Error fetching special movies: $e');
     }
-  }
-
-  void preloadRewardedAd() {
-    RewardedAd.load(
-      adUnitId: AdHelper.rewardedAdUnitId,
-      request: AdRequest(),
-      rewardedAdLoadCallback: RewardedAdLoadCallback(
-        onAdLoaded: (ad) {
-          _preloadedRewardedAd = ad;
-          print('Rewarded Ad preloaded');
-        },
-        onAdFailedToLoad: (error) {
-          print('Rewarded Ad failed to preload: $error');
-          _preloadedRewardedAd = null; // Reset the ad
-        },
-      ),
-    );
   }
 
   @override
@@ -186,26 +160,15 @@ class _CountryListPageState extends State<CountryListPage> {
                                       if (isEditMode) return;
                                       if (settingsProvider.isVibrate) HapticFeedback.mediumImpact();
 
-                                      if (_preloadedRewardedAd != null) {
-                                        LogHelper().logEvent('country_clicked', parameters: {'country_name': countries[index]},);
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => VideoAdPage(
-                                              country: countries[index],
-                                              preloadedAd: _preloadedRewardedAd,
-                                            ),
+                                      LogHelper().logEvent('country_clicked', parameters: {'country_name': countries[index]},);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => MovieListPage(
+                                            country: countries[index],
                                           ),
-                                        );
-                                      } else {
-                                        // Handle the case when ad is not preloaded
-                                        print('Ad is not preloaded');
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                            content: Text('Ad is not ready yet. Please try again later.'),
-                                          ),
-                                        );
-                                      }
+                                        ),
+                                      );
                                     },
                                     child: Stack(
                                       children: [
@@ -278,20 +241,21 @@ class _CountryListPageState extends State<CountryListPage> {
                     child: InkWell(
                       onTap: () {
                         if(settingsProvider.isVibrate) HapticFeedback.mediumImpact();
-                        if (_preloadedRewardedAd != null) {
-                          LogHelper().logEvent('country_clicked', parameters: {'country_name': 'special'},);
+                        LogHelper().logEvent('country_clicked', parameters: {'country_name': 'special'},);
+                        if(settingsProvider.isQuotes) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => VideoAdPage(country: special, preloadedAd: _preloadedRewardedAd != null ? _preloadedRewardedAd : null,),
+                              builder: (context) => const QuoteListPage(),
                             ),
                           );
                         } else {
-                          // Handle the case when ad is not preloaded
-                          print('Ad is not preloaded');
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Ad is not ready yet. Please try again later.'),
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MovieListPage(
+                                country: special,
+                              ),
                             ),
                           );
                         }

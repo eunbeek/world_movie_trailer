@@ -28,7 +28,7 @@ class Settings extends HiveObject {
   DateTime startDate;
 
   @HiveField(7)
-  int totalHours;
+  double totalHours;
 
   Settings({
     required this.language,
@@ -63,8 +63,8 @@ class Settings extends HiveObject {
       isVibrate: true,
       isCaptionOn: false,
       isQuotes: true,
-      startDate: DateTime.now(), // 수정: DateTime.now() 사용
-      totalHours: 0, // int로 누적 시간을 의미하는 값
+      startDate: DateTime.now(), 
+      totalHours: 0.0, 
     );
   }
 }

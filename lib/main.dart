@@ -5,14 +5,16 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:world_movie_trailer/common/ad_manager/rewarded_interstitial_ad_manager.dart';
+import 'package:world_movie_trailer/common/background.dart';
 
 import 'package:world_movie_trailer/firebase_options.dart';
 import 'package:world_movie_trailer/common/constants.dart';
+import 'package:world_movie_trailer/layout/country_list_page.dart';
 import 'package:world_movie_trailer/model/quote.dart';
 import 'package:world_movie_trailer/model/settings.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
-import 'package:world_movie_trailer/layout/country_list_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,52 +52,81 @@ void main() async {
           create: (_) => SettingsProvider(initSettings, isInitialSetting),
         ),
       ],
-      child: MyApp(),
+      child: MyApp(isInitialSetting: isInitialSetting),
     ),
   );
 }
 
 class MyApp extends StatefulWidget {
+  final bool isInitialSetting;
+
+  MyApp({required this.isInitialSetting});
+
   @override
   _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
   late DateTime _startTime;
+  late RewardedInterstitialAdManager _appAdManager;
+  bool _isAdDismissed = false;
 
   @override
   void initState() {
     super.initState();
-    
-    // 앱이 시작되거나 포그라운드로 전환될 때 시작 시간을 기록
+    _appAdManager = RewardedInterstitialAdManager();
+    if(widget.isInitialSetting){
+      _isAdDismissed = true;
+    } else {
+      _loadAd();
+    }
+
     WidgetsBinding.instance.addObserver(LifecycleEventHandler(
       resumeCallBack: () async => _recordStartTime(),
       suspendingCallBack: () async => _saveUsageTime(),
     ));
-    
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {;
       final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
       bool currentQuote = settingsProvider.isQuotes;
       settingsProvider.updateIsQuotes(!currentQuote);
     });
+    if(_appAdManager.isShowingAd) _showAd();
   }
 
-  // 앱이 포그라운드로 돌아왔을 때 시작 시간 기록
   void _recordStartTime() {
+    print('recordStartTIme');
     _startTime = DateTime.now();
   }
 
-  // 앱이 백그라운드로 전환될 때 사용 시간 저장
   void _saveUsageTime() {
+    print('saveUsageTime');
     final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
     final endTime = DateTime.now();
     
-    // 사용 시간을 계산 (초 단위로 변환 후 시간으로 저장)
+    // Calculate usage time in seconds
     final usageSeconds = endTime.difference(_startTime).inSeconds;
-    final usageHours = usageSeconds / 3600;
     
-    // 사용 시간을 누적하여 저장
-    settingsProvider.updateTotalHours(usageHours.toInt());
+    // Convert the usage time to minutes as a double
+    final usageMinutes = usageSeconds / 60;
+    
+    // Save the total usage time in minutes as a double
+    settingsProvider.updateTotalHours(usageMinutes);
+  }
+
+  void _loadAd() {
+    _appAdManager.loadAd(onAdLoaded: () {
+      _showAd(); 
+    });
+  }
+
+  void _showAd() {
+    print('showAd');
+    _appAdManager.showAdIfAvailable(() {
+      setState(() {
+        _isAdDismissed = true;
+      });
+    });
   }
 
   @override
@@ -109,7 +140,35 @@ class _MyAppState extends State<MyApp> {
         theme: ThemeData.light(),
         darkTheme: ThemeData.dark(),
         debugShowCheckedModeBanner: false,
-        home: const CountryListPage(),
+        home: _isAdDismissed
+          ? const CountryListPage()
+          :  Scaffold(
+              body: Stack(
+                children: [
+                  BackgroundWidget(isPausePage: false,),
+                  Center(
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/images/deco_film_reel_02_DT_xxhdpi.png', 
+                          width: 100,
+                          height: 100,
+                        ),
+                        const SizedBox(
+                          width: 120,
+                          height: 120,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 5.0,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
       ),
     );
   }

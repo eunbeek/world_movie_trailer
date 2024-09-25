@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:world_movie_trailer/common/movie_service.dart';
+import 'package:world_movie_trailer/common/quote_service.dart';
 import 'package:world_movie_trailer/layout/country_list_page.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/layout/movie_detail_youtube_page.dart';
@@ -15,9 +17,8 @@ import 'package:world_movie_trailer/common/error_page.dart';
 
 class MovieListPage extends StatefulWidget {
   final String country;
-  final List<Movie> movies;
 
-  const MovieListPage({super.key, required this.country, required this.movies});
+  const MovieListPage({super.key, required this.country});
 
   @override
   _MovieListPageState createState() => _MovieListPageState();
@@ -28,15 +29,36 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
   String selectedFilter = listFilterAll;
   List<Movie> allMovies = [];
   List<Movie> filteredMovies = [];
+  bool fetchComplete = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    allMovies = widget.movies;
-    _applyFilter(false);
+    _fetchMovies();  // Fetch movies
   }
 
+  Future<void> _fetchMovies() async {
+    try {
+      final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+      final language = settingsProvider.language;
+
+      // Fetch the movies from the service
+      final movies = await MovieService.fetchMovie(widget.country, language);
+      setState(() {
+        allMovies = movies;
+        _applyFilter(false);  // Apply the initial filter after fetching movies
+        fetchComplete = true;
+      });
+    } catch (e) {
+      print('Error fetching movies: $e');
+      setState(() {
+        fetchComplete = true;
+      });
+    }
+  }
+
+  // Apply the filter based on selectedFilter
   void _applyFilter(bool isMore) {
     setState(() {
       if (selectedFilter == listFilterAll) {
@@ -53,16 +75,17 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
+
     return SafeArea(
       child: Scaffold(
         body: Stack(
           children: [
             // Background Image
-            const BackgroundWidget(isPausePage: false,),
+            const BackgroundWidget(isPausePage: false),
+
             // Main Content
             Column(
               children: [
@@ -77,11 +100,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                           size: MediaQuery.of(context).size.height * 0.03,
                         ),
                         onPressed: () {
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(builder: (context) => CountryListPage()),
-                            (Route<dynamic> route) => false,
-                          );
+                          Navigator.pop(context);
                         },
                       ),
                       Expanded(
@@ -91,41 +110,43 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                             fontSize: MediaQuery.of(context).size.height * 0.02,
                             fontWeight: FontWeight.bold,
                           ),
-                          textAlign: TextAlign.center, // Center the text
+                          textAlign: TextAlign.center,
                         ),
                       ),
-                      // Add an invisible icon button for spacing
                       const IconButton(
                         icon: Icon(
-                          Icons.arrow_back, 
+                          Icons.arrow_back,
                           color: Colors.transparent,
-                        ), // Invisible icon to balance the space
-                        onPressed: null, // No action
+                        ),
+                        onPressed: null,
                       ),
                     ],
                   ),
                 ),
-                if(widget.country != special)
-                  // Filter Tabs with gradient underline
+                if (widget.country != special)
                   TabBar(
                     controller: _tabController,
                     dividerColor: settingsProvider.isDarkTheme ? const Color(0xff49454f) : const Color(0xffe7e0ec),
                     indicator: TabBarGradientIndicator(
                       gradientColor: [
                         settingsProvider.isDarkTheme ? const Color(0xff12d6df) : const Color(0xff00ffed),
-                        settingsProvider.isDarkTheme? const Color(0xfff70fff) : const Color(0xff9d00c6),
+                        settingsProvider.isDarkTheme ? const Color(0xfff70fff) : const Color(0xff9d00c6),
                       ],
                       insets: const EdgeInsets.fromLTRB(0.0, 68.0, 0.0, 0.0),
-                      indicatorWidth: 1
+                      indicatorWidth: 1,
                     ),
                     unselectedLabelColor: Colors.grey,
-                    labelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: settingsProvider.isDarkTheme ? const Color(0xffececec): const Color(0xff1a1713)),
+                    labelStyle: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: settingsProvider.isDarkTheme ? const Color(0xffececec) : const Color(0xff1a1713),
+                    ),
                     tabs: [
                       Tab(
                         child: Align(
                           alignment: Alignment.center,
                           child: Text(
-                            getFilterLabel(0,settingsProvider.language), 
+                            getFilterLabel(0, settingsProvider.language),
                             style: TextStyle(
                               fontSize: MediaQuery.of(context).size.height * 0.015,
                             ),
@@ -136,7 +157,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                         child: Align(
                           alignment: Alignment.center,
                           child: Text(
-                            getFilterLabel(1,settingsProvider.language), 
+                            getFilterLabel(1, settingsProvider.language),
                             style: TextStyle(
                               fontSize: MediaQuery.of(context).size.height * 0.015,
                             ),
@@ -147,7 +168,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                         child: Align(
                           alignment: Alignment.center,
                           child: Text(
-                            getFilterLabel(2,settingsProvider.language), 
+                            getFilterLabel(2, settingsProvider.language),
                             style: TextStyle(
                               fontSize: MediaQuery.of(context).size.height * 0.015,
                             ),
@@ -155,8 +176,8 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                         ),
                       ),
                     ],
-                    onTap: (index) {                                        
-                      if(settingsProvider.isVibrate) HapticFeedback.mediumImpact();
+                    onTap: (index) {
+                      if (settingsProvider.isVibrate) HapticFeedback.mediumImpact();
                       setState(() {
                         if (index == 0) {
                           selectedFilter = listFilterAll;
@@ -169,17 +190,19 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                       });
                     },
                   ),
-                SizedBox(height:  MediaQuery.of(context).size.height * 0.02,),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildMovieGrid(filteredMovies),
-                      _buildMovieGrid(filteredMovies),
-                      _buildMovieGrid(filteredMovies),
-                    ],
-                  ),
-                ),
+                SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                fetchComplete
+                    ? Expanded(
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: [
+                            _buildMovieGrid(filteredMovies),
+                            _buildMovieGrid(filteredMovies),
+                            _buildMovieGrid(filteredMovies),
+                          ],
+                        ),
+                      )
+                    : const Expanded(child:Center(child: CircularProgressIndicator())),
               ],
             ),
           ],
@@ -191,23 +214,24 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
   Widget _buildMovieGrid(List<Movie> movies) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
 
-    if(movies.isEmpty){
+    if (movies.isEmpty) {
       return ErrorPage();
     }
 
     return Container(
-      padding: const EdgeInsets.only(left:8, right:8),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: 0.55, 
+          childAspectRatio: 0.55,
         ),
         itemCount: movies.length,
         itemBuilder: (context, index) {
           final movie = movies[index];
           String? releaseDate;
-          // 날짜 형식 변경
-          if(movie.releaseDate != '') releaseDate = DateFormat('yyyy.MM.dd').format(DateTime.parse(movie.releaseDate));
+          if (movie.releaseDate != '') {
+            releaseDate = DateFormat('yyyy.MM.dd').format(DateTime.parse(movie.releaseDate));
+          }
 
           return GestureDetector(
             onTap: () {
@@ -215,16 +239,16 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                    movie.isYoutube != false ? MovieDetailPageYouTube(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language,)
-                    : MovieDetailPageChewie(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language,),
-                  ),
+                  builder: (context) => movie.isYoutube != false
+                      ? MovieDetailPageYouTube(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language)
+                      : MovieDetailPageChewie(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language),
+                ),
               );
             },
             child: Container(
-              margin: const EdgeInsets.all(4), 
+              margin: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: settingsProvider.isDarkTheme? const Color(0xff666666) : const Color(0xff999999), 
+                color: settingsProvider.isDarkTheme ? const Color(0xff666666) : const Color(0xff999999),
                 borderRadius: BorderRadius.circular(15.0),
               ),
               child: Column(
@@ -235,7 +259,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                       borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(15.0),
                         topRight: Radius.circular(15.0),
-                      ), 
+                      ),
                       child: Image.network(
                         movie.posterUrl,
                         fit: BoxFit.cover,
@@ -258,16 +282,15 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                             fontSize: MediaQuery.of(context).size.height * 0.017,
                           ),
                         ),
-                        const SizedBox(height: 4), 
-                        releaseDate != null?
+                        const SizedBox(height: 4),
+                        if (releaseDate != null)
                           Text(
-                            '${releaseDate} ' + getReleaseLabel(settingsProvider.language), 
+                            '$releaseDate ' + getReleaseLabel(settingsProvider.language),
                             style: TextStyle(
                               color: const Color(0xffc7c7c7),
                               fontSize: MediaQuery.of(context).size.height * 0.013,
                             ),
-                          )
-                        :const Text(''),
+                          ),
                       ],
                     ),
                   ),
