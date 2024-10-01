@@ -13,7 +13,7 @@ class MovieDetailPageChewie extends StatefulWidget {
   final bool captionFlag;
   final String captionLan;
 
-  MovieDetailPageChewie({required this.movie, required this.captionFlag, required this.captionLan});
+  const MovieDetailPageChewie({super.key, required this.movie, required this.captionFlag, required this.captionLan});
 
   @override
   _MovieDetailPageChewieState createState() => _MovieDetailPageChewieState();
@@ -68,10 +68,6 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
   void _enterFullScreen() {
     setState(() {
       _isFullScreen = true;
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.landscapeRight,
-        DeviceOrientation.landscapeLeft,
-      ]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     });
   }
@@ -80,23 +76,8 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
   void _exitFullScreen() {
     setState(() {
       _isFullScreen = false;
-
-      // Enforce portrait mode strictly after fullscreen
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ]);
-
-      // Restore the normal system UI mode
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
-      // Add a short delay to ensure system UI resets properly
-      Future.delayed(const Duration(milliseconds: 300), () {
-        SystemChrome.setPreferredOrientations([
-          DeviceOrientation.portraitUp,
-          DeviceOrientation.portraitDown,
-        ]);
-      });
     });
   }
 

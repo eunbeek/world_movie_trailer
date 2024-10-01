@@ -12,7 +12,7 @@ const {fetchMovieListFromSf} = require("./movie_th");
 const {fetchMovieListFromTMDBByAU} = require("./movie_au");
 const {fetchMovieListFromKinepolis} = require("./movie_es");
 const {fetchMovieListFromInox} = require("./movie_in");
-const {fetchMovieListFromWanda} = require("./movie_cn");
+const {fetchMovieListFromTMDBByCN} = require("./movie_cn");
 const {fetchMovieInSpecialSection} = require("./movie_special");
 const {fetchQuotesInSpecialSection} = require("./quote_special");
 const {processBatch, saveMoviesAsJson, saveQuotesAsJson} = require("./utils");
@@ -320,14 +320,14 @@ exports.fetchMovieListCN = functions
       const processedCount = 0;
       const startTime = Date.now();
 
-      const allMovies = await fetchMovieListFromWanda();
+      const allMovies = await fetchMovieListFromTMDBByCN();
 
-      const moviesWithTrailer = await processBatch("zh-CN", allMovies, processedCount, startTime);
+      const moviesWithDetails = await processBatch("zh-CN", allMovies, processedCount, startTime, true);
 
-      await saveMoviesAsJson("cn", moviesWithTrailer);
+      await saveMoviesAsJson("cn", moviesWithDetails);
 
       const timestamp = new Date().toISOString();
-      console.log(`Success: [${timestamp}] Country: cn, Movie Count: ${moviesWithTrailer.length}`);
+      console.log(`Success: [${timestamp}] Country: cn, Movie Count: ${moviesWithDetails.length}`);
 
       return null;
     });
@@ -341,7 +341,7 @@ exports.fetchMovieListCN = functions
 exports.fetchMovieListSpecial = functions
     .runWith({timeoutSeconds: 540})
     .pubsub
-    .schedule("0 1 1 * *")
+    .schedule("0 1 1 */3 *")
     .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
@@ -777,9 +777,9 @@ exports.testFetchMovieListCN = functions.runWith({timeoutSeconds: 540}).https.on
     const processedCount = 0;
     const startTime = Date.now();
 
-    const allMovies = await fetchMovieListFromWanda();
+    const allMovies = await fetchMovieListFromTMDBByCN();
 
-    console.log(`Wanda CN Movies: ${allMovies.length}`);
+    console.log(`TMDB CN Movies: ${allMovies.length}`);
     const moviesWithTrailer = await processBatch("zh-CN", allMovies, processedCount, startTime, true);
 
     await saveMoviesAsJson("cn", moviesWithTrailer);

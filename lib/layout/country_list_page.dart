@@ -13,7 +13,9 @@ import 'package:world_movie_trailer/layout/settings_page.dart';
 import 'package:world_movie_trailer/common/background.dart';
 
 class CountryListPage extends StatefulWidget {
-  const CountryListPage({super.key});
+  final bool isInit;
+
+  const CountryListPage({super.key, required this.isInit});
 
   @override
   _CountryListPageState createState() => _CountryListPageState();
@@ -23,6 +25,7 @@ class _CountryListPageState extends State<CountryListPage> {
   Movie? specialSection;
   bool isEditMode = false;
   List<String>? oldCountryOrder;
+  List<Movie>? specialMovieList;
 
   @override
   void initState() {
@@ -36,9 +39,69 @@ class _CountryListPageState extends State<CountryListPage> {
     try {
       final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
       List<Movie> movies = await MovieService.fetchMovie(special, settingsProvider.language);
-      setState(() {
-        specialSection = movies[0];
-      });
+
+      final now = DateTime.now();
+      // 이전에 가져온 영화가 있는 경우
+      if (settingsProvider.lastSpecialNumber != 0) {
+        print('After Fetched');
+        print(settingsProvider.lastSpecialFetched);
+        final daysDifference = now.difference(settingsProvider.lastSpecialFetched!).inDays;
+
+        if (daysDifference > 7) {
+          print(' Greater than 7 days');
+          // 7일 이상 경과: 새로운 영화(period = lastSpecialNumber + 1)를 가져옴
+          var filteredMovies = movies.where((movie) => movie.period == settingsProvider.lastSpecialNumber + 1).toList();
+
+          if (filteredMovies.isNotEmpty) {
+            setState(() {
+              specialSection = filteredMovies[0];
+              specialMovieList = filteredMovies;  // 필터된 영화 리스트 설정
+            });
+            settingsProvider.updateLastSpecialNumber(settingsProvider.lastSpecialNumber + 1);
+
+          } else {
+            // 새로운 영화가 없으면 최신 영화로 설정
+            var latestMovies = movies.where((movie) => movie.period == movies[0].period).toList();
+            setState(() {
+              specialSection = latestMovies[0];
+              specialMovieList = latestMovies;
+            });
+            settingsProvider.updateLastSpecialNumber(movies[0].period!);
+          }
+
+          settingsProvider.updateLastSpecialFetched(now);
+
+        } else {
+          print(' Less than 7 days');
+          // 7일 이내: 현재 lastSpecialNumber에 해당하는 영화 표시
+          var filteredMovies = movies.where((movie) => movie.period == settingsProvider.lastSpecialNumber).toList();
+
+          if (filteredMovies.isNotEmpty) {
+            setState(() {
+              specialSection = filteredMovies[0];
+              specialMovieList = filteredMovies;
+            });
+          } else {
+            // 만약 해당 period의 영화가 없을 경우 최신 영화로 설정
+            var latestMovies = movies.where((movie) => movie.period == movies[0].period).toList();
+            setState(() {
+              specialSection = latestMovies[0];
+              specialMovieList = latestMovies;
+            });
+          }
+        }
+
+      } else {
+        print("First Fetched");
+        // lastSpecialNumber가 0인 경우, 첫 번째 영화를 선택
+        var latestMovies = movies.where((movie) => movie.period == movies[0].period).toList();
+        setState(() {
+          specialSection = latestMovies[0];
+          specialMovieList = latestMovies;
+        });
+        settingsProvider.updateLastSpecialNumber(movies[0].period!);
+      }
+
     } catch (e) {
       print('Error fetching special movies: $e');
     }
@@ -46,13 +109,20 @@ class _CountryListPageState extends State<CountryListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final settingsProvider = Provider.of<SettingsProvider>(context);
-    final languageCode = settingsProvider.language;
-    final countries = settingsProvider.countryOrder;
     double boxHeight = MediaQuery.of(context).size.height * 0.070;
     double specialHeight = MediaQuery.of(context).size.height * 0.09;
     double specialWidth =  MediaQuery.of(context).size.width * 0.95;
     double iconSize = MediaQuery.of(context).size.height * 0.035;
+
+    final settingsProvider = Provider.of<SettingsProvider>(context);
+    final languageCode = settingsProvider.language;
+    final countries = settingsProvider.countryOrder;
+    int currentWeekday = DateTime.now().weekday-1;
+    final countriesOfTheDay = countryByDay[currentWeekday] ?? []; // origin
+
+    final localizedCountriesOfTheDay = countriesOfTheDay.map((countryCode) {
+      return localizedCountries[languageCode]?[countryCode] ?? countryCode;
+    }).toList();
 
     return Scaffold(
       body: SafeArea(
@@ -156,20 +226,29 @@ class _CountryListPageState extends State<CountryListPage> {
                                   child: Material(
                                     color: Colors.transparent,
                                     child: InkWell(
-                                     onTap: () {
-                                      if (isEditMode) return;
-                                      if (settingsProvider.isVibrate) HapticFeedback.mediumImpact();
+                                      onTap: () {
+                                        if (isEditMode) return;
 
-                                      LogHelper().logEvent('country_clicked', parameters: {'country_name': countries[index]},);
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => MovieListPage(
-                                            country: countries[index],
+                                        if (settingsProvider.isVibrate) HapticFeedback.mediumImpact();
+
+                                        final String? originCountry = localizedCountries[languageCode]?.entries
+                                            .firstWhere((entry) => entry.value == countries[index], orElse: () => MapEntry('', '')).key;
+ 
+                                        if (originCountry != null && localizedCountriesOfTheDay.contains(countries[index])) {
+                                          settingsProvider.unmarkIsNewShown(currentWeekday, originCountry);
+                                        }
+
+                                        LogHelper().logEvent('country_clicked', parameters: {'country_name': countries[index]});
+
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => MovieListPage(
+                                              country: countries[index],
+                                            ),
                                           ),
-                                        ),
-                                      );
-                                    },
+                                        );
+                                      },
                                     child: Stack(
                                       children: [
                                         CustomPaint(
@@ -201,9 +280,30 @@ class _CountryListPageState extends State<CountryListPage> {
                                                   textAlign: TextAlign.center,
                                                 ),
                                               ),
+                                              if (
+                                                !isEditMode &&
+                                                localizedCountries[languageCode] != null && 
+                                                settingsProvider.isNewShown[currentWeekday] != null && 
+                                                settingsProvider.isNewShown[currentWeekday]![
+                                                  localizedCountries[languageCode]!.entries
+                                                    .firstWhere((entry) => entry.value == countries[index], orElse: () => MapEntry('', '')).key
+                                                ] == true // new 상태가 true인지 확인
+                                              ) 
+                                                Positioned(
+                                                  top: boxHeight * 0.35,
+                                                  right: 24,
+                                                  child: Text(
+                                                    "NEW", 
+                                                    style: TextStyle(
+                                                      color: settingsProvider.isDarkTheme ? Colors.yellow : Colors.red, 
+                                                      fontSize: boxHeight * 0.2,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
                                               if (isEditMode)
                                                 Positioned(
-                                                  top: boxHeight * 0.3,
+                                                  top: boxHeight * 0.30,
                                                   right: 24,
                                                   child: const Icon(Icons.reorder),
                                                 ),
@@ -224,7 +324,7 @@ class _CountryListPageState extends State<CountryListPage> {
                 ),
               ],
             ),
-            if (specialSection != null)
+            if (specialSection != null || settingsProvider.isQuotes)
               Align(
                 alignment: Alignment.bottomCenter,
                 child: SizedBox(
@@ -253,8 +353,9 @@ class _CountryListPageState extends State<CountryListPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const MovieListPage(
+                              builder: (context) => MovieListPage(
                                 country: special,
+                                specialList: specialMovieList,
                               ),
                             ),
                           );

@@ -179,6 +179,7 @@ class MovieService {
             nameHI: json.nameHI as String? ?? '', 
             nameTH: json.nameTH as String? ?? '', 
             isYoutube: json.isYoutube as bool? ?? true, 
+            period: json.period ?? 0,
           );
         }).toList();
 
@@ -206,7 +207,7 @@ class MovieService {
 
     if (isSpecial) {
       // For special sections, check if the year and month are the same
-      return !(lastFetched.year == now.year && lastFetched.month == now.month);
+      return now.difference(lastFetched).inDays  > 180;
     } else {
       // For regular data, consider it outdated if older than 7 days
       return now.difference(lastFetched).inDays > 7;

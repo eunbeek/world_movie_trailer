@@ -160,7 +160,7 @@ String getErrorMessage(String languageCode){
       return labelNetworkErrorTH;
     default:
       return labelNetworkErrorEN;
-    };
+    }
 }
 
 // Movie detail - info 

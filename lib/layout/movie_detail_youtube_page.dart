@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -13,7 +15,7 @@ class MovieDetailPageYouTube extends StatefulWidget {
   final bool captionFlag;
   final String captionLan;
 
-  MovieDetailPageYouTube({required this.movie, required this.captionFlag, required this.captionLan});
+  const MovieDetailPageYouTube({super.key, required this.movie, required this.captionFlag, required this.captionLan});
 
   @override
   _MovieDetailPageYouTubeState createState() => _MovieDetailPageYouTubeState();
@@ -63,15 +65,12 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
         _exitFullScreen();
       }
     });
+
   }
 
   void _enterFullScreen() {
     setState(() {
       _isFullScreen = true;
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     });
   }
@@ -79,10 +78,6 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   void _exitFullScreen() {
     setState(() {
       _isFullScreen = false;
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     });
   }
@@ -97,7 +92,6 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
     ]);
     super.dispose();
   }
-
 
   double _calculateAspectRatio(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -188,7 +182,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                 Padding(
                                   padding: const EdgeInsets.only(left: 8.0),
                                   child: Text(
-                                    '${getTranslatedDetail('Director', settingsProvider.language)}: ${widget.movie.credits?["crew"][0]["name"]}',
+                                    '${getTranslatedDetail('Director', settingsProvider.language)}: ${widget.movie.credits?["crew"].firstWhere((crewMember) => crewMember["job"] == "Director",  orElse: () => widget.movie.credits?["crew"][0])["name"]}',
                                     style: TextStyle(
                                       fontSize: MediaQuery.of(context).size.height * 0.018,
                                     ),

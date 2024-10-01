@@ -7,7 +7,7 @@ import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 
 class BackgroundWidget extends StatefulWidget {
   final bool isPausePage;
-  const BackgroundWidget({Key? key, required  this.isPausePage}) : super(key: key);
+  const BackgroundWidget({super.key, required  this.isPausePage});
 
   @override
   _BackgroundWidgetState createState() => _BackgroundWidgetState();
@@ -20,16 +20,12 @@ class _BackgroundWidgetState extends State<BackgroundWidget> with SingleTickerPr
     super.initState();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
 
  @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
     return Container(
-      color: settingsProvider.isDarkTheme ? Color(0x232323) : Color(0xFFF2F3EC),
+      color: settingsProvider.isDarkTheme ? Color(0x00232323) : Color(0xFFF2F3EC),
       child: Stack(
         children: [
           Positioned.fill(

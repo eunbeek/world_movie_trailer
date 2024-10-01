@@ -2,7 +2,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:world_movie_trailer/common/ad_helper.dart';
 
 class RewardedAdManager {
-  RewardedAd? _rewardedAd;
+  RewardedAd? rewardedAd;
   bool isShowingAd = false;
 
   // Method to load the rewarded ad
@@ -13,7 +13,7 @@ class RewardedAdManager {
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (RewardedAd ad) {
           print('Rewarded Ad loaded');
-          _rewardedAd = ad;
+          rewardedAd = ad;
           onAdLoaded();
         },
         onAdFailedToLoad: (LoadAdError error) {
@@ -29,36 +29,37 @@ class RewardedAdManager {
       print('Ad is already being shown.');
       return;
     }
-    if (_rewardedAd == null) {
+    if (rewardedAd == null) {
       print('Rewarded Ad is not loaded yet.');
       loadAd(onAdLoaded: onAdDismissed);
       return;
     }
 
-    _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+    rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
       onAdShowedFullScreenContent: (ad) {
         print('Rewarded Ad showed');
         isShowingAd = true;
+        Future.delayed(Duration(seconds: 1), () {
+          onAdDismissed();
+        });
       },
       onAdDismissedFullScreenContent: (ad) {
         print('Rewarded Ad dismissed');
         isShowingAd = false;
         ad.dispose();
-        _rewardedAd = null;
-        loadAd(onAdLoaded: onAdDismissed);
-        onAdDismissed();
+        rewardedAd = null;
+        loadAd(onAdLoaded: ()=>{});
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
         print('Rewarded Ad failed to show: $error');
         isShowingAd = false;
         ad.dispose();
-        _rewardedAd = null;
-        loadAd(onAdLoaded: onAdDismissed);
-        onAdDismissed();
+        rewardedAd = null;
+        loadAd(onAdLoaded: ()=>{});
       },
     );
 
-    _rewardedAd!.show(
+    rewardedAd!.show(
       onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
         print('User earned reward: ${reward.amount} ${reward.type}');
       },

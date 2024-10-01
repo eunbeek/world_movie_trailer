@@ -2,6 +2,16 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
 
+const currentDate = new Date();
+const currentYear = currentDate.getFullYear();
+const currentMonth = currentDate.getMonth() + 2;
+
+// 2개월 후의 날짜를 계산
+const futureDate = new Date(currentDate.setMonth(currentDate.getMonth() + 2));
+const futureYear = futureDate.getFullYear();
+const futureMonth = futureDate.getMonth() + 1; // 월은 0부터 시작하므로 1을 더해줌
+
+const eigaAllRelease = `https://eiga.com/release/q/?year=${currentYear}&month=${currentMonth}&year_to=${futureYear}&month_to=${futureMonth}&sort=old`;
 const eigaRunning = "https://eiga.com/now/";
 const eigaUpcoming = "https://eiga.com/movie/video/upcoming";
 const eigaMore = "https://eiga.com/now/all/release/2/";
@@ -13,10 +23,11 @@ const eigaMoreUpcoming = "https://eiga.com/movie/video/coming/";
  * @return {Promise<Array>} - A promise that resolves to a list of running movies.
  */
 async function fetchRunningFromEIGA(moviesJP = []) {
-  const urls = [eigaRunning, eigaMore];
+  const urls = [eigaRunning, eigaMore, eigaAllRelease];
   const movies = [];
 
   for (const url of urls) {
+    console.log(url);
     try {
       const response = await axios.get(url);
 
@@ -27,14 +38,14 @@ async function fetchRunningFromEIGA(moviesJP = []) {
       const $ = cheerio.load(response.data);
       const movieBoxes = $("section div.list-block");
 
-      const promises = movieBoxes.map(async (i, movieBox) => {
+      const promises = movieBoxes.slice(0, 50).map(async (i, movieBox) => {
         const aTag = $(movieBox).find("div.img-box a");
         if (aTag) {
           const title = $(aTag).find("img").attr("alt").trim();
           if (moviesJP.length > 0 && moviesJP.some((movieJP) => movieJP.localTitle === title)) return;
 
           const posterUrl = $(aTag).find("img").attr("src");
-          const releaseDate = $(movieBox).find("small.time").text().trim().replace("公開", "");
+          const releaseDate = $(movieBox).find("small.time").text().trim().replace(/劇場公開日|公開/g, "");
 
           // Extract the current year
           const currentDate = new Date();
@@ -67,18 +78,20 @@ async function fetchRunningFromEIGA(moviesJP = []) {
               .get()
               .slice(0, 4);
 
-          movies.push({
-            localTitle: title,
-            posterUrl: posterUrl,
-            source: "eiga",
-            spec: spec,
-            releaseDate: formattedDate,
-            credits: {
-              crew: director ? [{name: director, job: "Director"}] : [],
-              cast: cast.map((name) => ({name: name})), // Assuming no character info available
-            },
-            batch: false,
-          });
+          if (!movies.some((movie) => movie.localTitle === title)) {
+            movies.push({
+              localTitle: title,
+              posterUrl: posterUrl,
+              source: "eiga",
+              spec: spec,
+              releaseDate: formattedDate,
+              credits: {
+                crew: director ? [{name: director, job: "Director"}] : [],
+                cast: cast.map((name) => ({name: name})), // Assuming no character info available
+              },
+              batch: false,
+            });
+          }
         }
       }).get();
 

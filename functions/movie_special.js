@@ -8,12 +8,10 @@ const axios = require("axios");
  */
 async function fetchMovieInSpecialSection() {
   const movies = [];
-  const currentDate = new Date();
-  const currentPeriod = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}`;
 
   try {
     const response = await axios.get(
-        "https://docs.google.com/spreadsheets/d/1GAVRJu8eY9ZArRX7pBrb427Ps6NCHiOsBhbQ6QV6ce4/export?format=tsv&gid=1234673196&range=A1:R",
+        "https://docs.google.com/spreadsheets/d/1GAVRJu8eY9ZArRX7pBrb427Ps6NCHiOsBhbQ6QV6ce4/export?format=tsv&gid=1234673196&range=A1:Q",
     );
 
     if (response.status === 200) {
@@ -29,14 +27,9 @@ async function fetchMovieInSpecialSection() {
           headers.forEach((header, index) => {
             row[header] = values[index] || ""; // Safely assign values
           });
-
-          if (row["Period"] !== currentPeriod) {
-            continue;
-          }
-          console.log(row["Period"]);
           const movie = {
+            period: parseInt(row["Period"], 10) || 0,
             localTitle: row["Movie"] || "",
-            posterUrl: row["Poster"] || "",
             country: row["Nationality"] || "",
             source: row["English_Name"] || "",
             trailerUrl: row["Trailer"] || "",

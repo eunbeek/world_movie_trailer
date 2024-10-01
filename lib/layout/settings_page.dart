@@ -7,10 +7,14 @@ import 'package:world_movie_trailer/common/translate.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
+import 'package:world_movie_trailer/layout/credits_list_apge.dart';
 
 import 'package:world_movie_trailer/layout/other_app_page.dart';
+import 'package:world_movie_trailer/layout/user_data_page.dart';
 
 class SettingsPage extends StatelessWidget {
+  const SettingsPage({super.key});
+
 
  Widget _buildThemeButton(BuildContext context, String theme, SettingsProvider settingsProvider) {
     bool isSelected = (theme == 'dark' && settingsProvider.isDarkTheme) ||
@@ -116,61 +120,23 @@ class SettingsPage extends StatelessWidget {
             delegate: SliverChildListDelegate(
               [
                 const Divider(),
-                Theme(
-                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                  child: ExpansionTile(
-                    title: Text(
-                      getSettingsLabel(settingsProvider.language, "userdata"),
-                      style: TextStyle(
-                        fontSize: MediaQuery.of(context).size.height * 0.02,
+                ListTile(
+                  onTap: () => {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                          UserData(),
                       ),
+                    )
+                  },
+                  title: Text(
+                    getSettingsLabel(settingsProvider.language, "userdata"),
+                    style: TextStyle(
+                      fontSize: MediaQuery.of(context).size.height * 0.02,
                     ),
-                    children: <Widget>[
-                      Container(
-                        alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              getSettingsLabel(settingsProvider.language, "initdate"),
-                              style: TextStyle(
-                                fontSize: MediaQuery.of(context).size.height * 0.018,
-                              ),
-                            ),
-                            Text(
-                              DateFormat('yyyy-MM-dd').format(settingsProvider.startDate),
-                              style: TextStyle(
-                                fontSize: MediaQuery.of(context).size.height * 0.018,
-                              ),
-                            ),
-                          ],
-                        ), 
-
-                      ),
-                      Container(
-                        alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              getSettingsLabel(settingsProvider.language, "totalhour"),
-                              style: TextStyle(
-                                fontSize: MediaQuery.of(context).size.height * 0.018,
-                              ),
-                            ),
-                            Text(
-                              _formatHoursMinutes(settingsProvider.totalHours),
-                              style: TextStyle(
-                                fontSize: MediaQuery.of(context).size.height * 0.018,
-                              ),
-                            ),
-                          ],
-                        )
-                      ),
-                    ],
                   ),
+                  trailing: const Icon(Icons.chevron_right),
                 ),
                 const Divider(),
                 ListTile(
@@ -210,7 +176,7 @@ class SettingsPage extends StatelessWidget {
                       fontSize: MediaQuery.of(context).size.height * 0.02,
                     ),
                   ),
-                  trailing: Container(
+                  trailing: SizedBox(
                     width: 150,
                     child: DropdownButton<String>(
                       isExpanded: true,
@@ -290,7 +256,7 @@ class SettingsPage extends StatelessWidget {
                     }
 
                     Share.share(
-                      'Check out this app: ${url}',
+                      'Check out this app: $url',
                       subject: 'Check out this App',
                       sharePositionOrigin: Rect.fromLTWH(0, 0, MediaQuery.of(context).size.width, MediaQuery.of(context).size.height / 2),
                     );
@@ -301,25 +267,6 @@ class SettingsPage extends StatelessWidget {
                       fontSize: MediaQuery.of(context).size.height * 0.02,
                     ),
                   ),
-                ),
-                const Divider(),
-                ListTile(
-                  onTap: () => {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                          AppListPage(),
-                      ),
-                    )
-                  },
-                  title: Text(
-                    getSettingsLabel(settingsProvider.language, "other"),
-                    style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.height * 0.02,
-                    ),
-                  ),
-                  trailing: const Icon(Icons.chevron_right), // Add arrow icon
                 ),
                 const Divider(),
                 ListTile(
@@ -349,6 +296,44 @@ class SettingsPage extends StatelessWidget {
                 ),
                 const Divider(),
                 ListTile(
+                  onTap: () => {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                          AppListPage(),
+                      ),
+                    )
+                  },
+                  title: Text(
+                    getSettingsLabel(settingsProvider.language, "other"),
+                    style: TextStyle(
+                      fontSize: MediaQuery.of(context).size.height * 0.02,
+                    ),
+                  ),
+                  trailing: const Icon(Icons.chevron_right), // Add arrow icon
+                ),
+                const Divider(),
+                ListTile(
+                  onTap: () => {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                          CreditsList(),
+                      ),
+                    )
+                  },
+                  title: Text(
+                    getSettingsLabel(settingsProvider.language, "credits"),
+                    style: TextStyle(
+                      fontSize: MediaQuery.of(context).size.height * 0.02,
+                    ),
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                ),
+                const Divider(),
+                ListTile(
                   title: Text(
                     getSettingsLabel(settingsProvider.language, "version"),
                     style: TextStyle(
@@ -362,7 +347,6 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ),
                 ),
-                
               ],
             ),
           ),

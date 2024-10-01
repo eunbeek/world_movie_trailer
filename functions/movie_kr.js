@@ -184,8 +184,10 @@ async function fetchMovieListFromLotte() {
           movieJson.MovieNameKR.replace(/^\[.*?\]/, "").trim() :
           movieJson.MovieNameKR.trim();
 
+        const finalTitle = processedTitle.replace(/([가-힣a-zA-Z])(\d)/g, "$1 $2");
+
         movies.push({
-          localTitle: processedTitle,
+          localTitle: finalTitle,
           posterUrl: movieJson.PosterURL,
           source: "lotte",
           batch: false,

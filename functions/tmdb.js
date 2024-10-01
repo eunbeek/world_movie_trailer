@@ -32,7 +32,7 @@ const trailerQuery = {
  */
 async function searchMovieInfoByTitle(countryCode, query) {
   try {
-    const response = await fetch(`https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(query)}&include_adult=true&language=${countryCode}&page=1`, options);
+    const response = await fetch(`https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(query)}&include_adult=false&language=${countryCode}&page=1`, options);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }

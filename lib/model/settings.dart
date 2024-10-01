@@ -28,7 +28,25 @@ class Settings extends HiveObject {
   DateTime startDate;
 
   @HiveField(7)
-  double totalHours;
+  int totalOpen;
+
+  @HiveField(8)
+  int openCount;
+
+  @HiveField(9)
+  String specialPeriod;
+
+  @HiveField(10)
+  Map<int, Map<String, bool>> isNewShown;
+
+  @HiveField(11)
+  DateTime lastDate;
+
+  @HiveField(12)
+  int lastSpecialNumber;
+
+  @HiveField(13)
+  DateTime lastSpecialFetched;
 
   Settings({
     required this.language,
@@ -38,12 +56,17 @@ class Settings extends HiveObject {
     required this.isCaptionOn,
     required this.isQuotes,
     required this.startDate,
-    required this.totalHours,
+    required this.totalOpen,
+    required this.openCount,
+    required this.specialPeriod,
+    required this.isNewShown,
+    required this.lastDate,
+    this.lastSpecialNumber = 0, 
+    required this.lastSpecialFetched,
   });
 
   // Factory constructor to create default settings
   factory Settings.defaultSettings() {
-    // Determine the device's locale and brightness 
     final String newLanguage = PlatformDispatcher.instance.locale.languageCode;
     final String deviceLanguage = supportedLanguages.contains(newLanguage) ? newLanguage : 'en';
 
@@ -56,6 +79,23 @@ class Settings extends HiveObject {
       }
     }
 
+    // 현재 요일을 기반으로 초기화
+    int currentWeekday = DateTime.now().weekday - 1;
+    Map<int, Map<String, bool>> defaultNewShown = {
+      0: {'korea': false},                // Monday
+      1: {'japan': false},                // Tuesday
+      2: {'usa': false, 'canada': false}, // Wednesday
+      3: {'india': false, 'spain': false, 'taiwan': false, 'china': false}, // Thursday
+      4: {'france': false},               // Friday
+      5: {'germany': false},              // Saturday
+      6: {'australia': false, 'thailand': false}, // Sunday
+    };
+
+    // 현재 요일에 해당하는 국가들의 상태를 모두 true로 설정
+    if (defaultNewShown.containsKey(currentWeekday)) {
+      defaultNewShown[currentWeekday]!.updateAll((key, value) => true);
+    }
+
     return Settings(
       language: deviceLanguage,
       theme: 'dark',
@@ -63,8 +103,13 @@ class Settings extends HiveObject {
       isVibrate: true,
       isCaptionOn: false,
       isQuotes: true,
-      startDate: DateTime.now(), 
-      totalHours: 0.0, 
+      startDate: DateTime.now(),
+      totalOpen: 0,
+      openCount: 0,
+      specialPeriod: '',
+      isNewShown: defaultNewShown,
+      lastDate: DateTime.now(),
+      lastSpecialFetched: DateTime.now(),
     );
   }
 }

@@ -24,14 +24,21 @@ class SettingsAdapter extends TypeAdapter<Settings> {
       isCaptionOn: fields[4] as bool,
       isQuotes: fields[5] as bool,
       startDate: fields[6] as DateTime,
-      totalHours: fields[7] as double,
+      totalOpen: fields[7] as int,
+      openCount: fields[8] as int,
+      specialPeriod: fields[9] as String,
+      isNewShown: (fields[10] as Map).map((dynamic k, dynamic v) =>
+          MapEntry(k as int, (v as Map).cast<String, bool>())),
+      lastDate: fields[11] as DateTime,
+      lastSpecialNumber: fields[12] as int,
+      lastSpecialFetched: fields[13] as DateTime,
     );
   }
 
   @override
   void write(BinaryWriter writer, Settings obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.language)
       ..writeByte(1)
@@ -47,7 +54,19 @@ class SettingsAdapter extends TypeAdapter<Settings> {
       ..writeByte(6)
       ..write(obj.startDate)
       ..writeByte(7)
-      ..write(obj.totalHours);
+      ..write(obj.totalOpen)
+      ..writeByte(8)
+      ..write(obj.openCount)
+      ..writeByte(9)
+      ..write(obj.specialPeriod)
+      ..writeByte(10)
+      ..write(obj.isNewShown)
+      ..writeByte(11)
+      ..write(obj.lastDate)
+      ..writeByte(12)
+      ..write(obj.lastSpecialNumber)
+      ..writeByte(13)
+      ..write(obj.lastSpecialFetched);
   }
 
   @override

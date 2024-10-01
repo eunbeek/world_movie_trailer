@@ -12,7 +12,7 @@ class MovieDetailPageYouTube extends StatefulWidget {
   final bool captionFlag;
   final String captionLan;
 
-  MovieDetailPageYouTube({required this.movie, required this.captionFlag, required this.captionLan});
+  const MovieDetailPageYouTube({super.key, required this.movie, required this.captionFlag, required this.captionLan});
 
   @override
   _MovieDetailPageYouTubeState createState() => _MovieDetailPageYouTubeState();

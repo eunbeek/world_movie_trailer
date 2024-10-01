@@ -19,7 +19,7 @@ class QuoteService {
 
     if (storedQuotes.isNotEmpty) {
       // 필터링: isShowed가 false인 Quote만 선택
-      quotes = storedQuotes.where((quote) => !quote.isShowed).toList();
+      quotes = storedQuotes;
       return quotes;
     } else {
       // Fetch new data from Firebase Storage
@@ -45,7 +45,7 @@ class QuoteService {
 
   // 개별 Quote의 isShowed 필드를 false로 변경
   static Future<void> unmarkQuoteAsShown(Quote quote) async {
-    print('markQuoteAsShown');
+    print('unmarkQuoteAsShown');
     Box box = await _openBox();
     
     // isShowed를 true로 설정하고 Hive에 저장

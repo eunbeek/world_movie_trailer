@@ -12,7 +12,9 @@ class AppListPage extends StatelessWidget {
 
   final String appFFAndroidLink = "https://play.google.com/store/apps/details?id=com.mwm.findfour.gg&pcampaignid=web_share";
   final String appFFIosLink = "https://apps.apple.com/ca/app/find-four-find-4-differences/id6478101361";
-  final String appTwoLink = "https://jaemitree.com/game/wangza"; // 앱 링크
+  final String appTwoLink = "https://jaemitree.com/game/wangza";
+
+  const AppListPage({super.key}); // 앱 링크
 
   @override
   Widget build(BuildContext context) {

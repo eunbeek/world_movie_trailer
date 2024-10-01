@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:world_movie_trailer/common/ad_manager/rewarded_ad_manager.dart';
 import 'package:world_movie_trailer/common/movie_service.dart';
-import 'package:world_movie_trailer/common/quote_service.dart';
-import 'package:world_movie_trailer/layout/country_list_page.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/layout/movie_detail_youtube_page.dart';
 import 'package:world_movie_trailer/layout/movie_detail_chewie_page.dart';
@@ -17,8 +16,9 @@ import 'package:world_movie_trailer/common/error_page.dart';
 
 class MovieListPage extends StatefulWidget {
   final String country;
+  final List<Movie>? specialList;
 
-  const MovieListPage({super.key, required this.country});
+  const MovieListPage({super.key, required this.country, this.specialList});
 
   @override
   _MovieListPageState createState() => _MovieListPageState();
@@ -30,26 +30,38 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
   List<Movie> allMovies = [];
   List<Movie> filteredMovies = [];
   bool fetchComplete = false;
+  late RewardedAdManager _appAdManager;
 
   @override
   void initState() {
     super.initState();
+    _appAdManager = RewardedAdManager();
+    _loadAd();
     _tabController = TabController(length: 3, vsync: this);
     _fetchMovies();  // Fetch movies
   }
 
   Future<void> _fetchMovies() async {
     try {
-      final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-      final language = settingsProvider.language;
-
-      // Fetch the movies from the service
-      final movies = await MovieService.fetchMovie(widget.country, language);
-      setState(() {
-        allMovies = movies;
-        _applyFilter(false);  // Apply the initial filter after fetching movies
-        fetchComplete = true;
-      });
+      if (widget.country == special && widget.specialList != null) {
+        // specialList가 null이 아닐 경우 처리
+        setState(() {
+          allMovies = widget.specialList!;
+          _applyFilter(false);
+          fetchComplete = true;
+        });
+      } else {
+        final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+        final language = settingsProvider.language;
+        
+        // Fetch the movies from the service
+        final movies = await MovieService.fetchMovie(widget.country, language);
+        setState(() {
+          allMovies = movies;
+          _applyFilter(false);  // Apply the initial filter after fetching movies
+          fetchComplete = true;
+        });
+      }
     } catch (e) {
       print('Error fetching movies: $e');
       setState(() {
@@ -74,6 +86,18 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
       }
     });
   }
+
+  void _loadAd() {
+    _appAdManager.loadAd(onAdLoaded: () {});
+  }
+
+  void _showAd(Function onAdDismiss) {
+    print('showAd');
+    _appAdManager.showAdIfAvailable(() {
+      onAdDismiss();
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -236,14 +260,31 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
           return GestureDetector(
             onTap: () {
               HapticFeedback.mediumImpact();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => movie.isYoutube != false
-                      ? MovieDetailPageYouTube(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language)
-                      : MovieDetailPageChewie(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language),
-                ),
-              );
+              if (settingsProvider.openCount == 8) {
+                if(_appAdManager.rewardedAd != null){
+                  _showAd(() {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => movie.isYoutube != false
+                            ? MovieDetailPageYouTube(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language)
+                            : MovieDetailPageChewie(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language),
+                      ),
+                    );
+                  });
+                }
+                settingsProvider.resetOpenCount();
+              } else {
+                settingsProvider.updateOpenCount(); 
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => movie.isYoutube != false
+                        ? MovieDetailPageYouTube(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language)
+                        : MovieDetailPageChewie(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language),
+                  ),
+                );
+              }
             },
             child: Container(
               margin: const EdgeInsets.all(4),
@@ -260,8 +301,17 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                         topLeft: Radius.circular(15.0),
                         topRight: Radius.circular(15.0),
                       ),
-                      child: Image.network(
+                      child: movie.posterUrl != ""?
+                       Image.network(
                         movie.posterUrl,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                      )
+                      : Image.asset(
+                        settingsProvider.isDarkTheme
+                            ? 'assets/images/dark/blank_DT_xxhdpi.png'
+                            : 'assets/images/light/blank_LT_xxhdpi.png',
                         fit: BoxFit.cover,
                         width: double.infinity,
                         height: double.infinity,
@@ -285,7 +335,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                         const SizedBox(height: 4),
                         if (releaseDate != null)
                           Text(
-                            '$releaseDate ' + getReleaseLabel(settingsProvider.language),
+                            '$releaseDate ${getReleaseLabel(settingsProvider.language)}',
                             style: TextStyle(
                               color: const Color(0xffc7c7c7),
                               fontSize: MediaQuery.of(context).size.height * 0.013,

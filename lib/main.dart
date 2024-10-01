@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -5,8 +7,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:world_movie_trailer/common/ad_manager/rewarded_interstitial_ad_manager.dart';
+import 'package:world_movie_trailer/common/ad_manager/rewarded_ad_manager.dart';
 import 'package:world_movie_trailer/common/background.dart';
+import 'package:world_movie_trailer/common/log_helper.dart';
 
 import 'package:world_movie_trailer/firebase_options.dart';
 import 'package:world_movie_trailer/common/constants.dart';
@@ -45,6 +48,8 @@ void main() async {
   Settings initSettings = settingsBox.get('app_settings') ?? Settings.defaultSettings();
   bool isInitialSetting = settingsBox.get('app_settings') == null;
 
+  LogHelper();
+
   runApp(
     MultiProvider(
       providers: [
@@ -60,58 +65,49 @@ void main() async {
 class MyApp extends StatefulWidget {
   final bool isInitialSetting;
 
-  MyApp({required this.isInitialSetting});
+  const MyApp({super.key, required this.isInitialSetting});
 
   @override
   _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  late DateTime _startTime;
-  late RewardedInterstitialAdManager _appAdManager;
+  late RewardedAdManager _appAdManager;
   bool _isAdDismissed = false;
 
   @override
   void initState() {
     super.initState();
-    _appAdManager = RewardedInterstitialAdManager();
+    _appAdManager = RewardedAdManager();
     if(widget.isInitialSetting){
       _isAdDismissed = true;
     } else {
       _loadAd();
     }
 
-    WidgetsBinding.instance.addObserver(LifecycleEventHandler(
-      resumeCallBack: () async => _recordStartTime(),
-      suspendingCallBack: () async => _saveUsageTime(),
-    ));
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
       bool currentQuote = settingsProvider.isQuotes;
       settingsProvider.updateIsQuotes(!currentQuote);
+
+      DateTime lastOpenDate = settingsProvider.lastDate;
+      DateTime currentDate = DateTime.now();
+      int gap = currentDate.difference(lastOpenDate).inDays;
+      settingsProvider.updateLastDate(currentDate);
+
+      if (gap >= 7) {
+        for (int i = 0; i < 7; i++) {
+          settingsProvider.markIsNewShown(i);
+        }
+      } else {
+        for (int i = 1; i <= gap; i++) {
+          DateTime dateToUpdate = lastOpenDate.add(Duration(days: i));
+          int dayIndex = (dateToUpdate.weekday - 1) % 7;
+          settingsProvider.markIsNewShown(dayIndex);
+        }
+      }
     });
     if(_appAdManager.isShowingAd) _showAd();
-  }
-
-  void _recordStartTime() {
-    print('recordStartTIme');
-    _startTime = DateTime.now();
-  }
-
-  void _saveUsageTime() {
-    print('saveUsageTime');
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-    final endTime = DateTime.now();
-    
-    // Calculate usage time in seconds
-    final usageSeconds = endTime.difference(_startTime).inSeconds;
-    
-    // Convert the usage time to minutes as a double
-    final usageMinutes = usageSeconds / 60;
-    
-    // Save the total usage time in minutes as a double
-    settingsProvider.updateTotalHours(usageMinutes);
   }
 
   void _loadAd() {
@@ -122,11 +118,20 @@ class _MyAppState extends State<MyApp> {
 
   void _showAd() {
     print('showAd');
-    _appAdManager.showAdIfAvailable(() {
-      setState(() {
-        _isAdDismissed = true;
-      });
+    setState(() {
+      _isAdDismissed = false; 
     });
+
+    _appAdManager.showAdIfAvailable(() {
+        setState(() {
+          _isAdDismissed = true; 
+        });
+      });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -141,7 +146,7 @@ class _MyAppState extends State<MyApp> {
         darkTheme: ThemeData.dark(),
         debugShowCheckedModeBanner: false,
         home: _isAdDismissed
-          ? const CountryListPage()
+          ? CountryListPage(isInit : widget.isInitialSetting)
           :  Scaffold(
               body: Stack(
                 children: [

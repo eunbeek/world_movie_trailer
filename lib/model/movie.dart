@@ -70,6 +70,9 @@ class Movie extends HiveObject {
   @HiveField(21)
   bool? isYoutube;
 
+  @HiveField(22)
+  int? period;
+
   Movie({
     required this.localTitle,
     required this.posterUrl,
@@ -93,6 +96,7 @@ class Movie extends HiveObject {
     this.nameHI,
     this.nameTH,
     this.isYoutube,
+    this.period,
   });
 
   Map<String, dynamic> toJson() => {
@@ -118,6 +122,7 @@ class Movie extends HiveObject {
     'nameHI': nameHI,
     'nameTH': nameTH,
     'isYoutube': isYoutube,
+    'period': period,
   };
 
   factory Movie.fromJson(Map<dynamic, dynamic> json) {
@@ -144,6 +149,7 @@ class Movie extends HiveObject {
       nameHI: json['NameHI'] ?? '', 
       nameTH: json['NameTH'] ?? '', 
       isYoutube: json['isYoutube'] ??  true,
+      period: int.tryParse(json['period']?.toString() ?? '0') ?? 0,
     );
   }
 }

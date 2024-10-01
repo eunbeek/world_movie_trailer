@@ -7,14 +7,13 @@ import 'package:world_movie_trailer/common/background.dart';
 import 'package:world_movie_trailer/common/quote_service.dart';
 
 class QuoteListPage extends StatefulWidget {
-  const QuoteListPage({Key? key}) : super(key: key);
+  const QuoteListPage({super.key});
 
   @override
   _QuoteListPageState createState() => _QuoteListPageState();
 }
 
 class _QuoteListPageState extends State<QuoteListPage> {
-  List<Quote> allQuotes = [];
   List<Quote> filterQuotes = [];
   bool fetchComplete = false;
 
@@ -27,26 +26,26 @@ class _QuoteListPageState extends State<QuoteListPage> {
   Future<void> _fetchQuotes() async {
     try {
       final quotes = await QuoteService.fetchQuote();
-      setState(() {
-        allQuotes = quotes;
-        filterQuotes = allQuotes.where((quote) => !quote.isShowed).toList();
+      final willShowQuotes = quotes.where((quote) => !quote.isShowed).toList();
 
-        // If fewer than 2 quotes are left to show, reset and start over
-        if (filterQuotes.length < 2) {
-          allQuotes.map((quote) {
-            QuoteService.unmarkQuoteAsShown(quote);
-          });
-          filterQuotes = allQuotes; // Reset filterQuotes to include all quotes
-        }
+      setState(() {
+        filterQuotes = willShowQuotes;
 
         // Marking the first two quotes as shown if they exist
         if (filterQuotes.length > 1) {
           QuoteService.markQuoteAsShown(filterQuotes[0]);
           QuoteService.markQuoteAsShown(filterQuotes[1]);
-        } 
+        }
 
         fetchComplete = true;
       });
+
+      if (willShowQuotes.length  < 4) {
+        // Using Future.forEach to await asynchronous operations
+        await Future.forEach(quotes, (quote) async {
+          await QuoteService.unmarkQuoteAsShown(quote);
+        });
+      }
     } catch (e) {
       print('Error fetching quotes: $e');
       setState(() {
@@ -59,10 +58,8 @@ class _QuoteListPageState extends State<QuoteListPage> {
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
     final languageCode = settingsProvider.language;
-
     // Check if the language is English
-    bool isEnglish = languageCode == 'en';
-
+    bool isEnglishLike = !['ko', 'ja'].contains(languageCode);
     return SafeArea(
       child: Scaffold(
         body: Stack(
@@ -111,7 +108,7 @@ class _QuoteListPageState extends State<QuoteListPage> {
                             ? Column(
                                 children: [
                                   // If the language is English, show two separate quotes
-                                  if (isEnglish && filterQuotes.length > 1) ...[
+                                  if (isEnglishLike && filterQuotes.length > 1) ...[
                                     Flexible(
                                       child: QuoteCard(
                                         quote: filterQuotes[0],
@@ -129,8 +126,7 @@ class _QuoteListPageState extends State<QuoteListPage> {
                                     ),
                                   ],
 
-                                  // If the language is not English, show one quote in English and one in the translated language
-                                  if (!isEnglish && filterQuotes.isNotEmpty) ...[
+                                  if (!isEnglishLike && filterQuotes.isNotEmpty) ...[
                                     Flexible(
                                       child: QuoteCard(
                                         quote: filterQuotes[0],
@@ -139,13 +135,13 @@ class _QuoteListPageState extends State<QuoteListPage> {
                                       ),
                                     ),
                                     const SizedBox(height: 16),
-                                    Flexible(
-                                      child: QuoteCard(
-                                        quote: filterQuotes[0],
-                                        languageCode: languageCode,
-                                        showTranslationOnly: true,
+                                      Flexible(
+                                        child: QuoteCard(
+                                          quote: filterQuotes[0],
+                                          languageCode: languageCode,
+                                          showTranslationOnly: true,
+                                        ),
                                       ),
-                                    ),
                                   ],
                                 ],
                               )
@@ -169,12 +165,12 @@ class QuoteCard extends StatelessWidget {
   final bool showTranslationOnly;
 
   const QuoteCard({
-    Key? key,
+    super.key,
     required this.quote,
     required this.languageCode,
     this.showEnglishOnly = false,
     this.showTranslationOnly = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +190,7 @@ class QuoteCard extends StatelessWidget {
               Text(
                 quote.quoteEN,
                 style: TextStyle(
-                  fontSize: MediaQuery.of(context).size.height * 0.03,
+                  fontSize: quote.quoteEN.length > 30 ? MediaQuery.of(context).size.height * 0.020 :MediaQuery.of(context).size.height * 0.025,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                   height: 1.5,
@@ -205,7 +201,7 @@ class QuoteCard extends StatelessWidget {
               Text(
                 "- ${quote.movieEN} -",
                 style: TextStyle(
-                  fontSize: MediaQuery.of(context).size.height * 0.02,
+                  fontSize: MediaQuery.of(context).size.height * 0.017,
                   fontWeight: FontWeight.normal,
                   color: Colors.white70,
                 ),
@@ -217,7 +213,7 @@ class QuoteCard extends StatelessWidget {
               Text(
                 languageCode == 'ko' ? quote.quoteKR : quote.quoteJP,
                 style: TextStyle(
-                  fontSize: MediaQuery.of(context).size.height * 0.03,
+                  fontSize: (languageCode == 'ko' ? quote.quoteKR : quote.quoteJP).length > 30 ? MediaQuery.of(context).size.height * 0.020 :MediaQuery.of(context).size.height * 0.025,
                   fontWeight: FontWeight.normal,
                   color: Colors.white,
                   height: 1.5,
@@ -228,7 +224,7 @@ class QuoteCard extends StatelessWidget {
               Text(
                 languageCode == 'ko' ? "- ${quote.movieKR} -" : "- ${quote.movieJP} -",
                 style: TextStyle(
-                  fontSize: MediaQuery.of(context).size.height * 0.02,
+                  fontSize: MediaQuery.of(context).size.height * 0.017,
                   fontWeight: FontWeight.normal,
                   color: Colors.white70,
                 ),

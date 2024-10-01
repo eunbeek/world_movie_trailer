@@ -4,7 +4,7 @@ import 'package:world_movie_trailer/model/settings.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 
 class SettingsProvider with ChangeNotifier {
-  Settings _settings;
+  final Settings _settings;
 
   SettingsProvider(Settings newSettings, bool isInitialSetting) 
     : _settings = newSettings {
@@ -25,7 +25,17 @@ class SettingsProvider with ChangeNotifier {
 
   DateTime get startDate => _settings.startDate;
 
-  double get totalHours => _settings.totalHours;
+  int get totalOpen => _settings.totalOpen;
+
+  int get openCount => _settings.openCount;
+
+  Map<int, Map<String, bool>> get isNewShown => _settings.isNewShown;
+
+  DateTime get lastDate => _settings.lastDate;
+
+  int get lastSpecialNumber => _settings.lastSpecialNumber;
+
+  DateTime? get lastSpecialFetched => _settings.lastSpecialFetched;
 
   // update & setter
   set language(String newLanguage) {
@@ -78,11 +88,52 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void updateTotalHours(double hours){
-    _settings.totalHours += hours;
+  void updateOpenCount(){
+    _settings.openCount++;
+    _settings.totalOpen++;
     _saveSettings();
     notifyListeners();
   }
+
+  void resetOpenCount(){
+    _settings.openCount = 0;
+    _saveSettings();
+    notifyListeners();
+  }
+
+  void markIsNewShown(int day){
+    print('markIsNewShown');
+    _settings.isNewShown[day]!.updateAll((key, value)=> true);
+    _saveSettings();
+    notifyListeners();
+  }
+
+  void unmarkIsNewShown(int day, String country){
+    print('unmarkIsNewShown');
+    _settings.isNewShown[day]![country] = false;
+    _saveSettings();
+    notifyListeners();
+  }
+
+  void updateLastDate(DateTime openDate){
+    _settings.lastDate = openDate;
+    _saveSettings();
+    notifyListeners();
+  }
+
+  void updateLastSpecialNumber(int num){
+    _settings.lastSpecialNumber = num;
+    _saveSettings();
+    notifyListeners();
+  }
+
+  void updateLastSpecialFetched(DateTime lastFetched){
+    print('updateLastSpecialFetched');
+    _settings.lastSpecialFetched = lastFetched;
+    _saveSettings();
+    notifyListeners();
+  }
+
   // save the setting change in hive
   void _saveSettings() {
     print('_saveSettings');

@@ -6,7 +6,7 @@ import 'package:world_movie_trailer/common/translate.dart';
 
 class ErrorPage extends StatelessWidget {
 
-  ErrorPage({Key? key}) : super(key: key);
+  ErrorPage({super.key});
 
   final List<String> errorExpressions = ['(≥o≤)', ' (˚Δ˚)b', ' \\(o_o)/', ' (^-^*)', ' (>_<) ', '\\(^Д^)/'];
 

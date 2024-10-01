@@ -25,6 +25,9 @@ Map<String, Map<String, String>> settingLabel = {
     'version': '앱 버전',
     'privacy': '개인정보처리방침',
     'terms': '서비스 이용약관',
+    'totalOpen': '예고편 본 총 횟수',
+    'views': '회',
+    'credits': '크레딧',
   },
   'en': {
     'userdata': 'User Data',
@@ -46,6 +49,9 @@ Map<String, Map<String, String>> settingLabel = {
     'version': 'App Version',
     'privacy': 'Privacy Policy',
     'terms': 'Terms of Service',
+    'totalOpen': 'Total Trailer Views',
+    'views': 'views',
+    'credits': 'Credits',
   },
   'ja': {
     'userdata': 'ユーザーデータ',
@@ -67,6 +73,9 @@ Map<String, Map<String, String>> settingLabel = {
     'version': 'アプリバージョン',
     'privacy': 'プライバシーポリシー',
     'terms': '利用規約',
+    'totalOpen': '予告編の視聴回数',
+    'views': '回',
+    'credits': 'クレジット',
   },
   'tw': {
     'userdata': '使用者資料',
@@ -88,6 +97,9 @@ Map<String, Map<String, String>> settingLabel = {
     'version': '應用版本',
     'privacy': '隱私政策',
     'terms': '服務條款',
+    'totalOpen': '預告片的總觀看次數',
+    'views': '次',
+    'credits': '致謝',
   },
   'fr': {
     'userdata': 'Données utilisateur',
@@ -109,6 +121,9 @@ Map<String, Map<String, String>> settingLabel = {
     'version': 'Version de l\'application',
     'privacy': 'Politique de confidentialité',
     'terms': 'Conditions d\'utilisation',
+    'totalOpen': 'Nombre total de visionnages de la bande-annonce',
+    'views': 'vues',
+    'credits': 'Crédits',
   },
   'de': {
     'userdata': 'Nutzerdaten',
@@ -130,6 +145,9 @@ Map<String, Map<String, String>> settingLabel = {
     'version': 'App-Version',
     'privacy': 'Datenschutzrichtlinie',
     'terms': 'Nutzungsbedingungen',
+    'totalOpen': 'Gesamtanzahl der Traileransichten',
+    'views': 'Ansichten',
+    'credits': 'Abspann',
   },
   'zh': {
     'userdata': '用户数据',
@@ -151,6 +169,9 @@ Map<String, Map<String, String>> settingLabel = {
     'version': '应用版本',
     'privacy': '隐私政策',
     'terms': '服务条款',
+    'totalOpen': '总预告片观看次数',
+    'views': '次',
+    'credits': '致谢',
   },
   'es': {
     'userdata': 'Datos de usuario',
@@ -172,6 +193,9 @@ Map<String, Map<String, String>> settingLabel = {
     'version': 'Versión de la app',
     'privacy': 'Política de privacidad',
     'terms': 'Términos de servicio',
+    'totalOpen': 'Total de vistas de trailers',
+    'views': 'vistas',
+    'credits': 'Créditos',
   },
   'hi': {
     'userdata': 'उपयोगकर्ता डेटा',
@@ -193,6 +217,9 @@ Map<String, Map<String, String>> settingLabel = {
     'version': 'ऐप संस्करण',
     'privacy': 'गोपनीयता नीति',
     'terms': 'सेवा की शर्तें',
+    'totalOpen': 'कुल ट्रेलर देखे जाने की संख्या',
+    'views': 'दृश्य',
+    'credits': 'खेल कर्मचारी',
   },
   'th': {
     'userdata': 'ข้อมูลผู้ใช้',
@@ -214,10 +241,22 @@ Map<String, Map<String, String>> settingLabel = {
     'version': 'เวอร์ชันแอป',
     'privacy': 'นโยบายความเป็นส่วนตัว',
     'terms': 'เงื่อนไขการให้บริการ',
+    'totalOpen': 'ยอดการดูตัวอย่างภาพยนตร์',
+    'views': 'ครั้ง',
+    'credits': 'ทีมงานสร้างแอป',
   },
 };
 
-
+  final Map<int, List<String>> countryByDay = {
+    0: ['korea'],          // Monday
+    1: ['japan'],          // Tuesday
+    2: ['usa', 'canada'], // Wednesday
+    3: ['india', 'spain', 'taiwan', 'china'], // Thursday
+    4: ['france'],        // Friday
+    5: ['germany'],          // Saturday
+    6: ['australia', 'thailand'],   // Sunday
+  };
+  
 Map<String, Map<String, String>> countryNameByLan = {
   'ko': {
     'ko': '한국어',
