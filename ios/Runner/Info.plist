@@ -21,7 +21,7 @@
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleVersion</key>
-    <string>11</string>
+    <string>12</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>UILaunchStoryboardName</key>
@@ -65,5 +65,33 @@
     </array>
     <key>GADApplicationIdentifier</key>
     <string>ca-app-pub-3506417530430977~1467662431</string>
+    <key>SKAdNetworkItems</key>
+    <array>
+        <dict>
+            <key>SKAdNetworkIdentifier</key>
+            <string>cstr6suwn9.skadnetwork</string>
+        </dict>
+        <dict>
+            <key>SKAdNetworkIdentifier</key>
+            <string>v9wttpbfk9.skadnetwork</string>
+        </dict>
+        <dict>
+            <key>SKAdNetworkIdentifier</key>
+            <string>n38lu8286q.skadnetwork</string>
+        </dict>
+        <dict>
+            <key>SKAdNetworkIdentifier</key>
+            <string>4fzdc2evr5.skadnetwork</string>
+        </dict>
+        <dict>
+            <key>SKAdNetworkIdentifier</key>
+            <string>2fnua5tdw4.skadnetwork</string>
+        </dict>
+        <dict>
+            <key>SKAdNetworkIdentifier</key>
+            <string>ydx93a7ass.skadnetwork</string>
+        </dict>
+        <!-- 필요한 다른 SKAdNetwork 식별자들 추가 -->
+    </array>
 </dict>
 </plist>

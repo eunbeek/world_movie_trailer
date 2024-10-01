@@ -29,7 +29,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace "com.sunnyinnolab.worldMovieTrailer"
-    compileSdk flutter.compileSdkVersion
+    compileSdk 34
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -47,7 +47,7 @@ android {
 
     defaultConfig {
         applicationId "com.sunnyinnolab.worldMovieTrailer"
-        minSdkVersion 24
+        minSdkVersion flutter.minSdkVersion
         targetSdkVersion 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
