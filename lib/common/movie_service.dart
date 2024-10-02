@@ -207,7 +207,7 @@ class MovieService {
 
     if (isSpecial) {
       // For special sections, check if the year and month are the same
-      return now.difference(lastFetched).inDays  > 180;
+      return now.difference(lastFetched).inDays  > 30;
     } else {
       // For regular data, consider it outdated if older than 7 days
       return now.difference(lastFetched).inDays > 7;

@@ -191,7 +191,7 @@ class SettingsPage extends StatelessWidget {
                         return DropdownMenuItem<String>(
                           value: value,
                           child: Text(
-                            getLanguageName(value, settingsProvider.language),
+                            getLanguageName(value,),
                             style: TextStyle(
                               fontSize: MediaQuery.of(context).size.height * 0.02,
                             ),
@@ -364,7 +364,7 @@ class SettingsPage extends StatelessWidget {
             GestureDetector(
               onTap: () async {
                 const url =
-                    'https://sunnyinnolab.notion.site/About-Sunny-Innovation-Lab-4a09c94d4b6d4a0f8113f16660b6add3';
+                    'https://marmalade-neptune-dbe.notion.site/Home-Page-7589a833b4f6482e90844b9fe49c8ae0';
                 if (await canLaunchUrl(Uri.parse(url))) {
                   await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
                 }

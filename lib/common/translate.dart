@@ -3,8 +3,8 @@ import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/common/iso3166.dart';
 
 // Setting
-String getLanguageName(String languageCode, String settingLan) {
-  return countryNameByLan[settingLan]?[languageCode] ?? 'UnKnown';
+String getLanguageName(String languageCode) {
+  return countryNameByLan['ko']?[languageCode] ?? 'UnKnown';
 }
 
 // setting label
@@ -17,6 +17,10 @@ String getAppBarTitle(String languageCode) {
   return countryAppBars[languageCode.toUpperCase()] ?? countryAppBars['EN']!;
 }
 
+String getAppBarCountry(String languageCode, String country){
+  final appbarTitle = countryAppBarNameByCountry[languageCode.toLowerCase()] ?? 'Trailer in ';
+  return appbarTitle + country;
+}
 // Country list - special section
 String getSpecialLable(Movie specialSection, String languageCode){
    // Fetch the 'Special' label in the desired language, if it exists

@@ -136,8 +136,10 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                         ),
                         // Add an invisible icon button for spacing
                         IconButton(
-                          icon: const Icon(
-                            Icons.ios_share_outlined , 
+                          icon: Icon(
+                            Platform.isIOS 
+                              ? Icons.ios_share_outlined  // iOS에서 사용할 아이콘
+                              : Icons.share_outlined,     // Android에서 사용할 아이콘
                           ),
                           onPressed: () => {
                             Share.share(

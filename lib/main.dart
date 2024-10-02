@@ -48,6 +48,7 @@ void main() async {
   Settings initSettings = settingsBox.get('app_settings') ?? Settings.defaultSettings();
   bool isInitialSetting = settingsBox.get('app_settings') == null;
 
+  // amplitude
   LogHelper();
 
   runApp(
@@ -93,6 +94,7 @@ class _MyAppState extends State<MyApp> {
       DateTime lastOpenDate = settingsProvider.lastDate;
       DateTime currentDate = DateTime.now();
       int gap = currentDate.difference(lastOpenDate).inDays;
+
       settingsProvider.updateLastDate(currentDate);
 
       if (gap >= 7) {
@@ -103,6 +105,7 @@ class _MyAppState extends State<MyApp> {
         for (int i = 1; i <= gap; i++) {
           DateTime dateToUpdate = lastOpenDate.add(Duration(days: i));
           int dayIndex = (dateToUpdate.weekday - 1) % 7;
+          print(dayIndex);
           settingsProvider.markIsNewShown(dayIndex);
         }
       }

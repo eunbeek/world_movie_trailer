@@ -341,7 +341,7 @@ exports.fetchMovieListCN = functions
 exports.fetchMovieListSpecial = functions
     .runWith({timeoutSeconds: 540})
     .pubsub
-    .schedule("0 1 1 */3 *")
+    .schedule("0 0 1 * *")
     .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
