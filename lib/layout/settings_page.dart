@@ -250,9 +250,9 @@ class SettingsPage extends StatelessWidget {
                     String url;
 
                     if (Platform.isAndroid) {
-                      url = 'https://play.google.com/store/apps/details?id=com.mwm.findfour.gg&pcampaignid=web_share';
+                      url = 'https://play.google.com/store/apps/details?id=com.sunnyinnolab.worldMovieTrailer&pcampaignid=web_share';
                     } else {
-                      url = 'https://apps.apple.com/ca/app/find-four-find-4-differences/id6478101361';
+                      url = 'https://apps.apple.com/ca/app/world-movie-trailer/id6670228768';
                     }
 
                     Share.share(
@@ -274,9 +274,9 @@ class SettingsPage extends StatelessWidget {
                     String url;
 
                     if (Platform.isAndroid) {
-                      url = 'https://play.google.com/store/apps/details?id=com.mwm.findfour.gg';
+                      url = 'https://play.google.com/store/apps/details?id=com.sunnyinnolab.worldMovieTrailer';
                     } else if (Platform.isIOS) {
-                      url = 'https://apps.apple.com/app/id6478101361?action=write-review';
+                      url = 'https://apps.apple.com/app/id6670228768?action=write-review';
                     } else {
                       throw 'Platform not supported for this operation';
                     }
