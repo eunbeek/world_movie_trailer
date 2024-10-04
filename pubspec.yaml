@@ -58,3 +58,5 @@ flutter:
     - assets/images/SIL_logo_h_xxhdpi.png
     - assets/images/light/blank_LT_xxhdpi.png
     - assets/images/dark/blank_DT_xxhdpi.png
+    - assets/images/dark/loading_DT_xxhdpi.png
+    - assets/images/light/loading_LT_xxhdpi.png

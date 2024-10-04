@@ -72,13 +72,18 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   late RewardedAdManager _appAdManager;
   bool _isAdDismissed = false;
+  late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 8),
+      vsync: this,
+    )..repeat();
     _appAdManager = RewardedAdManager();
     if(widget.isInitialSetting){
       _isAdDismissed = true;
@@ -134,6 +139,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void dispose() {
+    _controller.dispose();
     super.dispose();
   }
 
@@ -155,23 +161,15 @@ class _MyAppState extends State<MyApp> {
                 children: [
                   BackgroundWidget(isPausePage: false,),
                   Center(
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Image.asset(
-                          'assets/images/deco_film_reel_02_DT_xxhdpi.png', 
-                          width: 100,
-                          height: 100,
-                        ),
-                        const SizedBox(
-                          width: 120,
-                          height: 120,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 5.0,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
-                          ),
-                        ),
-                      ],
+                    child: RotationTransition(
+                      turns: _controller,
+                      child: Image.asset(
+                        settingsProvider.isDarkTheme
+                            ? 'assets/images/dark/loading_DT_xxhdpi.png'
+                            : 'assets/images/light/loading_LT_xxhdpi.png',
+                        width: 80,
+                        height: 80,
+                      ),
                     ),
                   ),
                 ],
