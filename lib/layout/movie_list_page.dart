@@ -301,14 +301,23 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                         topLeft: Radius.circular(15.0),
                         topRight: Radius.circular(15.0),
                       ),
-                      child: movie.posterUrl != ""?
-                       Image.network(
-                        movie.posterUrl,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                      )
-                      : Image.asset(
+                      // IOS INIT BUILD
+                      // child: movie.posterUrl != ""?
+                      //  Image.network(
+                      //   movie.posterUrl,
+                      //   fit: BoxFit.cover,
+                      //   width: double.infinity,
+                      //   height: double.infinity,
+                      // )
+                      // : Image.asset(
+                      //   settingsProvider.isDarkTheme
+                      //       ? 'assets/images/dark/blank_DT_xxhdpi.png'
+                      //       : 'assets/images/light/blank_LT_xxhdpi.png',
+                      //   fit: BoxFit.cover,
+                      //   width: double.infinity,
+                      //   height: double.infinity,
+                      // ),
+                      child: Image.asset(
                         settingsProvider.isDarkTheme
                             ? 'assets/images/dark/blank_DT_xxhdpi.png'
                             : 'assets/images/light/blank_LT_xxhdpi.png',
