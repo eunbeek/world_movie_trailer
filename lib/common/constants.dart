@@ -171,7 +171,7 @@ Map<String, Map<String, String>> settingLabel = {
     'terms': '服务条款',
     'totalOpen': '总预告片观看次数',
     'views': '次',
-    'credits': '致谢',
+    'credits': '制作人员名单',
   },
   'es': {
     'userdata': 'Datos de usuario',
@@ -580,8 +580,8 @@ const specialLabelTranslations = {
     'en': 'Director of the Month',
     'ko': '이달의 감독',
     'ja': '今月の監督',
-    'zh': '本月电影导演',
-    'tw': '本月電影導演',
+    'zh': '本月推荐导演',
+    'tw': '本月推薦導演',
     'fr': 'Réalisateur du mois',
     'de': 'Regisseur des Monats',
     'es': 'Director de cine del mes',
@@ -592,8 +592,8 @@ const specialLabelTranslations = {
     'en': 'Actor of the Month',
     'ko': '이달의 남자 배우',
     'ja': '今月の男優',
-    'zh': '本月男演员',
-    'tw': '本月男演員',
+    'zh': '本月推荐男演员',
+    'tw': '本月推薦男演員',
     'fr': 'Acteur masculin du mois',
     'de': 'Schauspieler des Monats',
     'es': 'Actor del mes',
@@ -604,8 +604,8 @@ const specialLabelTranslations = {
     'en': 'Actress of the Month',
     'ko': '이달의 여자 배우',
     'ja': '今月の女優',
-    'zh': '本月女演员',
-    'tw': '本月女演員',
+    'zh': '本月推荐女演员',
+    'tw': '本月推薦女演員',
     'fr': 'Actrice du mois',
     'de': 'Schauspielerin des Monats',
     'es': 'Actriz del mes',
@@ -616,8 +616,8 @@ const specialLabelTranslations = {
     'en': 'Movie Quotes',
     'ko': '영화 속 명대사',
     'ja': '映画の中の名台詞',
-    'zh': '电影中的经典台词',
-    'tw': '電影中的經典台詞',
+    'zh': '电影经典台词',
+    'tw': '電影經典台詞',
     'fr': 'Répliques cultes de films',
     'de': 'Berühmte Filmzitate',
     'es': 'Frases icónicas de películas',
@@ -743,11 +743,11 @@ const labelFilterUpcomingJP = "開封予定";
 
 const labelFilterAllZH = "全部预告片";
 const labelFilterRunningZH = "上映中";
-const labelFilterUpcomingZH = "即将上映";
+const labelFilterUpcomingZH = "已发行";
 
 const labelFilterAllTW = "全部預告片";
 const labelFilterRunningTW = "上映中";
-const labelFilterUpcomingTW = "即將上映";
+const labelFilterUpcomingTW = "已發行 ";
 
 const labelFilterAllFR = "Tout";
 const labelFilterAllDE = "Alles";
@@ -773,8 +773,8 @@ const labelReleaseTH = "เข้าฉาย";
 const labelNetworkErrorKR = "서버 네트워크가 원활하지 않습니다.\r\n조금있다 다시 시도해 주세요.";
 const labelNetworkErrorEN = "The server network is not up.\r\nPlease try again later.";
 const labelNetworkErrorJP = "サーバーネットワークが円滑ではありません。\r\n少し後でもう一度お試しください。";
-const labelNetworkErrorZH = "服务器网络不畅。\r\n请稍后再试。";
-const labelNetworkErrorTW = "伺服器網絡不暢。\r\n請稍後再試。";
+const labelNetworkErrorZH = "服务器网络不畅\r\n请稍后再试";
+const labelNetworkErrorTW = "伺服器網路不穩\r\n請稍後再重試";
 const labelNetworkErrorFR = "Le réseau du serveur est instable.\r\nVeuillez réessayer plus tard.";
 const labelNetworkErrorDE = "Das Servernetzwerk ist instabil.\r\nBitte versuchen Sie es später noch einmal.";	
 const labelNetworkErrorES = "La red del servidor está inestable.\r\nPor favor, inténtelo de nuevo más tarde.";

@@ -18,6 +18,7 @@ class RewardedAdManager {
         },
         onAdFailedToLoad: (LoadAdError error) {
           print('Failed to load Rewarded Ad: $error');
+          onAdLoaded();
         },
       ),
     );

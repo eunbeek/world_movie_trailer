@@ -87,10 +87,16 @@ class CreditsList extends StatelessWidget {
                       fontSize: MediaQuery.of(context).size.height * 0.018,
                     ),
                   ),
-                  trailing: Text(
-                    'Mary, Kota, Carol, Edward',
-                    style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.height * 0.018,
+                  trailing: Container(
+                    padding: const EdgeInsets.only(left: 25.0),
+                    width: MediaQuery.of(context).size.width * 0.5,
+                    child: Text(
+                      'Mary, Kota, Carol, Edward',
+                      style: TextStyle(
+                        fontSize: MediaQuery.of(context).size.height * 0.018,
+                      ),
+                      maxLines: 2,  // Limit to 2 lines
+                      overflow: TextOverflow.ellipsis, // Ellipsis if more than 2 lines
                     ),
                   ),
                 ),

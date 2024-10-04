@@ -129,7 +129,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                       ),
                       Expanded(
                         child: Text(
-                          widget.country == special ? getNameBySpecialSource(allMovies[0], settingsProvider.language) : getAppBarCountry(settingsProvider.language, widget.country),
+                          widget.country == special ? getNameBySpecialSource(allMovies[0], settingsProvider.language) : widget.country,
                           style: TextStyle(
                             fontSize: MediaQuery.of(context).size.height * 0.02,
                             fontWeight: FontWeight.bold,
