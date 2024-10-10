@@ -58,6 +58,8 @@ flutter:
     - assets/images/dark/icon_bookmark_DT_xxhdpi.png
     - assets/images/dark/icon_memo_DT_xxhdpi.png
     - assets/images/dark/icon_drag_handle_DT_xxhdpi.png
+    - assets/images/dark/icon_like_fill_DT_xxhdpi.png
+    - assets/images/dark/icon_dislike_fill_DT_xxhdpi.png
     - assets/images/light/deco_world_map_LT_xxhdpi.png
     - assets/images/light/deco_film_reel_LT_xxhdpi.png
     - assets/images/light/icon_config_LT_xxhdpi.png
@@ -72,5 +74,7 @@ flutter:
     - assets/images/light/icon_bookmark_LT_xxhdpi.png
     - assets/images/light/icon_memo_LT_xxhdpi.png
     - assets/images/light/icon_drag_handle_LT_xxhdpi.png
+    - assets/images/light/icon_like_fill_LT_xxhdpi.png
+    - assets/images/light/icon_dislike_fill_LT_xxhdpi.png
     - assets/images/SIL_logo_h_xxhdpi.png
     - assets/images/deco_film_reel_02_DT_xxhdpi.png

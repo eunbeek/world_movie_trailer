@@ -219,7 +219,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                         }
                                       },
                                       icon: Image.asset(
-                                        settingsProvider.isDarkTheme ? 'assets/images/dark/icon_like_DT_xxhdpi.png' : 'assets/images/light/icon_like_LT_xxhdpi.png',
+                                        settingsProvider.isDarkTheme ? 'assets/images/dark/icon_like_fill_DT_xxhdpi.png' : 'assets/images/light/icon_like_fill_LT_xxhdpi.png',
                                         height: iconSize,
                                         width: iconSize,
                                       ),
@@ -263,7 +263,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                         }
                                       },
                                       icon: Image.asset(
-                                        settingsProvider.isDarkTheme ? 'assets/images/dark/icon_dislike_DT_xxhdpi.png' : 'assets/images/light/icon_dislike_LT_xxhdpi.png',
+                                        settingsProvider.isDarkTheme ? 'assets/images/dark/icon_dislike_fill_DT_xxhdpi.png' : 'assets/images/light/icon_dislike_fill_LT_xxhdpi.png',
                                         height: iconSize,
                                         width: iconSize,
                                       ),
