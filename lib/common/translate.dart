@@ -167,6 +167,31 @@ String getErrorMessage(String languageCode){
     }
 }
 
+String getErrorByUserMessage(String languageCode) {
+  switch (languageCode) {
+    case 'ko':
+      return labelEmptyErrorKR;
+    case 'ja':
+      return labelEmptyErrorJP;
+    case 'zh':
+      return labelEmptyErrorZH;
+    case 'tw':
+      return labelEmptyErrorTW;
+    case 'fr':
+      return labelEmptyErrorFR;
+    case 'de':
+      return labelEmptyErrorDE;
+    case 'es':
+      return labelEmptyErrorES;
+    case 'hi':
+      return labelEmptyErrorHI;
+    case 'th':
+      return labelEmptyErrorTH;
+    default:
+      return labelEmptyErrorEN;
+  }
+}
+
 // Movie detail - info 
 String? getTranslatedDetail(String detailKey, String languageCode) {
   return movieDetailTranslations[detailKey]?[languageCode] ?? movieDetailTranslations[detailKey]?['en'];

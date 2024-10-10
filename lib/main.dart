@@ -14,6 +14,7 @@ import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/firebase_options.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/layout/country_list_page.dart';
+import 'package:world_movie_trailer/model/movieByUser.dart';
 import 'package:world_movie_trailer/model/quote.dart';
 import 'package:world_movie_trailer/model/settings.dart';
 import 'package:world_movie_trailer/model/movie.dart';
@@ -40,6 +41,7 @@ void main() async {
   Hive.registerAdapter(MovieAdapter());
   Hive.registerAdapter(SettingsAdapter());
   Hive.registerAdapter(QuoteAdapter());
+  Hive.registerAdapter(MovieByUserAdapter());
 
   // Open the settings box
   var settingsBox = await Hive.openBox<Settings>('settings');

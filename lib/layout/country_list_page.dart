@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
+import 'package:world_movie_trailer/layout/memo_list_page.dart';
+import 'package:world_movie_trailer/layout/movie_by_user_list_page.dart';
 import 'package:world_movie_trailer/layout/movie_list_page.dart';
 import 'package:world_movie_trailer/layout/quote_list_page.dart';
 import 'package:world_movie_trailer/common/constants.dart';
-import 'package:world_movie_trailer/common/movie_service.dart';
+import 'package:world_movie_trailer/common/services/movie_service.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
@@ -24,6 +26,7 @@ class CountryListPage extends StatefulWidget {
 class _CountryListPageState extends State<CountryListPage> {
   Movie? specialSection;
   bool isEditMode = false;
+  bool isDropdownVisible = false; 
   List<String>? oldCountryOrder;
   List<Movie>? specialMovieList;
 
@@ -34,7 +37,7 @@ class _CountryListPageState extends State<CountryListPage> {
       _fetchSpecialMovies();
     });
   }
-
+  
   Future<void> _fetchSpecialMovies() async {
     try {
       final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
@@ -168,24 +171,141 @@ class _CountryListPageState extends State<CountryListPage> {
                           },
                         ),
                       ] else ...[
-                        IconButton(
+                        PopupMenuButton<String>(
                           icon: Image.asset(
-                                  settingsProvider.isDarkTheme ? 'assets/images/dark/icon_reorder_DT_xxhdpi.png' : 'assets/images/light/icon_reorder_LT_xxhdpi.png',
-                                  height: iconSize,
-                                  width: iconSize,
+                            settingsProvider.isDarkTheme
+                                ? 'assets/images/dark/icon_menu_DT_xxhdpi.png'
+                                : 'assets/images/light/icon_menu_LT_xxhdpi.png',
+                            height: iconSize,
+                            width: iconSize,
                           ),
-                          onPressed: () {
+                          onSelected: (String newValue) {
+                            switch (newValue){
+                              case 'Rearrange':
+                                isEditMode = !isEditMode;
+                                oldCountryOrder = countries;
+                              case 'Like':
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MovieByUserListPage(flag: 'Like',),
+                                  ),
+                                );
+                              case 'Dislike':
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MovieByUserListPage(flag: 'Dislike',),
+                                  ),
+                                );
+                              case 'Bookmark':
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MovieByUserListPage(flag: 'Bookmark',),
+                                  ),
+                                );
+                              case 'Memo':
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MemoListPage(),
+                                  ),
+                                );
+                            }
+                            print('Selected: $newValue');
                             setState(() {
-                              isEditMode = !isEditMode;
-                              oldCountryOrder = countries;
+                              isDropdownVisible = false;
                             });
                           },
+                          itemBuilder: (BuildContext context) => [
+                            PopupMenuItem<String>(
+                              value: 'Rearrange',
+                              child: Row(
+                                children: [
+                                  Image.asset(
+                                    settingsProvider.isDarkTheme
+                                        ? 'assets/images/dark/icon_reorder_DT_xxhdpi.png'
+                                        : 'assets/images/light/icon_reorder_LT_xxhdpi.png',
+                                    height: iconSize,
+                                    width: iconSize,
+                                  ),
+                                  SizedBox(width: 8,),
+                                  Text('Button Order'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'Like',
+                              child: Row(
+                                children: [
+                                  Image.asset(
+                                    settingsProvider.isDarkTheme
+                                        ? 'assets/images/dark/icon_like_DT_xxhdpi.png'
+                                        : 'assets/images/light/icon_like_LT_xxhdpi.png',
+                                    height: iconSize,
+                                    width: iconSize,
+                                  ),
+                                  SizedBox(width: 8,),
+                                  Text('Like'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'Dislike',
+                              child: Row(
+                                children: [
+                                  Image.asset(
+                                    settingsProvider.isDarkTheme
+                                        ? 'assets/images/dark/icon_dislike_DT_xxhdpi.png'
+                                        : 'assets/images/light/icon_dislike_LT_xxhdpi.png',
+                                    height: iconSize,
+                                    width: iconSize,
+                                  ),
+                                  SizedBox(width: 8,),
+                                  Text('Dislike'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'Bookmark',
+                              child: Row(
+                                children: [
+                                  Image.asset(
+                                    settingsProvider.isDarkTheme
+                                        ? 'assets/images/dark/icon_bookmark_DT_xxhdpi.png'
+                                        : 'assets/images/light/icon_bookmark_LT_xxhdpi.png',
+                                    height: iconSize,
+                                    width: iconSize,
+                                  ),
+                                  SizedBox(width: 8,),
+                                  Text('Bookmark'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'Memo',
+                              child: Row(
+                                children: [
+                                  Image.asset(
+                                    settingsProvider.isDarkTheme
+                                        ? 'assets/images/dark/icon_memo_DT_xxhdpi.png'
+                                        : 'assets/images/light/icon_memo_LT_xxhdpi.png',
+                                    height: iconSize,
+                                    width: iconSize,
+                                  ),
+                                  SizedBox(width: 8,),
+                                  Text('Memo'),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                         IconButton(
                           icon: Image.asset(
-                                  settingsProvider.isDarkTheme ? 'assets/images/dark/icon_config_DT_xxhdpi.png' : 'assets/images/light/icon_config_LT_xxhdpi.png',
-                                  height: iconSize,
-                                  width: iconSize,
+                            settingsProvider.isDarkTheme ? 'assets/images/dark/icon_config_DT_xxhdpi.png' : 'assets/images/light/icon_config_LT_xxhdpi.png',
+                            height: iconSize,
+                            width: iconSize,
                           ),
                           onPressed: () {
                             Navigator.push(
@@ -303,9 +423,13 @@ class _CountryListPageState extends State<CountryListPage> {
                                                 ),
                                               if (isEditMode)
                                                 Positioned(
-                                                  top: boxHeight * 0.30,
+                                                  top: boxHeight * 0.25,
                                                   right: 24,
-                                                  child: const Icon(Icons.reorder),
+                                                  child: Image.asset(
+                                                    settingsProvider.isDarkTheme ? 'assets/images/dark/icon_drag_handle_DT_xxhdpi.png' : 'assets/images/light/icon_drag_handle_LT_xxhdpi.png',
+                                                    height: iconSize,
+                                                    width: iconSize,
+                                                  ),
                                                 ),
                                             ],
                                           ),

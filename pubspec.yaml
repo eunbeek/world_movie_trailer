@@ -2,7 +2,7 @@ name: world_movie_trailer
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.0+15
+version: 1.0.0+16
 
 environment:
   sdk: '>=3.3.3 <4.0.0'
@@ -49,14 +49,28 @@ flutter:
     - assets/images/dark/icon_config_DT_xxhdpi.png
     - assets/images/dark/icon_reorder_DT_xxhdpi.png
     - assets/images/dark/logo_sil_white_1024.png
+    - assets/images/dark/blank_DT_xxhdpi.png
+    - assets/images/dark/loading_DT_xxhdpi.png
+    - assets/images/dark/icon_menu_DT_xxhdpi.png
+    - assets/images/dark/icon_like_DT_xxhdpi.png
+    - assets/images/dark/icon_dislike_DT_xxhdpi.png
+    - assets/images/dark/icon_bookmark_fill_DT_xxhdpi.png
+    - assets/images/dark/icon_bookmark_DT_xxhdpi.png
+    - assets/images/dark/icon_memo_DT_xxhdpi.png
+    - assets/images/dark/icon_drag_handle_DT_xxhdpi.png
     - assets/images/light/deco_world_map_LT_xxhdpi.png
     - assets/images/light/deco_film_reel_LT_xxhdpi.png
     - assets/images/light/icon_config_LT_xxhdpi.png
     - assets/images/light/icon_reorder_LT_xxhdpi.png
     - assets/images/light/logo_sil_black_1024.png
-    - assets/images/deco_film_reel_02_DT_xxhdpi.png
-    - assets/images/SIL_logo_h_xxhdpi.png
     - assets/images/light/blank_LT_xxhdpi.png
-    - assets/images/dark/blank_DT_xxhdpi.png
-    - assets/images/dark/loading_DT_xxhdpi.png
     - assets/images/light/loading_LT_xxhdpi.png
+    - assets/images/light/icon_menu_LT_xxhdpi.png
+    - assets/images/light/icon_like_LT_xxhdpi.png
+    - assets/images/light/icon_dislike_LT_xxhdpi.png
+    - assets/images/light/icon_bookmark_fill_LT_xxhdpi.png
+    - assets/images/light/icon_bookmark_LT_xxhdpi.png
+    - assets/images/light/icon_memo_LT_xxhdpi.png
+    - assets/images/light/icon_drag_handle_LT_xxhdpi.png
+    - assets/images/SIL_logo_h_xxhdpi.png
+    - assets/images/deco_film_reel_02_DT_xxhdpi.png

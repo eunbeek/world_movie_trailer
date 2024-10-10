@@ -4,7 +4,7 @@ import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
 import 'package:world_movie_trailer/model/quote.dart';
 import 'package:world_movie_trailer/common/background.dart';
-import 'package:world_movie_trailer/common/quote_service.dart';
+import 'package:world_movie_trailer/common/services/quote_service.dart';
 
 class QuoteListPage extends StatefulWidget {
   const QuoteListPage({super.key});

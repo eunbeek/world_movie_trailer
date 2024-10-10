@@ -781,6 +781,18 @@ const labelNetworkErrorES = "La red del servidor está inestable.\r\nPor favor, 
 const labelNetworkErrorHI = "सर्वर नेटवर्क अस्थिर है। कृपया कुछ\r\nसमय बाद पुनः प्रयास करें।";
 const labelNetworkErrorTH = "เครือข่ายเซิร์ฟเวอร์ไม่เสถียร\r\nกรุณาลองอีกครั้งในภายหลัง";
 
+const labelEmptyErrorKR = "아직 추가한 영화가 없습니다.\r\n추가 후 다시 시도해보세요.";
+const labelEmptyErrorEN = "No movies have been added yet.\r\nPlease add movies and try again.";
+const labelEmptyErrorJP = "まだ追加した映画がありません。\r\n追加してもう一度お試しください。";
+const labelEmptyErrorZH = "尚未添加电影。\r\n请添加电影后重试。";
+const labelEmptyErrorTW = "尚未新增電影。\r\n請新增電影後再試一次。";
+const labelEmptyErrorFR = "Aucun film n'a encore été ajouté.\r\nAjoutez des films et réessayez.";
+const labelEmptyErrorDE = "Es wurden noch keine Filme hinzugefügt.\r\nBitte fügen Sie Filme hinzu und versuchen Sie es erneut.";
+const labelEmptyErrorES = "Aún no se han añadido películas.\r\nPor favor, añada películas e inténtelo de nuevo.";
+const labelEmptyErrorHI = "अभी तक कोई फिल्म नहीं जोड़ी गई है।\r\nकृपया फिल्में जोड़ें और पुनः प्रयास करें।";
+const labelEmptyErrorTH = "ยังไม่มีการเพิ่มภาพยนตร์\r\nกรุณาเพิ่มภาพยนตร์และลองอีกครั้ง";
+
+
 // movie detail
 // movie info label
 const Map<String, Map<String, String>> movieDetailTranslations = {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:world_movie_trailer/common/ad_manager/rewarded_ad_manager.dart';
-import 'package:world_movie_trailer/common/movie_service.dart';
+import 'package:world_movie_trailer/common/services/movie_service.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/layout/movie_detail_youtube_page.dart';
 import 'package:world_movie_trailer/layout/movie_detail_chewie_page.dart';
@@ -267,8 +267,8 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                       context,
                       MaterialPageRoute(
                         builder: (context) => movie.isYoutube != false
-                            ? MovieDetailPageYouTube(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language)
-                            : MovieDetailPageChewie(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language),
+                            ? MovieDetailPageYouTube(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language, isCustomized: false,)
+                            : MovieDetailPageChewie(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language, isCustomized: false,),
                       ),
                     );
                   });
@@ -280,8 +280,8 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                   context,
                   MaterialPageRoute(
                     builder: (context) => movie.isYoutube != false
-                        ? MovieDetailPageYouTube(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language)
-                        : MovieDetailPageChewie(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language),
+                        ? MovieDetailPageYouTube(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language, isCustomized: false,)
+                        : MovieDetailPageChewie(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language, isCustomized: false,),
                   ),
                 );
               }
