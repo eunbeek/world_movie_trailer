@@ -23,6 +23,7 @@ class MemoListPage extends StatefulWidget {
 class _MemoListPageState extends State<MemoListPage> {
   List<MovieByUser> allMovies = [];
   Map<int, TextEditingController> _memoControllers = {}; // Store controllers by index
+  Map<int, ScrollController> _scrollController = {};
   bool fetchComplete = false;
   late RewardedAdManager _appAdManager;
 
@@ -40,6 +41,11 @@ class _MemoListPageState extends State<MemoListPage> {
     _memoControllers.forEach((key, controller) {
       controller.dispose();
     });
+
+    _scrollController.forEach((key, controller) {
+      controller.dispose();
+    });
+    
     super.dispose();
   }
 
@@ -137,12 +143,12 @@ class _MemoListPageState extends State<MemoListPage> {
       itemCount: movies.length,
       itemBuilder: (context, index) {
         final movie = movies[index];
-
-        // Initialize the TextEditingController for this movie if it doesn't exist
-        if (!_memoControllers.containsKey(index)) {
-          _memoControllers[index] = TextEditingController(text: '${movie.memo}\r\n');
+         
+         _memoControllers[index] = TextEditingController(text: '${movie.memo}\r\n');
+;
+        if (!_scrollController.containsKey(index)) {
+          _scrollController[index] = ScrollController();
         }
-
         String? releaseDate;
         if (movie.movie.releaseDate != '') {
           releaseDate = DateFormat('yyyy.MM.dd').format(DateTime.parse(movie.movie.releaseDate));
@@ -344,9 +350,11 @@ class _MemoListPageState extends State<MemoListPage> {
                       ),
                       Scrollbar(
                         thumbVisibility: true,
+                        controller: _scrollController[index],
                         child: TextField(
                           maxLines: 6, // Show up to 6 lines before enabling scrolling
                           controller: _memoControllers[index], // Use the stored controller
+                          scrollController: _scrollController[index],
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                           ),
