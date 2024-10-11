@@ -32,6 +32,10 @@ String getSpecialLable(Movie specialSection, String languageCode){
   return '$specialPrefix - $specialTranslation';
 }
 
+String getMenuItemTitle(String languageCode, String menuItem) {
+  return menuTranslations[languageCode]?[menuItem] ?? menuTranslations['en']![menuItem]!;
+}
+
 // Country list - special section
 String getSpecialQuoteLable(String languageCode){
   final specialPrefix = specialLabelTranslations['Special']?[languageCode] ?? 'Special';

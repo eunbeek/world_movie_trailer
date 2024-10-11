@@ -405,6 +405,80 @@ const Map<String, String> countryAppBars = {
   'TH': 'โลก\nภาพยนตร์\nตัวอย่าง',  // Thai
 };
 
+Map<String, Map<String, String>> menuTranslations = {
+  'ko': {
+    'Country Order': '국가 순서',
+    'Like': '좋아요',
+    'Dislike': '싫어요',
+    'Bookmark': '북마크',
+    'Memo': '메모',
+  },
+  'en': {
+    'Country Order': 'Country Order',
+    'Like': 'Like',
+    'Dislike': 'Dislike',
+    'Bookmark': 'Bookmark',
+    'Memo': 'Memo',
+  },
+  'ja': {
+    'Country Order': '国の順序',
+    'Like': 'いいね',
+    'Dislike': '嫌い',
+    'Bookmark': 'ブックマーク',
+    'Memo': 'メモ',
+  },
+  'zh': {
+    'Country Order': '国家顺序', // Simplified Chinese
+    'Like': '赞',
+    'Dislike': '不喜欢',
+    'Bookmark': '书签',
+    'Memo': '备忘录',
+  },
+  'tw': {
+    'Country Order': '國家順序', // Traditional Chinese
+    'Like': '讚',
+    'Dislike': '不喜歡',
+    'Bookmark': '書籤',
+    'Memo': '備忘錄',
+  },
+  'fr': {
+    'Country Order': 'Ordre des pays',
+    'Like': 'J’aime',
+    'Dislike': 'Je n’aime pas',
+    'Bookmark': 'Signet',
+    'Memo': 'Mémo',
+  },
+  'de': {
+    'Country Order': 'Länderreihenfolge',
+    'Like': 'Gefällt mir',
+    'Dislike': 'Gefällt mir nicht',
+    'Bookmark': 'Lesezeichen',
+    'Memo': 'Notiz',
+  },
+  'es': {
+    'Country Order': 'Orden de países',
+    'Like': 'Me gusta',
+    'Dislike': 'No me gusta',
+    'Bookmark': 'Marcador',
+    'Memo': 'Memo',
+  },
+  'hi': {
+    'Country Order': 'देश का क्रम',
+    'Like': 'पसंद',
+    'Dislike': 'नापसंद',
+    'Bookmark': 'बुकमार्क',
+    'Memo': 'स्मरण लेख',
+  },
+  'th': {
+    'Country Order': 'ลำดับประเทศ',
+    'Like': 'ถูกใจ',
+    'Dislike': 'ไม่ชอบ',
+    'Bookmark': 'บุ๊กมาร์ก',
+    'Memo': 'บันทึกช่วยจำ',
+  },
+};
+
+
 const Map<String, String> countryAppBarNameByCountry = {
   'en': "Trailer in ",  // English
   'ko': '영화의 예고편',  // Korean

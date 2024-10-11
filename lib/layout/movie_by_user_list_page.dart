@@ -112,7 +112,7 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
                       ),
                       Expanded(
                         child: Text(
-                          widget.flag,
+                          getMenuItemTitle(settingsProvider.language, widget.flag),
                           style: TextStyle(
                             fontSize: MediaQuery.of(context).size.height * 0.02,
                             fontWeight: FontWeight.bold,

@@ -10,7 +10,6 @@ import 'package:intl/intl.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
 import 'package:world_movie_trailer/common/background.dart';
-import 'package:world_movie_trailer/common/error_page.dart';
 import 'package:world_movie_trailer/model/movieByUser.dart';
 
 class MemoListPage extends StatefulWidget {
@@ -97,7 +96,7 @@ class _MemoListPageState extends State<MemoListPage> {
                       ),
                       Expanded(
                         child: Text(
-                          'Memo',
+                          getMenuItemTitle(settingsProvider.language, 'Memo'),
                           style: TextStyle(
                             fontSize: MediaQuery.of(context).size.height * 0.02,
                             fontWeight: FontWeight.bold,
@@ -307,7 +306,7 @@ class _MemoListPageState extends State<MemoListPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Memo',
+                            getMenuItemTitle(settingsProvider.language, 'Memo'),
                             style: TextStyle(
                               fontSize: MediaQuery.of(context).size.height * 0.018,
                               fontWeight: FontWeight.bold,
@@ -344,7 +343,7 @@ class _MemoListPageState extends State<MemoListPage> {
                         ],
                       ),
                       Scrollbar(
-                        thumbVisibility: true, // Optional: Always show the scrollbar when content is scrollable
+                        thumbVisibility: true,
                         child: TextField(
                           maxLines: 6, // Show up to 6 lines before enabling scrolling
                           controller: _memoControllers[index], // Use the stored controller
