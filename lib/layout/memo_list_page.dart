@@ -136,7 +136,6 @@ class _MemoListPageState extends State<MemoListPage> {
 
     return ListView.builder(
       itemCount: movies.length,
-      reverse: true,
       itemBuilder: (context, index) {
         final movie = movies[index];
 

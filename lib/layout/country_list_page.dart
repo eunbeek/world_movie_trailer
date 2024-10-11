@@ -325,122 +325,122 @@ class _CountryListPageState extends State<CountryListPage> {
                   child: countries.isEmpty
                       ? const Center(child: CircularProgressIndicator())
                       : ReorderableListView(
-                            buildDefaultDragHandles: isEditMode,
-                            padding: const EdgeInsets.only(top:8.0, bottom: 8.0, left: 24.0, right: 24.0),
-                            onReorder: (int oldIndex, int newIndex) {
-                              setState(() {
-                                if (newIndex > oldIndex) {
-                                  newIndex -= 1;
+                    buildDefaultDragHandles: isEditMode,
+                    padding: const EdgeInsets.only(top:8.0, bottom: 8.0, left: 24.0, right: 24.0),
+                    onReorder: (int oldIndex, int newIndex) {
+                      setState(() {
+                        if (newIndex > oldIndex) {
+                          newIndex -= 1;
+                        }
+                        final String item = countries.removeAt(oldIndex);
+                        countries.insert(newIndex, item);
+                        settingsProvider.updateCountryOrder(countries);
+                      });
+                    },
+                    children: [
+                      for (int index = 0; index < countries.length; index++)
+                        Container(
+                          key: ValueKey(countries[index]),
+                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 9.0),
+                          width: MediaQuery.of(context).size.width * 0.86,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                if (isEditMode) return;
+
+                                if (settingsProvider.isVibrate) HapticFeedback.mediumImpact();
+
+                                final String? originCountry = localizedCountries[languageCode]?.entries
+                                    .firstWhere((entry) => entry.value == countries[index], orElse: () => MapEntry('', '')).key;
+
+                                if (originCountry != null && localizedCountriesOfTheDay.contains(countries[index])) {
+                                  settingsProvider.unmarkIsNewShown(currentWeekday, originCountry);
                                 }
-                                final String item = countries.removeAt(oldIndex);
-                                countries.insert(newIndex, item);
-                                settingsProvider.updateCountryOrder(countries);
-                              });
-                            },
-                            children: [
-                              for (int index = 0; index < countries.length; index++)
-                                Container(
-                                  key: ValueKey(countries[index]),
-                                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 9.0),
-                                  width: MediaQuery.of(context).size.width * 0.86,
-                                  child: Material(
-                                    color: Colors.transparent,
-                                    child: InkWell(
-                                      onTap: () {
-                                        if (isEditMode) return;
 
-                                        if (settingsProvider.isVibrate) HapticFeedback.mediumImpact();
+                                LogHelper().logEvent('country_clicked', parameters: {'country_name': countries[index]});
 
-                                        final String? originCountry = localizedCountries[languageCode]?.entries
-                                            .firstWhere((entry) => entry.value == countries[index], orElse: () => MapEntry('', '')).key;
- 
-                                        if (originCountry != null && localizedCountriesOfTheDay.contains(countries[index])) {
-                                          settingsProvider.unmarkIsNewShown(currentWeekday, originCountry);
-                                        }
-
-                                        LogHelper().logEvent('country_clicked', parameters: {'country_name': countries[index]});
-
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => MovieListPage(
-                                              country: countries[index],
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    child: Stack(
-                                      children: [
-                                        CustomPaint(
-                                          painter: GradientBorderPainter(isDark: settingsProvider.isDarkTheme),
-                                          child: Container(
-                                            height: boxHeight,
-                                            decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(30),
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          height: boxHeight,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(28),
-                                            color: Colors.transparent,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Stack(
-                                            children: [
-                                              Align(
-                                                alignment: Alignment.center,
-                                                child: Text(
-                                                  countries[index],
-                                                  style:  TextStyle(
-                                                    fontSize: boxHeight * 0.3,
-                                                    fontWeight: FontWeight.w900,
-                                                  ),
-                                                  textAlign: TextAlign.center,
-                                                ),
-                                              ),
-                                              if (
-                                                !isEditMode &&
-                                                localizedCountries[languageCode] != null && 
-                                                settingsProvider.isNewShown[currentWeekday] != null && 
-                                                settingsProvider.isNewShown[currentWeekday]![
-                                                  localizedCountries[languageCode]!.entries
-                                                    .firstWhere((entry) => entry.value == countries[index], orElse: () => MapEntry('', '')).key
-                                                ] == true // new 상태가 true인지 확인
-                                              ) 
-                                                Positioned(
-                                                  top: boxHeight * 0.35,
-                                                  right: 24,
-                                                  child: Text(
-                                                    "NEW", 
-                                                    style: TextStyle(
-                                                      color: settingsProvider.isDarkTheme ? Colors.yellow : Colors.red, 
-                                                      fontSize: boxHeight * 0.2,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ),
-                                              if (isEditMode)
-                                                Positioned(
-                                                  top: boxHeight * 0.25,
-                                                  right: 24,
-                                                  child: Image.asset(
-                                                    settingsProvider.isDarkTheme ? 'assets/images/dark/icon_drag_handle_DT_xxhdpi.png' : 'assets/images/light/icon_drag_handle_LT_xxhdpi.png',
-                                                    height: iconSize,
-                                                    width: iconSize,
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MovieListPage(
+                                      country: countries[index],
+                                    ),
+                                  ),
+                                );
+                              },
+                            child: Stack(
+                              children: [
+                                CustomPaint(
+                                  painter: GradientBorderPainter(isDark: settingsProvider.isDarkTheme),
+                                  child: Container(
+                                    height: boxHeight,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(30),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
+                                Container(
+                                  height: boxHeight,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(28),
+                                    color: Colors.transparent,
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Stack(
+                                    children: [
+                                      Align(
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          countries[index],
+                                          style:  TextStyle(
+                                            fontSize: boxHeight * 0.3,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                      if (
+                                        !isEditMode &&
+                                        localizedCountries[languageCode] != null && 
+                                        settingsProvider.isNewShown[currentWeekday] != null && 
+                                        settingsProvider.isNewShown[currentWeekday]![
+                                          localizedCountries[languageCode]!.entries
+                                            .firstWhere((entry) => entry.value == countries[index], orElse: () => MapEntry('', '')).key
+                                        ] == true // new 상태가 true인지 확인
+                                      ) 
+                                        Positioned(
+                                          top: boxHeight * 0.35,
+                                          right: 24,
+                                          child: Text(
+                                            "NEW", 
+                                            style: TextStyle(
+                                              color: settingsProvider.isDarkTheme ? Colors.yellow : Colors.red, 
+                                              fontSize: boxHeight * 0.2,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      if (isEditMode)
+                                        Positioned(
+                                          top: boxHeight * 0.25,
+                                          right: 24,
+                                          child: Image.asset(
+                                            settingsProvider.isDarkTheme ? 'assets/images/dark/icon_drag_handle_DT_xxhdpi.png' : 'assets/images/light/icon_drag_handle_LT_xxhdpi.png',
+                                            height: iconSize,
+                                            width: iconSize,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const Expanded(
                   flex: 2,

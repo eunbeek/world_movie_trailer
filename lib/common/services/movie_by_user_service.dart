@@ -26,7 +26,12 @@ class MovieByUserService {
   // Add a movie with a flag (like, dislike, bookmark)
   static Future<void> addMovie(int flag, MovieByUser movieByUser) async {
     final box = await _openBox(flag);
-    await box.add(movieByUser);
+      // Fetch current movies
+    final movies = box.values.toList();
+    movies.insert(0, movieByUser);  // Add the new movie at the beginning
+
+    await box.clear();  // Clear the current box
+    await box.addAll(movies);  // Add the movies back in FILO order
   }
 
   // Update a movie by index
