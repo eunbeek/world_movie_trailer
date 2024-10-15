@@ -145,18 +145,6 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                           ),
                         ),
                         const SizedBox(width: 48),
-                        if (widget.isCustomized)
-                          IconButton(
-                            icon: Icon(Icons.delete),
-                            iconSize:  MediaQuery.of(context).size.height * 0.030,
-                            onPressed: () async {
-                              if (widget.cIdx != null) {
-                                print(widget.flag);
-                                await MovieByUserService.deleteMovie(widget.flag!, widget.cIdx!);
-                                Navigator.pop(context, true);
-                              }
-                            },
-                          ),
                       ],
                     ),
                   ),
@@ -166,7 +154,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                       controller: _youtubePlayerController,
                       aspectRatio: _isFullScreen ? 16 / 9 : _calculateAspectRatio(context),
                     ),
-                    builder: (context, player) {
+                    builder: (context, player)  {
                       return SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,8 +175,8 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                         if (!isUnique) {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
-                                              content: Text('You have duplicated movie in your liked list.'),
-                                              duration: Duration(milliseconds: 200) // Adjusted duration for readability
+                                              content: Text(getMessage(settingsProvider.language, 'duplicateMovie')),
+                                              duration: Duration(milliseconds: 300) // Adjusted duration for readability
                                             ),
                                           );
                                           return;  // Exit early if movie is duplicated
@@ -205,21 +193,21 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
 
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
-                                              content: Text('Movie added to Like!'),
-                                              duration: Duration(milliseconds: 200) // Adjusted duration for readability
+                                              content: Text(getMessage(settingsProvider.language, 'addToLike')),
+                                              duration: Duration(milliseconds: 300) // Adjusted duration for readability
                                             ),
                                           );
                                         } else {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
-                                              content: Text('You have exceeded the limit of 30 movies in your liked list.'),
-                                              duration: Duration(milliseconds: 200) // Adjusted duration for readability
+                                              content: Text(getMessage(settingsProvider.language, 'maxMoviesReached')),
+                                              duration: Duration(milliseconds: 300) // Adjusted duration for readability
                                             ),
                                           );
                                         }
                                       },
                                       icon: Image.asset(
-                                        settingsProvider.isDarkTheme ? 'assets/images/dark/icon_like_fill_DT_xxhdpi.png' : 'assets/images/light/icon_like_fill_LT_xxhdpi.png',
+                                        settingsProvider.isDarkTheme ? 'assets/images/dark/icon_like_DT_xxhdpi.png' : 'assets/images/light/icon_like_LT_xxhdpi.png',
                                         height: iconSize,
                                         width: iconSize,
                                       ),
@@ -231,8 +219,8 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                         if (!isUnique) {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
-                                              content: Text('You have duplicated movie in your disliked list.'),
-                                              duration: Duration(milliseconds: 200) // Adjusted duration for readability
+                                              content: Text(getMessage(settingsProvider.language, 'duplicateMovie')),
+                                              duration: Duration(milliseconds: 300) // Adjusted duration for readability
                                             ),
                                           );
                                           return;  // Exit early if movie is duplicated
@@ -249,21 +237,21 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
 
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
-                                              content: Text('Movie added to Dislike!'),
-                                              duration: Duration(milliseconds: 200) // Adjusted duration for readability
+                                              content: Text(getMessage(settingsProvider.language, 'addToDislike')),
+                                              duration: Duration(milliseconds: 300) // Adjusted duration for readability
                                             ),
                                           );
                                         } else {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
-                                              content: Text('You have exceeded the limit of 30 movies in your disliked list.'),
-                                              duration: Duration(milliseconds: 200) // Adjusted duration for readability
+                                              content: Text(getMessage(settingsProvider.language, 'maxMoviesReached')),
+                                              duration: Duration(milliseconds: 300) // Adjusted duration for readability
                                             ),
                                           );
                                         }
                                       },
                                       icon: Image.asset(
-                                        settingsProvider.isDarkTheme ? 'assets/images/dark/icon_dislike_fill_DT_xxhdpi.png' : 'assets/images/light/icon_dislike_fill_LT_xxhdpi.png',
+                                        settingsProvider.isDarkTheme ? 'assets/images/dark/icon_dislike_DT_xxhdpi.png' : 'assets/images/light/icon_dislike_LT_xxhdpi.png',
                                         height: iconSize,
                                         width: iconSize,
                                       ),
@@ -276,8 +264,8 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                         if (!isUnique) {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
-                                              content: Text('You have duplicated movie in your bookmark list.'),
-                                              duration: Duration(milliseconds: 200) // Adjusted duration for readability
+                                              content: Text(getMessage(settingsProvider.language, 'duplicateMovie')),
+                                              duration: Duration(milliseconds: 300) // Adjusted duration for readability
                                             ),
                                           );
                                           return;  // Exit early if movie is duplicated
@@ -286,8 +274,8 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                         if (!isCount) {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
-                                              content: Text('You have exceeded the limit of 30 movies in your bookmark list.'),
-                                              duration: Duration(milliseconds: 200) // Adjusted duration for readability
+                                              content: Text(getMessage(settingsProvider.language, 'maxMoviesReached')),
+                                              duration: Duration(milliseconds: 300) // Adjusted duration for readability
                                             ),
                                           );
                                           return;  // Exit early if count exceeded
@@ -306,7 +294,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                           // Show success message
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
-                                              content: Text('Movie added to Bookmark!'),
+                                              content: Text(getMessage(settingsProvider.language, 'addToBookmark')),
                                               duration: Duration(seconds: 2),  // Adjusted duration for readability
                                             ),
                                           );
@@ -344,7 +332,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                                 children: <Widget>[
                                                   const SizedBox(height: 10),
                                                   Text(
-                                                    'Add Memo',
+                                                    getMessage(settingsProvider.language, 'addMemo'),
                                                     style: TextStyle(
                                                       fontSize: MediaQuery.of(context).size.height * 0.019,
                                                       fontWeight: FontWeight.bold,
@@ -357,7 +345,6 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                                       controller: memoController,
                                                       maxLines: 6, 
                                                       decoration: InputDecoration(
-                                                        labelText: 'Enter your memo',
                                                         border: OutlineInputBorder(),
                                                       ),
                                                       style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.018),
@@ -371,7 +358,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                                         onPressed: () {
                                                           Navigator.pop(context);  // Close modal
                                                         },
-                                                        child: const Text('Close Memo'),
+                                                        child: Text(getMessage(settingsProvider.language, 'closeMemo')),
                                                       ),
                                                       ElevatedButton(
                                                         onPressed: () async {
@@ -389,8 +376,8 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                                             // Show success message for update
                                                             ScaffoldMessenger.of(context).showSnackBar(
                                                               SnackBar(
-                                                                content: Text('Memo updated for movie!'),
-                                                                duration: Duration(milliseconds: 200) // Adjusted duration for readability
+                                                                content: Text(getMessage(settingsProvider.language, 'addToMemo')),
+                                                                duration: Duration(milliseconds: 300) // Adjusted duration for readability
                                                               ),
                                                             );
                                                           } else {
@@ -407,23 +394,23 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                                               // Show success message for adding new memo
                                                               ScaffoldMessenger.of(context).showSnackBar(
                                                                 SnackBar(
-                                                                  content: Text('Movie added to Memo!'),
-                                                                  duration: Duration(milliseconds: 200) // Adjusted duration for readability
+                                                                  content: Text(getMessage(settingsProvider.language, 'addToMemo')),
+                                                                  duration: Duration(milliseconds: 300) // Adjusted duration for readability
                                                                 ),
                                                               );
                                                             } else {
                                                               // Show error message for exceeding limit
                                                               ScaffoldMessenger.of(context).showSnackBar(
                                                                 SnackBar(
-                                                                  content: Text('You have exceeded the limit of 30 movies in your Memo list.'),
-                                                                  duration: Duration(milliseconds: 200) // Adjusted duration for readability
+                                                                  content: Text(getMessage(settingsProvider.language, 'maxMoviesReached')),
+                                                                  duration: Duration(milliseconds: 300) // Adjusted duration for readability
                                                                 ),
                                                               );
                                                             }
                                                           }
                                                           Navigator.pop(context);  // Close modal after action
                                                         },
-                                                        child: const Text('Save Memo'),
+                                                        child: Text(getMessage(settingsProvider.language, 'saveMemo')),
                                                       ),
                                                     ],
                                                   ),

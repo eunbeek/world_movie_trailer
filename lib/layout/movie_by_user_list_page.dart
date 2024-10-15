@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -10,7 +12,6 @@ import 'package:intl/intl.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
 import 'package:world_movie_trailer/common/background.dart';
-import 'package:world_movie_trailer/common/error_page.dart';
 import 'package:world_movie_trailer/model/movieByUser.dart';
 
 class MovieByUserListPage extends StatefulWidget {
@@ -201,66 +202,97 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
                 });
               }
             },
-            child: Container(
-              margin: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: settingsProvider.isDarkTheme ? const Color(0xff666666) : const Color(0xff999999),
-                borderRadius: BorderRadius.circular(15.0),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(15.0),
-                        topRight: Radius.circular(15.0),
-                      ),
-                      child: movie.movie.posterUrl != ""
-                          ? Image.network(
-                              movie.movie.posterUrl,
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: double.infinity,
-                            )
-                          : Image.asset(
-                              settingsProvider.isDarkTheme
-                                  ? 'assets/images/dark/blank_DT_xxhdpi.png'
-                                  : 'assets/images/light/blank_LT_xxhdpi.png',
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: double.infinity,
-                            ),
-                    ),
+            child: Stack(
+              children: [
+                Container(
+                  margin: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: settingsProvider.isDarkTheme ? const Color(0xff666666) : const Color(0xff999999),
+                    borderRadius: BorderRadius.circular(15.0),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          movie.movie.localTitle,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: const Color(0xffececec),
-                            fontWeight: FontWeight.bold,
-                            fontSize: MediaQuery.of(context).size.height * 0.017,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(15.0),
+                            topRight: Radius.circular(15.0),
                           ),
+                          child: movie.movie.posterUrl != ""
+                              ? Image.network(
+                                  movie.movie.posterUrl,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                )
+                              : Image.asset(
+                                  settingsProvider.isDarkTheme
+                                      ? 'assets/images/dark/blank_DT_xxhdpi.png'
+                                      : 'assets/images/light/blank_LT_xxhdpi.png',
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                ),
                         ),
-                        const SizedBox(height: 4),
-                        if (releaseDate != null)
-                          Text(
-                            '$releaseDate ${getReleaseLabel(settingsProvider.language)}',
-                            style: TextStyle(
-                              color: const Color(0xffc7c7c7),
-                              fontSize: MediaQuery.of(context).size.height * 0.013,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              movie.movie.localTitle,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: const Color(0xffececec),
+                                fontWeight: FontWeight.bold,
+                                fontSize: MediaQuery.of(context).size.height * 0.017,
+                              ),
                             ),
-                          ),
-                      ],
-                    ),
+                            const SizedBox(height: 4),
+                            if (releaseDate != null)
+                              Text(
+                                '$releaseDate ${getReleaseLabel(settingsProvider.language)}',
+                                style: TextStyle(
+                                  color: const Color(0xffc7c7c7),
+                                  fontSize: MediaQuery.of(context).size.height * 0.013,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                Positioned(
+                  top: 8, // Padding from the top
+                  right: 8, // Padding from the right
+                  child: IconButton(
+                    icon: Opacity(
+                      opacity: 0.6, // Adjust the opacity between 0.0 (invisible) and 1.0 (fully visible)
+                      child: Image.asset(
+                        'assets/images/icon_list_delete_xxhdpi.png',
+                        height: MediaQuery.of(context).size.height * 0.03,
+                        width: MediaQuery.of(context).size.height * 0.03,
+                      ),
+                    ),
+                    onPressed: () async {
+                      // Delete movie logic
+                      await MovieByUserService.deleteMovie(movie.flag, index);
+                      setState(() {
+                        movies.removeAt(index); // Remove the movie from the list
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(getMessage(settingsProvider.language, 'movieDeleted')),
+                          duration: Duration(milliseconds: 300),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           );
         },

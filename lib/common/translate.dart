@@ -36,6 +36,15 @@ String getMenuItemTitle(String languageCode, String menuItem) {
   return menuTranslations[languageCode]?[menuItem] ?? menuTranslations['en']![menuItem]!;
 }
 
+String getMessage(String languageCode, String key) {
+  // Use the provided language or fall back to 'en' if the languageCode is missing or invalid
+  Map<String, String>? messages = messageTranslations[languageCode] ?? messageTranslations['en'];
+
+  // Return the message for the key or a default message if the key is not found
+  return messages?[key] ?? 'Message not found';
+}
+
+
 // Country list - special section
 String getSpecialQuoteLable(String languageCode){
   final specialPrefix = specialLabelTranslations['Special']?[languageCode] ?? 'Special';

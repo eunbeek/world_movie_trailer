@@ -1,572 +1,382 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:world_movie_trailer/common/ad_manager/rewarded_ad_manager.dart';
+import 'package:world_movie_trailer/common/error_page_by_user.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
-import 'package:world_movie_trailer/model/movieByUser.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import 'package:world_movie_trailer/model/movie.dart';
+import 'package:world_movie_trailer/layout/movie_detail_youtube_page.dart';
+import 'package:world_movie_trailer/layout/movie_detail_chewie_page.dart';
+import 'package:intl/intl.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
-import 'package:flutter/services.dart';
 import 'package:world_movie_trailer/common/background.dart';
+import 'package:world_movie_trailer/model/movieByUser.dart';
 
-class MovieDetailPageYouTube extends StatefulWidget {
-  final Movie movie;
-  final bool captionFlag;
-  final String captionLan;
-  final bool isCustomized;
-  final int? flag;
-  final int? cIdx;
+class MemoListPage extends StatefulWidget {
 
-  const MovieDetailPageYouTube({super.key, required this.movie, required this.captionFlag, required this.captionLan, required this.isCustomized, this.flag, this.cIdx});
+  const MemoListPage({super.key});
 
   @override
-  _MovieDetailPageYouTubeState createState() => _MovieDetailPageYouTubeState();
+  _MemoListPageState createState() => _MemoListPageState();
 }
 
-class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
-  late YoutubePlayerController _youtubePlayerController;
-  String _errorMessage = '';
-  bool _isFullScreen = false;
+class _MemoListPageState extends State<MemoListPage> {
+  List<MovieByUser> allMovies = [];
+  Map<int, TextEditingController> _memoControllers = {}; // Store controllers by index
+  Map<int, ScrollController> _scrollController = {};
+  bool fetchComplete = false;
+  late RewardedAdManager _appAdManager;
 
   @override
   void initState() {
     super.initState();
-    _initializeYoutubePlayer();
-
-    // Enable both landscape and portrait mode when the page is opened
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
-  }
-
-  void _initializeYoutubePlayer() {
-    if (widget.movie.trailerUrl.isEmpty) {
-      setState(() {
-        _errorMessage = 'Trailer not available';
-      });
-      return;
-    }
-
-    _youtubePlayerController = YoutubePlayerController(
-      initialVideoId: widget.movie.trailerUrl,
-      flags: YoutubePlayerFlags(
-        autoPlay: false,
-        enableCaption: widget.captionFlag,
-        captionLanguage: widget.captionLan,
-        useHybridComposition: false,
-      ),
-    );
-
-    _youtubePlayerController.addListener(() {
-      if (_youtubePlayerController.value.isFullScreen && !_isFullScreen) {
-        _enterFullScreen();
-      } else if (!_youtubePlayerController.value.isFullScreen && _isFullScreen) {
-        _exitFullScreen();
-      }
-    });
-
-  }
-
-  void _enterFullScreen() {
-    setState(() {
-      _isFullScreen = true;
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    });
-  }
-
-  void _exitFullScreen() {
-    setState(() {
-      _isFullScreen = false;
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    });
+    _appAdManager = RewardedAdManager();
+    _loadAd();
+    _fetchMovies();
   }
 
   @override
   void dispose() {
-    _youtubePlayerController.dispose();
-    // Ensure the portrait mode is enforced when leaving the page
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+    // Dispose all controllers when the widget is disposed
+    _memoControllers.forEach((key, controller) {
+      controller.dispose();
+    });
+
+    _scrollController.forEach((key, controller) {
+      controller.dispose();
+    });
+    
     super.dispose();
   }
 
-  double _calculateAspectRatio(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    return screenSize.height / screenSize.width;
+  Future<void> _fetchMovies() async {
+    try {
+      List<MovieByUser> movies = await MovieByUserService.getMoviesByFlag(4);
+      setState(() {
+        allMovies = movies;
+        fetchComplete = true;
+      });
+    } catch (e) {
+      print('Error fetching movies: $e');
+      setState(() {
+        fetchComplete = true;
+      });
+    }
+  }
+
+  void _loadAd() {
+    _appAdManager.loadAd(onAdLoaded: () {});
+  }
+
+  void _showAd(Function onAdDismiss) {
+    print('showAd');
+    _appAdManager.showAdIfAvailable(() {
+      onAdDismiss();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
-    double iconSize = MediaQuery.of(context).size.height * 0.035;
 
     return SafeArea(
       child: Scaffold(
         body: Stack(
           children: [
-            // Background Image
-            if (!_isFullScreen)
-              const BackgroundWidget(isPausePage: true,),
-            // Custom AppBar
+            const BackgroundWidget(isPausePage: false), // Background image
             Column(
               children: [
-                if (!_isFullScreen)
-                  Padding(
-                    padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.02),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            Icons.arrow_back,
-                            size: MediaQuery.of(context).size.height * 0.03,
-                          ),
-                          onPressed: () => Navigator.of(context).pop(),
+                Padding(
+                  padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.02),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Icons.arrow_back,
+                          size: MediaQuery.of(context).size.height * 0.03,
                         ),
-                        Expanded(
-                          child: Text(
-                            widget.movie.localTitle.length > 25
-                                ? '${widget.movie.localTitle.substring(0, 25)}...'
-                                : widget.movie.localTitle,
-                            textAlign: TextAlign.center,
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                      Expanded(
+                        child: Text(
+                          getMenuItemTitle(settingsProvider.language, 'Memo'),
+                          style: TextStyle(
+                            fontSize: MediaQuery.of(context).size.height * 0.02,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const IconButton(
+                        icon: Icon(
+                          Icons.arrow_back,
+                          color: Colors.transparent,
+                        ),
+                        onPressed: null,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                fetchComplete
+                    ? Expanded(child: _buildMovieList(allMovies))
+                    : const Expanded(child: Center(child: CircularProgressIndicator())),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMovieList(List<MovieByUser> movies) {
+    final settingsProvider = Provider.of<SettingsProvider>(context);
+
+    if (movies.isEmpty) {
+      return ErrorByUserPage(); // Error page for empty movie list
+    }
+
+    return ListView.builder(
+      itemCount: movies.length,
+      itemBuilder: (context, index) {
+        final movie = movies[index];
+         
+         _memoControllers[index] = TextEditingController(text: '${movie.memo}\r\n');
+;
+        if (!_scrollController.containsKey(index)) {
+          _scrollController[index] = ScrollController();
+        }
+        String? releaseDate;
+        if (movie.movie.releaseDate != '') {
+          releaseDate = DateFormat('yyyy.MM.dd').format(DateTime.parse(movie.movie.releaseDate));
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: settingsProvider.isDarkTheme ? const Color(0xff444444) : const Color(0xfff0f0f0),
+              borderRadius: BorderRadius.circular(15.0),
+              border: Border.all(
+                color: Colors.grey.shade400,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start, // Align items at the top
+              children: [
+                // Movie card section
+                Expanded(
+                  flex: 2,
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.mediumImpact();
+                      if (settingsProvider.openCount == 8) {
+                        if (_appAdManager.rewardedAd != null) {
+                          _showAd(() {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => movie.movie.isYoutube != false
+                                    ? MovieDetailPageYouTube(
+                                        movie: movie.movie,
+                                        captionFlag: settingsProvider.isCaptionOn,
+                                        captionLan: settingsProvider.language,
+                                        isCustomized: true,
+                                        flag: 4, 
+                                        cIdx: index
+                                      )
+                                    : MovieDetailPageChewie(
+                                        movie: movie.movie,
+                                        captionFlag: settingsProvider.isCaptionOn,
+                                        captionLan: settingsProvider.language,
+                                        isCustomized: true,
+                                        flag: 4, 
+                                        cIdx: index
+                                      ),
+                              ),
+                            ).then((result) {
+                              if (result == true) {
+                                _fetchMovies();
+                              }
+                            });
+                          });
+                        }
+                        settingsProvider.resetOpenCount();
+                      } else {
+                        settingsProvider.updateOpenCount();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => movie.movie.isYoutube != false
+                                ? MovieDetailPageYouTube(
+                                    movie: movie.movie,
+                                    captionFlag: settingsProvider.isCaptionOn,
+                                    captionLan: settingsProvider.language,
+                                    isCustomized: true,
+                                    flag: 4, 
+                                    cIdx: index
+                                  )
+                                : MovieDetailPageChewie(
+                                    movie: movie.movie,
+                                    captionFlag: settingsProvider.isCaptionOn,
+                                    captionLan: settingsProvider.language,
+                                    isCustomized: true,
+                                    flag: 4, 
+                                    cIdx: index
+                                  ),
+                          ),
+                        ).then((result) {
+                          if (result == true) {
+                            _fetchMovies();
+                          }
+                        });
+                      }
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: settingsProvider.isDarkTheme
+                            ? const Color(0xff666666)
+                            : const Color(0xff999999),
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(15.0),
+                              topRight: Radius.circular(15.0),
+                            ),
+                            child: movie.movie.posterUrl != ""
+                                ? Image.network(
+                                    movie.movie.posterUrl,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    height: MediaQuery.of(context).size.height * 0.2,
+                                  )
+                                : Image.asset(
+                                    settingsProvider.isDarkTheme
+                                        ? 'assets/images/dark/blank_DT_xxhdpi.png'
+                                        : 'assets/images/light/blank_LT_xxhdpi.png',
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    height: MediaQuery.of(context).size.height * 0.2,
+                                  ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  movie.movie.localTitle,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: const Color(0xffececec),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: MediaQuery.of(context).size.height * 0.017,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                if (releaseDate != null)
+                                  Text(
+                                    '$releaseDate ${getReleaseLabel(settingsProvider.language)}',
+                                    style: TextStyle(
+                                      color: const Color(0xffc7c7c7),
+                                      fontSize: MediaQuery.of(context).size.height * 0.013,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 16), // Space between movie card and memo section
+
+                // Memo section
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            getMenuItemTitle(settingsProvider.language, 'Memo'),
                             style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.height * 0.02,
+                              fontSize: MediaQuery.of(context).size.height * 0.018,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 48),
-                        if (widget.isCustomized)
-                          IconButton(
-                            icon: Icon(Icons.delete),
-                            iconSize:  MediaQuery.of(context).size.height * 0.030,
-                            onPressed: () async {
-                              if (widget.cIdx != null) {
-                                print(widget.flag);
-                                await MovieByUserService.deleteMovie(widget.flag!, widget.cIdx!);
-                                Navigator.pop(context, true);
-                              }
-                            },
-                          ),
-                      ],
-                    ),
-                  ),
-                Expanded(
-                  child: YoutubePlayerBuilder(
-                    player: YoutubePlayer(
-                      controller: _youtubePlayerController,
-                      aspectRatio: _isFullScreen ? 16 / 9 : _calculateAspectRatio(context),
-                    ),
-                    builder: (context, player) {
-                      return SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (_errorMessage.isNotEmpty)
-                              _buildErrorWidget()
-                            else
-                              player,
-                            if (!_isFullScreen) ...[
-                              if(!widget.isCustomized)
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    IconButton(
-                                      onPressed: () async {
-                                        bool isUnique = await MovieByUserService.getIsUnique(1, widget.movie.localTitle);
-
-                                        if (!isUnique) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text('You have duplicated movie in your liked list.'),
-                                              duration: Duration(milliseconds: 200) // Adjusted duration for readability
-                                            ),
-                                          );
-                                          return;  // Exit early if movie is duplicated
-                                        }
-
-                                        if (await MovieByUserService.getIsAvailable(1)) {
-                                          // Create MovieByUser object
-                                          MovieByUser addMovie = MovieByUser(
-                                            flag: 1, // Like flag
-                                            movie: widget.movie, // Current movie object
-                                          );
-
-                                          await MovieByUserService.addMovie(1, addMovie);
-
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text('Movie added to Like!'),
-                                              duration: Duration(milliseconds: 200) // Adjusted duration for readability
-                                            ),
-                                          );
-                                        } else {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text('You have exceeded the limit of 30 movies in your liked list.'),
-                                              duration: Duration(milliseconds: 200) // Adjusted duration for readability
-                                            ),
-                                          );
-                                        }
-                                      },
-                                      icon: Image.asset(
-                                        settingsProvider.isDarkTheme ? 'assets/images/dark/icon_like_fill_DT_xxhdpi.png' : 'assets/images/light/icon_like_fill_LT_xxhdpi.png',
-                                        height: iconSize,
-                                        width: iconSize,
-                                      ),
-                                    ),
-                                    IconButton(
-                                      onPressed: () async {
-                                        bool isUnique = await MovieByUserService.getIsUnique(2, widget.movie.localTitle);
-
-                                        if (!isUnique) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text('You have duplicated movie in your disliked list.'),
-                                              duration: Duration(milliseconds: 200) // Adjusted duration for readability
-                                            ),
-                                          );
-                                          return;  // Exit early if movie is duplicated
-                                        }
-
-                                        if (await MovieByUserService.getIsAvailable(2)) {
-                                          // Create MovieByUser object
-                                          MovieByUser addMovie = MovieByUser(
-                                            flag: 2, // Dislike flag
-                                            movie: widget.movie, // Current movie object
-                                          );
-
-                                          await MovieByUserService.addMovie(2, addMovie);
-
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text('Movie added to Dislike!'),
-                                              duration: Duration(milliseconds: 200) // Adjusted duration for readability
-                                            ),
-                                          );
-                                        } else {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text('You have exceeded the limit of 30 movies in your disliked list.'),
-                                              duration: Duration(milliseconds: 200) // Adjusted duration for readability
-                                            ),
-                                          );
-                                        }
-                                      },
-                                      icon: Image.asset(
-                                        settingsProvider.isDarkTheme ? 'assets/images/dark/icon_dislike_fill_DT_xxhdpi.png' : 'assets/images/light/icon_dislike_fill_LT_xxhdpi.png',
-                                        height: iconSize,
-                                        width: iconSize,
-                                      ),
-                                    ),
-                                    IconButton(
-                                      onPressed: () async {
-                                        bool isCount = await MovieByUserService.getIsAvailable(3);
-                                        bool isUnique = await MovieByUserService.getIsUnique(3, widget.movie.localTitle);
-
-                                        if (!isUnique) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text('You have duplicated movie in your bookmark list.'),
-                                              duration: Duration(milliseconds: 200) // Adjusted duration for readability
-                                            ),
-                                          );
-                                          return;  // Exit early if movie is duplicated
-                                        }
-
-                                        if (!isCount) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text('You have exceeded the limit of 30 movies in your bookmark list.'),
-                                              duration: Duration(milliseconds: 200) // Adjusted duration for readability
-                                            ),
-                                          );
-                                          return;  // Exit early if count exceeded
-                                        }
-
-                                        if (isCount && isUnique) {
-                                          // Create MovieByUser object
-                                          MovieByUser addMovie = MovieByUser(
-                                            flag: 3, // Bookmark flag
-                                            movie: widget.movie, // Current movie object
-                                          );
-
-                                          // Add movie to MovieByUserService
-                                          await MovieByUserService.addMovie(3, addMovie);
-
-                                          // Show success message
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text('Movie added to Bookmark!'),
-                                              duration: Duration(seconds: 2),  // Adjusted duration for readability
-                                            ),
-                                          );
-                                        }
-                                      },
-                                      icon: Image.asset(
-                                        settingsProvider.isDarkTheme ? 'assets/images/dark/icon_bookmark_fill_DT_xxhdpi.png' : 'assets/images/light/icon_bookmark_fill_LT_xxhdpi.png',
-                                        height: iconSize,
-                                        width: iconSize,
-                                      ),
-                                      icon: Image.asset(
-                                        settingsProvider.isDarkTheme ? 'assets/images/dark/icon_bookmark_fill_DT_xxhdpi.png' : 'assets/images/light/icon_bookmark_fill_LT_xxhdpi.png',
-                                        height: iconSize,
-                                        width: iconSize,
-                                      ),
-                                    IconButton(
-                                      onPressed: () async {
-                                        MovieByUser? existingMovie = await MovieByUserService.getMovieMemoByTitle(widget.movie.localTitle);
-                                        // Show memo input modal bottom sheet
-                                        showModalBottomSheet(
-                                          context: context,
-                                          isScrollControlled: true, // Allows the screen to adjust for the keyboard
-                                          builder: (BuildContext context) {
-                                            // Check if the movie already has a memo and set initial memo content
-                                            String initialMemo = existingMovie != null ? '${existingMovie.memo}\r\n' : '';
-                                            initialMemo += '[${widget.movie.localTitle}] ${DateFormat('yyyy/MM/dd').format(DateTime.now())}\r\n';
-
-                                            TextEditingController memoController = TextEditingController(text: initialMemo);
-
-                                            return Padding(
-                                              padding: EdgeInsets.only(
-                                                bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust height for the keyboard
-                                                left: 16,
-                                                right: 16,
-                                              ),
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: <Widget>[
-                                                  const SizedBox(height: 10),
-                                                  Text(
-                                                    'Add Memo',
-                                                    style: TextStyle(
-                                                      fontSize: MediaQuery.of(context).size.height * 0.019,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 10),
-                                                  Scrollbar(
-                                                    thumbVisibility: true,
-                                                    child: TextField(
-                                                      controller: memoController,
-                                                      maxLines: 6, 
-                                                      decoration: InputDecoration(
-                                                        labelText: 'Enter your memo',
-                                                        border: OutlineInputBorder(),
-                                                      ),
-                                                      style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.018),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 10),
-                                                  Row(
-                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                    children: [
-                                                      ElevatedButton(
-                                                        onPressed: () {
-                                                          Navigator.pop(context);  // Close modal
-                                                        },
-                                                        child: const Text('Close Memo'),
-                                                      ),
-                                                      ElevatedButton(
-                                                        onPressed: () async {
-                                                          String memo = memoController.text;
-
-                                                          // Check if the movie already exists
-                                                          if (existingMovie != null) {
-                                                            // If movie exists, replace the memo (or append)
-                                                            existingMovie.memo = memo; // Replace the memo
-                                                            // To append the new memo to the existing one, use the following line instead:
-                                                            // existingMovie.memo = '${existingMovie.memo}\n$memo';
-                                                            existingMovie.savedDate = DateTime.now();
-                                                            await MovieByUserService.updateMovieMemo(existingMovie);
-
-                                                            // Show success message for update
-                                                            ScaffoldMessenger.of(context).showSnackBar(
-                                                              SnackBar(
-                                                                content: Text('Memo updated for movie!'),
-                                                                duration: Duration(milliseconds: 200) // Adjusted duration for readability
-                                                              ),
-                                                            );
-                                                          } else {
-                                                            // If movie does not exist and is available for adding
-                                                            if (memo.isNotEmpty && await MovieByUserService.getIsAvailable(4)) {
-                                                              MovieByUser addMovie = MovieByUser(
-                                                                flag: 4,
-                                                                movie: widget.movie,
-                                                                savedDate: DateTime.now(),
-                                                                memo: memo,
-                                                              );
-                                                              await MovieByUserService.addMovie(4, addMovie);
-
-                                                              // Show success message for adding new memo
-                                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                                SnackBar(
-                                                                  content: Text('Movie added to Memo!'),
-                                                                  duration: Duration(milliseconds: 200) // Adjusted duration for readability
-                                                                ),
-                                                              );
-                                                            } else {
-                                                              // Show error message for exceeding limit
-                                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                                SnackBar(
-                                                                  content: Text('You have exceeded the limit of 30 movies in your Memo list.'),
-                                                                  duration: Duration(milliseconds: 200) // Adjusted duration for readability
-                                                                ),
-                                                              );
-                                                            }
-                                                          }
-                                                          Navigator.pop(context);  // Close modal after action
-                                                        },
-                                                        child: const Text('Save Memo'),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  const SizedBox(height: 10),
-                                                ],
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      },
-                                      icon: Image.asset(
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: Image.asset(
                                         settingsProvider.isDarkTheme
-                                            ? 'assets/images/dark/icon_memo_DT_xxhdpi.png'
-                                            : 'assets/images/light/icon_memo_LT_xxhdpi.png',
-                                        height: iconSize,
-                                        width: iconSize,
+                                            ? 'assets/images/dark/icon_save_DT_xxhdpi.png'
+                                            : 'assets/images/light/icon_save_LT_xxhdpi.png',
+                                        height: MediaQuery.of(context).size.height * 0.030,
+                                        width: MediaQuery.of(context).size.height * 0.030,
                                       ),
-                                    ),
-                                    // Add an invisible icon button for spacing
-                                    IconButton(
-                                      icon: Icon(
-                                        Platform.isIOS 
-                                          ? Icons.ios_share_outlined  // iOS에서 사용할 아이콘
-                                          : Icons.share_outlined,     // Android에서 사용할 아이콘
-                                      ),
-                                      iconSize: iconSize,
-                                      onPressed: () => {
-                                        Share.share(
-                                          'https://www.youtube.com/watch?v=${widget.movie.trailerUrl}',
-                                          subject: 'Share ${widget.movie.localTitle} Movie Trailer',
-                                          sharePositionOrigin: Rect.fromLTWH(0, 0, MediaQuery.of(context).size.width, MediaQuery.of(context).size.height / 2),
-                                        )
-                                      }, // No action
-                                    ),
-                                  ],
-                                ),
-                              
-                              if (widget.movie.special!.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Text(
-                                    '${getTranslatedDetail('Year', settingsProvider.language)}: ${widget.movie.year}',
-                                    style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.018,
-                                    ),
-                                  ),
-                                ),
-                              if (widget.movie.credits?["crew"] != null &&
-                                  widget.movie.credits?["crew"].isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Text(
-                                    '${getTranslatedDetail('Director', settingsProvider.language)}: ${widget.movie.credits?["crew"].firstWhere((crewMember) => crewMember["job"] == "Director",  orElse: () => widget.movie.credits?["crew"][0])["name"]}',
-                                    style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.018,
-                                    ),
-                                  ),
-                                ),
-                              if (widget.movie.credits?["cast"] != null &&
-                                  widget.movie.credits?["cast"].isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Text(
-                                    '${getTranslatedDetail('Stars', settingsProvider.language)}: ${widget.movie.credits?["cast"]
-                                        .map((castMember) => castMember["name"])
-                                        .join(", ")}',
-                                    style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.018,
-                                    ),
-                                  ),
-                                ),
-                              if(widget.movie.country != "")
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Text(
-                                    '${getTranslatedDetail('Country', settingsProvider.language)}: ${convertCountryCodeToName(widget.movie.country)}',
-                                    style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.018,
-                                    ),
-                                  ),
-                                ),
-                              if (widget.movie.runtime != "")
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Text(
-                                    '${getTranslatedDetail('Running Time', settingsProvider.language)}: ${widget.movie.runtime} ${getTranslatedDetail('Minute', settingsProvider.language)}',
-                                    style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.018,
-                                    ),
-                                  ),
-                                ),
-                              const SizedBox(height: 10),
-                              if (widget.movie.spec != "ERR404")
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    widget.movie.spec,
-                                    style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.018,
-                                    ),
-                                  ),
-                                ),
+                                onPressed: () async {
+                                  // Update the memo in the movie object
+                                  movie.memo = _memoControllers[index]!.text;
+                                  await MovieByUserService.updateMovie(movie.flag, index, movie);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(getMessage(settingsProvider.language, 'saveMemo')), duration: Duration(milliseconds: 300),),
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.close, size: MediaQuery.of(context).size.height * 0.030,),
+                                onPressed: () async {
+                                  // Delete the movie and refresh the list
+                                  await MovieByUserService.deleteMovie(movie.flag, index);
+                                  setState(() {
+                                    movies.removeAt(index); // Remove the movie from the list
+                                  });
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(getMessage(settingsProvider.language, 'movieDeleted')), duration: Duration(milliseconds: 300),),
+                                  );
+                                },
+                              ),
                             ],
-                          ],
+                          ),
+                        ],
+                      ),
+                      Scrollbar(
+                        thumbVisibility: true,
+                        controller: _scrollController[index],
+                        child: TextField(
+                          maxLines: 6, // Show up to 6 lines before enabling scrolling
+                          controller: _memoControllers[index], // Use the stored controller
+                          scrollController: _scrollController[index],
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                          ),
+                          style: TextStyle(
+                            fontSize: MediaQuery.of(context).size.height * 0.018,
+                          ),
                         ),
-                      );
-                    },
+                      ),
+                    ],
                   ),
                 ),
               ],
-            )
-          ],
-        ),
-      ),
-    ); 
-  }
-
-  Widget _buildErrorWidget() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(height: 20),
-            Icon(
-              Icons.error_outline,
-              color: Colors.red,
-              size: 50,
             ),
-            SizedBox(height: 10),
-            Text(
-              'Trailer is not available',
-              style: TextStyle(color: Colors.red, fontSize: 16),
-            ),
-            SizedBox(height: 10),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

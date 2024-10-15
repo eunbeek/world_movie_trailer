@@ -2,7 +2,7 @@ name: world_movie_trailer
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.0+18
+version: 1.0.0+21
 
 environment:
   sdk: '>=3.3.3 <4.0.0'
@@ -60,6 +60,7 @@ flutter:
     - assets/images/dark/icon_drag_handle_DT_xxhdpi.png
     - assets/images/dark/icon_like_fill_DT_xxhdpi.png
     - assets/images/dark/icon_dislike_fill_DT_xxhdpi.png
+    - assets/images/dark/icon_save_DT_xxhdpi.png
     - assets/images/light/deco_world_map_LT_xxhdpi.png
     - assets/images/light/deco_film_reel_LT_xxhdpi.png
     - assets/images/light/icon_config_LT_xxhdpi.png
@@ -76,5 +77,7 @@ flutter:
     - assets/images/light/icon_drag_handle_LT_xxhdpi.png
     - assets/images/light/icon_like_fill_LT_xxhdpi.png
     - assets/images/light/icon_dislike_fill_LT_xxhdpi.png
+    - assets/images/light/icon_save_LT_xxhdpi.png
     - assets/images/SIL_logo_h_xxhdpi.png
     - assets/images/deco_film_reel_02_DT_xxhdpi.png
+    - assets/images/icon_list_delete_xxhdpi.png
