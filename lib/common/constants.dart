@@ -4,6 +4,33 @@ const appTitle = "World Movie Trailer";
 // settings_provider
 const supportedLanguages = ['en', 'ko', 'ja', 'zh', 'tw', 'fr', 'de', 'es', 'hi', 'th'];
 
+Map<String, Map<String, String>> otherAppName = {
+  'Find Four': {
+    'en': 'Find Four',
+    'ko': '파인드 포',
+    'ja': 'ファインドフォー',
+    'zh': 'Find Four', // 중국어 간체
+    'tw': 'Find Four', // 중국어 번체
+    'fr': 'Find Four',
+    'de': 'Find Four',
+    'es': 'Find Four',
+    'hi': 'Find Four',
+    'th': 'Find Four',
+  },
+  'English Wangza': {
+    'en': 'English Wangza',
+    'ko': '영어 왕자',
+    'ja': '英語の王子様',
+    'zh': '英语王子',
+    'tw': '英語王子',
+    'fr': 'English Wangza',
+    'de': 'English Wangza',
+    'es': 'English Wangza',
+    'hi': 'English Wangza',
+    'th': 'English Wangza',
+  }
+};
+
 Map<String, Map<String, String>> settingLabel = {
   'ko': {
     'userdata': '사용자 데이터',
@@ -247,15 +274,15 @@ Map<String, Map<String, String>> settingLabel = {
   },
 };
 
-  final Map<int, List<String>> countryByDay = {
-    0: ['korea'],          // Monday
-    1: ['japan'],          // Tuesday
-    2: ['usa', 'canada'], // Wednesday
-    3: ['india', 'spain', 'taiwan', 'china'], // Thursday
-    4: ['france'],        // Friday
-    5: ['germany'],          // Saturday
-    6: ['australia', 'thailand'],   // Sunday
-  };
+final Map<int, List<String>> countryByDay = {
+  0: ['korea'],          // Monday
+  1: ['japan'],          // Tuesday
+  2: ['usa', 'canada'], // Wednesday
+  3: ['india', 'spain', 'taiwan', 'china'], // Thursday
+  4: ['france'],        // Friday
+  5: ['germany'],          // Saturday
+  6: ['australia', 'thailand'],   // Sunday
+};
   
 Map<String, Map<String, String>> countryNameByLan = {
   'ko': {
@@ -270,126 +297,6 @@ Map<String, Map<String, String>> countryNameByLan = {
     'hi': 'हिन्दी',
     'th': 'แบบไทย',
   },
-  // 'ko': {
-  //   'ko': '한국어',
-  //   'en': '영어',
-  //   'ja': '일본어',
-  //   'zh': '중국어 간체',
-  //   'tw': '중국어 번체',
-  //   'fr': '프랑스어',
-  //   'de': '독일어',
-  //   'es': '스페인어',
-  //   'hi': '힌디어',
-  //   'th': '태국어',
-  // },
-  // 'en': {
-  //   'ko': 'Korean',
-  //   'en': 'English',
-  //   'ja': 'Japanese',
-  //   'zh': 'Simplified Chinese',
-  //   'tw': 'Traditional Chinese',
-  //   'fr': 'French',
-  //   'de': 'German',
-  //   'es': 'Spanish',
-  //   'hi': 'Hindi',
-  //   'th': 'Thai',
-  // },
-  // 'ja': {
-  //   'ko': '韓国語',
-  //   'en': '英語',
-  //   'ja': '日本語',
-  //   'zh': '簡体字中国語',
-  //   'tw': '繁体字中国語',
-  //   'fr': 'フランス語',
-  //   'de': 'ドイツ語',
-  //   'es': 'スペイン語',
-  //   'hi': 'ヒンディー語',
-  //   'th': 'タイ語',
-  // },
-  // 'zh': {
-  //   'ko': '韩语',
-  //   'en': '英语',
-  //   'ja': '日语',
-  //   'zh': '简体中文',
-  //   'tw': '繁体中文',
-  //   'fr': '法语',
-  //   'de': '德语',
-  //   'es': '西班牙语',
-  //   'hi': '印地语',
-  //   'th': '泰语',
-  // },
-  // 'tw': {
-  //   'ko': '韓語',
-  //   'en': '英語',
-  //   'ja': '日語',
-  //   'zh': '簡體中文',
-  //   'tw': '繁體中文',
-  //   'fr': '法語',
-  //   'de': '德語',
-  //   'es': '西班牙語',
-  //   'hi': '印地語',
-  //   'th': '泰語',
-  // },
-  // 'fr': {
-  //   'ko': 'Coréen',
-  //   'en': 'Anglais',
-  //   'ja': 'Japonais',
-  //   'zh': 'Chinois simplifié',
-  //   'tw': 'Chinois traditionnel',
-  //   'fr': 'Français',
-  //   'de': 'Allemand',
-  //   'es': 'Espagnol',
-  //   'hi': 'Hindi',
-  //   'th': 'Thaïlandais',
-  // },
-  // 'de': {
-  //   'ko': 'Koreanisch',
-  //   'en': 'Englisch',
-  //   'ja': 'Japanisch',
-  //   'zh': 'Vereinfachtes Chinesisch',
-  //   'tw': 'Traditionelles Chinesisch',
-  //   'fr': 'Französisch',
-  //   'de': 'Deutsch',
-  //   'es': 'Spanisch',
-  //   'hi': 'Hindi',
-  //   'th': 'Thailändisch',
-  // },
-  // 'es': {
-  //   'ko': 'Coreano',
-  //   'en': 'Inglés',
-  //   'ja': 'Japonés',
-  //   'zh': 'Chino simplificado',
-  //   'tw': 'Chino tradicional',
-  //   'fr': 'Francés',
-  //   'de': 'Alemán',
-  //   'es': 'Español',
-  //   'hi': 'Hindi',
-  //   'th': 'Tailandés',
-  // },
-  // 'hi': {
-  //   'ko': 'कोरियाई',
-  //   'en': 'अंग्रेज़ी',
-  //   'ja': 'जापानी',
-  //   'zh': 'सरलीकृत चीनी',
-  //   'tw': 'परंपरागत चीनी',
-  //   'fr': 'फ़्रेंच',
-  //   'de': 'जर्मन',
-  //   'es': 'स्पैनिश',
-  //   'hi': 'हिन्दी',
-  //   'th': 'थाई',
-  // },
-  // 'th': {
-  //   'ko': 'เกาหลี',
-  //   'en': 'ภาษาอังกฤษ',
-  //   'ja': 'ญี่ปุ่น',
-  //   'zh': 'จีนตัวย่อ',
-  //   'tw': 'จีนดั้งเดิม',
-  //   'fr': 'ภาษาฝรั่งเศส',
-  //   'de': 'เยอรมัน',
-  //   'es': 'สเปน',
-  //   'hi': 'ภาษาฮินดี',
-  //   'th': 'ภาษาไทย',
-  // },
 };
 // Constants for app bar titles
 const Map<String, String> countryAppBars = {
@@ -407,74 +314,74 @@ const Map<String, String> countryAppBars = {
 
 Map<String, Map<String, String>> menuTranslations = {
   'ko': {
-    'Country Order': '국가 순서',
+    'Country Order': '국가 순서 변경',
     'Like': '좋아요',
     'Dislike': '싫어요',
     'Bookmark': '북마크',
     'Memo': '메모',
   },
   'en': {
-    'Country Order': 'Country Order',
+    'Country Order': 'Reorder Countries',
     'Like': 'Like',
     'Dislike': 'Dislike',
     'Bookmark': 'Bookmark',
     'Memo': 'Memo',
   },
   'ja': {
-    'Country Order': '国の順序',
-    'Like': 'いいね',
-    'Dislike': '嫌い',
-    'Bookmark': 'ブックマーク',
+    'Country Order': '国別の並び順を変更',
+    'Like': '高評価',
+    'Dislike': '低評価',
+    'Bookmark': 'お気に入り',
     'Memo': 'メモ',
   },
   'zh': {
-    'Country Order': '国家顺序', // Simplified Chinese
-    'Like': '赞',
+    'Country Order': '国家顺序变更', // Simplified Chinese
+    'Like': '喜欢',
     'Dislike': '不喜欢',
     'Bookmark': '书签',
     'Memo': '备忘录',
   },
   'tw': {
-    'Country Order': '國家順序', // Traditional Chinese
-    'Like': '讚',
+    'Country Order': '國家順序變更', // Traditional Chinese
+    'Like': '喜歡',
     'Dislike': '不喜歡',
     'Bookmark': '書籤',
     'Memo': '備忘錄',
   },
   'fr': {
-    'Country Order': 'Ordre des pays',
-    'Like': 'J’aime',
+    'Country Order': 'Réorganiser les pays',
+    'Like': 'J\'aime',
     'Dislike': 'Je n’aime pas',
-    'Bookmark': 'Signet',
+    'Bookmark': 'Marque-page',
     'Memo': 'Mémo',
   },
   'de': {
-    'Country Order': 'Länderreihenfolge',
+    'Country Order': 'Länder neu ordnen',
     'Like': 'Gefällt mir',
     'Dislike': 'Gefällt mir nicht',
     'Bookmark': 'Lesezeichen',
-    'Memo': 'Notiz',
+    'Memo': 'Memo',
   },
   'es': {
-    'Country Order': 'Orden de países',
+    'Country Order': 'Reordenar países',
     'Like': 'Me gusta',
     'Dislike': 'No me gusta',
     'Bookmark': 'Marcador',
-    'Memo': 'Memo',
+    'Memo': 'Nota',
   },
   'hi': {
-    'Country Order': 'देश का क्रम',
+    'Country Order': 'देशों को पुनः क्रमबद्ध करें',
     'Like': 'पसंद',
     'Dislike': 'नापसंद',
     'Bookmark': 'बुकमार्क',
-    'Memo': 'स्मरण लेख',
+    'Memo': 'ज्ञापन',
   },
   'th': {
-    'Country Order': 'ลำดับประเทศ',
-    'Like': 'ถูกใจ',
+    'Country Order': 'จัดเรียงประเทศใหม่',
+    'Like': 'ชอบ',
     'Dislike': 'ไม่ชอบ',
     'Bookmark': 'บุ๊กมาร์ก',
-    'Memo': 'บันทึกช่วยจำ',
+    'Memo': 'เมโม่',
   },
 };
 
@@ -486,10 +393,12 @@ Map<String, Map<String, String>> messageTranslations = {
     'addToBookmark': '\'북마크\'에 영화 추가',
     'addToMemo': '\'메모\'에 영화 추가',
     'maxMoviesReached': 'Max 30개까지 저장 가능',
-    'saveMemo': '메모 저장',
-    'closeMemo': '메모 닫기',
-    'addMemo': '메모 추가',
-    'movieDeleted': '영화가 성공적으로 삭제되었습니다',
+    'maxMemosReached': 'Max 300 단어까지 저장 가능',
+    'saveMemo': '저장',
+    'closeMemo': '닫기',
+    'addMemo': '메모',
+    'movieDeleted': '영화를 삭제 했습니다.',
+    'memoDeleted': '메모를 삭제 했습니다.',
   },
   'en': {
     'duplicateMovie': 'The same movie already exists.',
@@ -498,10 +407,12 @@ Map<String, Map<String, String>> messageTranslations = {
     'addToBookmark': 'Add this movie to \'Bookmark\'',
     'addToMemo': 'Add this movie to \'Memo\'',
     'maxMoviesReached': 'You\'ve reached the maximum of 30.',
-    'saveMemo': 'Save the Memo.',
-    'closeMemo': 'Close Memo',
-    'addMemo': 'Add Memo',
-    'movieDeleted': 'Movie deleted successfully',
+    'maxMemosReached': 'You\'ve reached the maximum of 300 words.',
+    'saveMemo': 'Save',
+    'closeMemo': 'Close',
+    'addMemo': 'Memo',
+    'movieDeleted': 'Deleted the movie.',
+    'memoDeleted': 'Deleted the memo.',
   },
   'ja': {
     'duplicateMovie': '同じ映画 既にあり',
@@ -510,10 +421,12 @@ Map<String, Map<String, String>> messageTranslations = {
     'addToBookmark': '「ブックマーク」に映画追加',
     'addToMemo': '「メモ」に映画を追加',
     'maxMoviesReached': 'Max 30個まで保存可能',
-    'saveMemo': 'メモ·セーブ',
-    'closeMemo': 'メモを閉じる',
-    'addMemo': 'メモを追加',
-    'movieDeleted': '映画が正常に削除されました',
+    'maxMemosReached': '最大300単語まで保存可能',
+    'saveMemo': '保存する',
+    'closeMemo': '閉じる',
+    'addMemo': 'メモ',
+    'movieDeleted': '映画を削除しました。',
+    'memoDeleted': 'メモを削除しました。',
   },
   'zh': {
     'duplicateMovie': '同样的电影已经存在。',
@@ -522,10 +435,12 @@ Map<String, Map<String, String>> messageTranslations = {
     'addToBookmark': '将此视频添加到"Bookmark"',
     'addToMemo': '将这部电影添加到"备忘录"中',
     'maxMoviesReached': '你已经达到了最高30。',
-    'saveMemo': '保存备忘录',
-    'closeMemo': '关闭备忘录',
-    'addMemo': '添加备忘录',
-    'movieDeleted': '电影删除成功',
+    'maxMemosReached': '你已达字数上限300',
+    'saveMemo': '保存',
+    'closeMemo': '关闭',
+    'addMemo': '备忘录',
+    'movieDeleted': '删除电影',
+    'memoDeleted' : '删除备忘录'
   },
   'tw': {
     'duplicateMovie': '同樣的電影已經存在。',
@@ -534,10 +449,12 @@ Map<String, Map<String, String>> messageTranslations = {
     'addToBookmark': '將此視頻添加到"Bookmark"',
     'addToMemo': '將這部電影添加到"備忘錄"中',
     'maxMoviesReached': '你已經達到了最高30。',
-    'saveMemo': '保存備忘錄',
-    'closeMemo': '關閉備忘錄',
-    'addMemo': '添加備忘錄',
-    'movieDeleted': '電影刪除成功',
+    'maxMemosReached': '你已達字數上限300',
+    'saveMemo': '保存',
+    'closeMemo': '關閉',
+    'addMemo': '備忘錄',
+    'movieDeleted': '刪除電影',
+    'memoDeleted': '刪除備忘錄'
   },
   'fr': {
     'duplicateMovie': 'Le même film existe déjà',
@@ -546,10 +463,12 @@ Map<String, Map<String, String>> messageTranslations = {
     'addToBookmark': 'Ajouter ce film à \'Marque-page\'',
     'addToMemo': 'Ajouter ce film à \'Mémo\'',
     'maxMoviesReached': 'Vous avez atteint le maximum de 30.',
-    'saveMemo': 'Enregistrer le mémo',
-    'closeMemo': 'Fermer le mémo',
-    'addMemo': 'Ajouter un mémo',
-    'movieDeleted': 'Film supprimé avec succès',
+    'maxMemosReached': 'Vous avez atteint le maximum de 300 mots.',
+    'saveMemo': 'Enregistrer',
+    'closeMemo': 'Fermer',
+    'addMemo': 'Mémo',
+    'movieDeleted': 'Supprimé le film.',
+    'memoDeleted': 'Supprimé le mémo.'
   },
   'de': {
     'duplicateMovie': 'Der gleiche Film existiert bereits',
@@ -558,10 +477,12 @@ Map<String, Map<String, String>> messageTranslations = {
     'addToBookmark': 'Füge diesen Film zu \'Lesezeichen\' hinzu',
     'addToMemo': 'Füge diesen Film zu \'Memo\' hinzu',
     'maxMoviesReached': 'Sie haben das Maximum von 30 erreicht.',
-    'saveMemo': 'Memo speichern',
-    'closeMemo': 'Memo schließen',
-    'addMemo': 'Memo hinzufügen',
-    'movieDeleted': 'Film erfolgreich gelöscht',
+    'maxMemosReached': 'Sie haben das Maximum von 300 Wörtern erreicht',
+    'saveMemo': 'Speichern',
+    'closeMemo': 'Schließen',
+    'addMemo': 'Memo',
+    'movieDeleted': 'Den Film gelöscht.',
+    'memoDeleted': 'Memo gelöscht.',
   },
   'es': {
     'duplicateMovie': 'La misma película ya existe',
@@ -570,10 +491,12 @@ Map<String, Map<String, String>> messageTranslations = {
     'addToBookmark': 'Agregar esta película a \'Marcador\'',
     'addToMemo': 'Agregar esta película a \'Nota\'',
     'maxMoviesReached': 'Has alcanzado el máximo de 30.',
-    'saveMemo': 'Guardar la nota',
-    'closeMemo': 'Cerrar la nota',
-    'addMemo': 'Agregar una nota',
-    'movieDeleted': 'Película eliminada con éxito',
+    'maxMemosReached': 'Has alcanzado el máximo de 300 palabras.',
+    'saveMemo': 'Guardar',
+    'closeMemo': 'Cerrar',
+    'addMemo': 'Nota',
+    'movieDeleted': 'Eliminada la película.',
+    'memoDeleted': 'Eliminada la nota.',
   },
   'hi': {
     'duplicateMovie': 'वही फिल्म पहले से मौजूद है',
@@ -582,10 +505,12 @@ Map<String, Map<String, String>> messageTranslations = {
     'addToBookmark': 'इस फिल्म को \'बुकमार्क\' में जोड़ें',
     'addToMemo': 'इस फिल्म को \'नोट\' में जोड़ें',
     'maxMoviesReached': 'आप 30 की अधिकतम सीमा पर पहुंच गए हैं',
-    'saveMemo': 'नोट सहेजें',
-    'closeMemo': 'नोट बंद करें',
-    'addMemo': 'नोट जोड़ें',
-    'movieDeleted': 'फिल्म सफलतापूर्वक हटाई गई',
+    'maxMemosReached': 'आपने 300 शब्दों की अधिकतम सीमा तक पहुँच गया है।',
+    'saveMemo': 'सहेजें',
+    'closeMemo': 'बंद करें',
+    'addMemo': 'ज्ञापन',
+    'movieDeleted': 'फ़िल्म हटाई गई।',
+    'memoDeleted':'मेमो हटा दिया।',
   },
   'th': {
     'duplicateMovie': 'ภาพยนตร์เรื่องเดียวกันมีอยู่แล้ว',
@@ -594,13 +519,14 @@ Map<String, Map<String, String>> messageTranslations = {
     'addToBookmark': 'เพิ่มภาพยนตร์เรื่องนี้ไปที่ \'บุ๊กมาร์ก\'',
     'addToMemo': 'เพิ่มภาพยนตร์เรื่องนี้ไปที่ \'บันทึก\'',
     'maxMoviesReached': 'คุณถึงจำนวนสูงสุดที่ 30 แล้ว',
-    'saveMemo': 'บันทึกบันทึก',
-    'closeMemo': 'ปิดบันทึก',
-    'addMemo': 'เพิ่มบันทึก',
-    'movieDeleted': 'ลบภาพยนตร์สำเร็จ',
+    'maxMemosReached': 'आपने 300 शब्दों की अधिकतम सीमा तक पहुँच गया है।',
+    'saveMemo': 'บันทึก',
+    'closeMemo': 'ปิด',
+    'addMemo': 'เมโม่',
+    'movieDeleted': 'ลบภาพยนตร์แล้ว',
+    'memoDeleted': 'ลบบันทึกแล้ว',
   },
 };
-
 
 const Map<String, String> countryAppBarNameByCountry = {
   'en': "Trailer in ",  // English

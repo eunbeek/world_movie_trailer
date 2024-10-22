@@ -101,7 +101,9 @@ class MovieService {
 
       List<Movie> movies = movieList.map((json) {
         final movie = Movie.fromJson(json);
-
+        if(!movie.posterUrl.startsWith('http')) {
+          movie.posterUrl = "";
+        }
         DateTime? releaseDate;
         try {
           releaseDate = movie.releaseDate.isNotEmpty ? dateFormat.parseStrict(movie.releaseDate) : null;
@@ -117,7 +119,7 @@ class MovieService {
         }
 
         return movie;
-      }).where((movie)=> movie.trailerUrl.isNotEmpty)
+      }).where((movie)=> movie.trailerUrl.isNotEmpty && movie.localTitle.isNotEmpty)
       .toList();
 
       // Return a Map containing the timestamp and the processed movies

@@ -176,7 +176,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
                                               content: Text(getMessage(settingsProvider.language, 'duplicateMovie')),
-                                              duration: Duration(milliseconds: 300) // Adjusted duration for readability
+                                              duration: Duration(milliseconds: 500), // Adjusted duration for readability
                                             ),
                                           );
                                           return;  // Exit early if movie is duplicated
@@ -194,14 +194,14 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
                                               content: Text(getMessage(settingsProvider.language, 'addToLike')),
-                                              duration: Duration(milliseconds: 300) // Adjusted duration for readability
+                                              duration: Duration(milliseconds: 500), // Adjusted duration for readability
                                             ),
                                           );
                                         } else {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
                                               content: Text(getMessage(settingsProvider.language, 'maxMoviesReached')),
-                                              duration: Duration(milliseconds: 300) // Adjusted duration for readability
+                                              duration: Duration(milliseconds: 500), // Adjusted duration for readability
                                             ),
                                           );
                                         }
@@ -220,7 +220,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
                                               content: Text(getMessage(settingsProvider.language, 'duplicateMovie')),
-                                              duration: Duration(milliseconds: 300) // Adjusted duration for readability
+                                              duration: Duration(milliseconds: 500), // Adjusted duration for readability
                                             ),
                                           );
                                           return;  // Exit early if movie is duplicated
@@ -238,14 +238,14 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
                                               content: Text(getMessage(settingsProvider.language, 'addToDislike')),
-                                              duration: Duration(milliseconds: 300) // Adjusted duration for readability
+                                              duration: Duration(milliseconds: 500), // Adjusted duration for readability
                                             ),
                                           );
                                         } else {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
                                               content: Text(getMessage(settingsProvider.language, 'maxMoviesReached')),
-                                              duration: Duration(milliseconds: 300) // Adjusted duration for readability
+                                              duration: Duration(milliseconds: 500), // Adjusted duration for readability
                                             ),
                                           );
                                         }
@@ -265,7 +265,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
                                               content: Text(getMessage(settingsProvider.language, 'duplicateMovie')),
-                                              duration: Duration(milliseconds: 300) // Adjusted duration for readability
+                                              duration: Duration(milliseconds: 500), // Adjusted duration for readability
                                             ),
                                           );
                                           return;  // Exit early if movie is duplicated
@@ -275,7 +275,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
                                               content: Text(getMessage(settingsProvider.language, 'maxMoviesReached')),
-                                              duration: Duration(milliseconds: 300) // Adjusted duration for readability
+                                              duration: Duration(milliseconds: 500), // Adjusted duration for readability
                                             ),
                                           );
                                           return;  // Exit early if count exceeded
@@ -295,7 +295,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
                                               content: Text(getMessage(settingsProvider.language, 'addToBookmark')),
-                                              duration: Duration(seconds: 2),  // Adjusted duration for readability
+                                              duration: Duration(milliseconds: 500),  // Adjusted duration for readability
                                             ),
                                           );
                                         }
@@ -309,20 +309,28 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                     IconButton(
                                       onPressed: () async {
                                         MovieByUser? existingMovie = await MovieByUserService.getMovieMemoByTitle(widget.movie.localTitle);
+                                        FocusNode memoFocusNode = FocusNode();
                                         // Show memo input modal bottom sheet
                                         showModalBottomSheet(
                                           context: context,
-                                          isScrollControlled: true, // Allows the screen to adjust for the keyboard
+                                          isScrollControlled: true,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                          ),
                                           builder: (BuildContext context) {
-                                            // Check if the movie already has a memo and set initial memo content
-                                            String initialMemo = existingMovie != null ? '${existingMovie.memo}\r\n' : '';
-                                            initialMemo += '[${widget.movie.localTitle}] ${DateFormat('yyyy/MM/dd').format(DateTime.now())}\r\n';
+                                            String initialMemo = existingMovie != null
+                                                ? '${existingMovie.memo}\r\n'
+                                                : '${DateFormat('yyyy/MM/dd').format(DateTime.now())}\r\n';
 
                                             TextEditingController memoController = TextEditingController(text: initialMemo);
 
+                                            memoController.selection = TextSelection.fromPosition(
+                                              TextPosition(offset: memoController.text.length),
+                                            );
+
                                             return Padding(
                                               padding: EdgeInsets.only(
-                                                bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust height for the keyboard
+                                                bottom: MediaQuery.of(context).viewInsets.bottom,
                                                 left: 16,
                                                 right: 16,
                                               ),
@@ -343,7 +351,8 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                                     thumbVisibility: true,
                                                     child: TextField(
                                                       controller: memoController,
-                                                      maxLines: 6, 
+                                                      focusNode: memoFocusNode,
+                                                      maxLines: 6,
                                                       decoration: InputDecoration(
                                                         border: OutlineInputBorder(),
                                                       ),
@@ -356,60 +365,63 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                                     children: [
                                                       ElevatedButton(
                                                         onPressed: () {
-                                                          Navigator.pop(context);  // Close modal
+                                                          Navigator.pop(context);
                                                         },
                                                         child: Text(getMessage(settingsProvider.language, 'closeMemo')),
                                                       ),
                                                       ElevatedButton(
-                                                        onPressed: () async {
-                                                          String memo = memoController.text;
+                                                        onPressed: memoController.text.isEmpty || memoController.text.length >= 300
+                                                            ? null
+                                                            : () async {
+                                                                String memo = memoController.text;
 
-                                                          // Check if the movie already exists
-                                                          if (existingMovie != null) {
-                                                            // If movie exists, replace the memo (or append)
-                                                            existingMovie.memo = memo; // Replace the memo
-                                                            // To append the new memo to the existing one, use the following line instead:
-                                                            // existingMovie.memo = '${existingMovie.memo}\n$memo';
-                                                            existingMovie.savedDate = DateTime.now();
-                                                            await MovieByUserService.updateMovieMemo(existingMovie);
+                                                                if (memo.length >= 300) {
+                                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                                    SnackBar(
+                                                                      content: Text(getMessage(settingsProvider.language, 'maxMemosReached')),
+                                                                      duration: Duration(milliseconds: 500),
+                                                                    ),
+                                                                  );
+                                                                } else {
+                                                                  if (existingMovie != null) {
+                                                                    existingMovie.memo = memo;
+                                                                    existingMovie.savedDate = DateTime.now();
+                                                                    await MovieByUserService.updateMovieMemo(existingMovie);
 
-                                                            // Show success message for update
-                                                            ScaffoldMessenger.of(context).showSnackBar(
-                                                              SnackBar(
-                                                                content: Text(getMessage(settingsProvider.language, 'addToMemo')),
-                                                                duration: Duration(milliseconds: 300) // Adjusted duration for readability
-                                                              ),
-                                                            );
-                                                          } else {
-                                                            // If movie does not exist and is available for adding
-                                                            if (memo.isNotEmpty && await MovieByUserService.getIsAvailable(4)) {
-                                                              MovieByUser addMovie = MovieByUser(
-                                                                flag: 4,
-                                                                movie: widget.movie,
-                                                                savedDate: DateTime.now(),
-                                                                memo: memo,
-                                                              );
-                                                              await MovieByUserService.addMovie(4, addMovie);
+                                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                                      SnackBar(
+                                                                        content: Text(getMessage(settingsProvider.language, 'addToMemo')),
+                                                                        duration: Duration(milliseconds: 500),
+                                                                      ),
+                                                                    );
+                                                                  } else {
+                                                                    if (memo.isNotEmpty && await MovieByUserService.getIsAvailable(4)) {
+                                                                      MovieByUser addMovie = MovieByUser(
+                                                                        flag: 4,
+                                                                        movie: widget.movie,
+                                                                        savedDate: DateTime.now(),
+                                                                        memo: memo,
+                                                                      );
+                                                                      await MovieByUserService.addMovie(4, addMovie);
 
-                                                              // Show success message for adding new memo
-                                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                                SnackBar(
-                                                                  content: Text(getMessage(settingsProvider.language, 'addToMemo')),
-                                                                  duration: Duration(milliseconds: 300) // Adjusted duration for readability
-                                                                ),
-                                                              );
-                                                            } else {
-                                                              // Show error message for exceeding limit
-                                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                                SnackBar(
-                                                                  content: Text(getMessage(settingsProvider.language, 'maxMoviesReached')),
-                                                                  duration: Duration(milliseconds: 300) // Adjusted duration for readability
-                                                                ),
-                                                              );
-                                                            }
-                                                          }
-                                                          Navigator.pop(context);  // Close modal after action
-                                                        },
+                                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                                        SnackBar(
+                                                                          content: Text(getMessage(settingsProvider.language, 'addToMemo')),
+                                                                          duration: Duration(milliseconds: 500),
+                                                                        ),
+                                                                      );
+                                                                    } else {
+                                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                                        SnackBar(
+                                                                          content: Text(getMessage(settingsProvider.language, 'maxMoviesReached')),
+                                                                          duration: Duration(milliseconds: 500),
+                                                                        ),
+                                                                      );
+                                                                    }
+                                                                  }
+                                                                  Navigator.pop(context);
+                                                                }
+                                                              },
                                                         child: Text(getMessage(settingsProvider.language, 'saveMemo')),
                                                       ),
                                                     ],
@@ -419,7 +431,9 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                               ),
                                             );
                                           },
-                                        );
+                                        ).whenComplete(() {
+                                          memoFocusNode.requestFocus();
+                                        });
                                       },
                                       icon: Image.asset(
                                         settingsProvider.isDarkTheme

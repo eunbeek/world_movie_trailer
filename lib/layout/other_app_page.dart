@@ -43,10 +43,10 @@ class AppListPage extends StatelessWidget {
           child: Column(
             children: [
               Platform.isAndroid
-                  ? _buildAppListTile(context, settingsProvider, appFFName, appFFAndroidLink)
-                  : _buildAppListTile(context, settingsProvider, appFFName, appFFIosLink),
+                  ? _buildAppListTile(context, settingsProvider, appFFName, appFFAndroidLink, 'assets/images/Find_Four_Icon.png')
+                  : _buildAppListTile(context, settingsProvider, appFFName, appFFIosLink, 'assets/images/Find_Four_Icon.png'),
               const Divider(),
-              _buildAppListTile(context, settingsProvider, appEWName, appTwoLink),
+              _buildAppListTile(context, settingsProvider, appEWName, appTwoLink, 'assets/images/English_WangZa_Icon.png'),
             ],
           ),
         ),
@@ -127,10 +127,15 @@ class AppListPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAppListTile(BuildContext context, SettingsProvider settingsProvider, String appName, String appLink) {
+  Widget _buildAppListTile(BuildContext context, SettingsProvider settingsProvider, String appName, String appLink, String logoPath) {
     return ListTile(
+      leading: Image.asset(
+        logoPath,
+        width: MediaQuery.of(context).size.height * 0.04,
+        height: MediaQuery.of(context).size.height * 0.04,
+      ),
       title: Text(
-        appName,
+        getOtherAppName(settingsProvider.language, appName),
         style: TextStyle(
           fontSize: MediaQuery.of(context).size.height * 0.02,
         ),

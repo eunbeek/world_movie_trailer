@@ -79,26 +79,6 @@ class CreditsList extends StatelessWidget {
                     ),
                   ),
                 ),
-                // ListTile(
-                //   title: Text(
-                //     'Localization\r\nManagers',
-                //     style: TextStyle(
-                //       fontSize: MediaQuery.of(context).size.height * 0.017,
-                //     ),
-                //   ),
-                //   trailing: Container(
-                //     padding: const EdgeInsets.only(left: 25.0),
-                //     width: MediaQuery.of(context).size.width * 0.5,
-                //     child: Text(
-                //       'Mary, Kota\r\nCarol, Edward',
-                //       style: TextStyle(
-                //         fontSize: MediaQuery.of(context).size.height * 0.017,
-                //       ),
-                //       textDirection: TextDirection.rtl,
-                //       maxLines: 2,
-                //     ),
-                //   ),
-                // ),
                 const Divider(),
                 ListTile(
                   title: Text(
@@ -114,8 +94,8 @@ class CreditsList extends StatelessWidget {
                     ),
                   ),
                 ),
-                                const Divider(),
-                                ListTile(
+                const Divider(),
+                ListTile(
                   title: Text(
                     'Localization Managers',
                     style: TextStyle(
@@ -127,7 +107,7 @@ class CreditsList extends StatelessWidget {
                     children: [
                       SizedBox(height: 12.0), 
                       Text(
-                        '  Mary, Kota, Carol, Edward',
+                        '  Mary, Kota, Carol, Edward, Carmack',
                         style: TextStyle(
                           fontSize: MediaQuery.of(context).size.height * 0.017,
                         ),

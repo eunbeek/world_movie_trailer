@@ -12,6 +12,10 @@ String getSettingsLabel(String languageCode, String field){
   return settingLabel[languageCode.toLowerCase()]?[field] ?? '';
 }
 
+String getOtherAppName(String languageCode, String field){
+  return otherAppName[field]?[languageCode.toLowerCase()]?? field;
+}
+
 // Country list - app bar
 String getAppBarTitle(String languageCode) {
   return countryAppBars[languageCode.toUpperCase()] ?? countryAppBars['EN']!;

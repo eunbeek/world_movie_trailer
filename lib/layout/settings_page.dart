@@ -78,7 +78,7 @@ class SettingsPage extends StatelessWidget {
                   centerTitle: true,
                   title: AnimatedOpacity(
                     opacity: top < MediaQuery.of(context).size.height * 0.1 ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 500),
                     child: Text(
                       getSettingsLabel(settingsProvider.language, "setting"),
                       style: TextStyle(

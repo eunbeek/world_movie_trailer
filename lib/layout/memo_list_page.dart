@@ -330,11 +330,21 @@ class _MemoListPageState extends State<MemoListPage> {
                                       ),
                                 onPressed: () async {
                                   // Update the memo in the movie object
-                                  movie.memo = _memoControllers[index]!.text;
-                                  await MovieByUserService.updateMovie(movie.flag, index, movie);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(getMessage(settingsProvider.language, 'saveMemo')), duration: Duration(milliseconds: 300),),
-                                  );
+                                  var  newMemo = _memoControllers[index]!.text;
+                                  if(newMemo.length >= 300){
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(getMessage(settingsProvider.language, 'maxMemosReached')),
+                                        duration: Duration(milliseconds: 500),
+                                      ),
+                                    );
+                                  } else {
+                                    movie.memo = newMemo;
+                                    await MovieByUserService.updateMovie(movie.flag, index, movie);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text(getMessage(settingsProvider.language, 'saveMemo')), duration: Duration(milliseconds: 500),),
+                                    );
+                                  }
                                 },
                               ),
                               IconButton(
@@ -346,7 +356,7 @@ class _MemoListPageState extends State<MemoListPage> {
                                     movies.removeAt(index); // Remove the movie from the list
                                   });
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(getMessage(settingsProvider.language, 'movieDeleted')), duration: Duration(milliseconds: 300),),
+                                    SnackBar(content: Text(getMessage(settingsProvider.language, 'memoDeleted')), duration: Duration(milliseconds: 500),),
                                   );
                                 },
                               ),

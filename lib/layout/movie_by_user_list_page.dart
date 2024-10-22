@@ -266,11 +266,11 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
                   ),
                 ),
                 Positioned(
-                  top: 8, // Padding from the top
-                  right: 8, // Padding from the right
+                  top: MediaQuery.of(context).size.height * 0.006, // Padding from the top
+                  right: MediaQuery.of(context).size.height * 0.006, // Padding from the right
                   child: IconButton(
                     icon: Opacity(
-                      opacity: 0.6, // Adjust the opacity between 0.0 (invisible) and 1.0 (fully visible)
+                      opacity: 1, // Adjust the opacity between 0.0 (invisible) and 1.0 (fully visible)
                       child: Image.asset(
                         'assets/images/icon_list_delete_xxhdpi.png',
                         height: MediaQuery.of(context).size.height * 0.03,
@@ -286,7 +286,7 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(getMessage(settingsProvider.language, 'movieDeleted')),
-                          duration: Duration(milliseconds: 300),
+                          duration: Duration(milliseconds: 500),
                         ),
                       );
                     },

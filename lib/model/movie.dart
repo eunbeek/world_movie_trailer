@@ -8,7 +8,7 @@ class Movie extends HiveObject {
   final String localTitle;
 
   @HiveField(1)
-  final String posterUrl;
+  String posterUrl;
 
   @HiveField(2)
   final String trailerUrl;
