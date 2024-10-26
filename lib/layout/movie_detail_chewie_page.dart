@@ -205,6 +205,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        SizedBox(height:10),
         if(!widget.isCustomized)
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -511,6 +512,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
             padding: const EdgeInsets.only(left: 8.0),
             child: Text(
               '${getTranslatedDetail('Stars', settingsProvider.language)}: ${widget.movie.credits?["cast"]
+                  .take(4)
                   .map((castMember) => castMember["name"])
                   .join(", ")}',
               style: TextStyle(

@@ -88,7 +88,10 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
   }
 
   void _loadAd() {
-    _appAdManager.loadAd(onAdLoaded: () {});
+    _appAdManager.loadAd(
+      onAdLoaded: () {},
+      onAdFailed: () {}
+    );
   }
 
   void _showAd(Function onAdDismiss) {
@@ -260,7 +263,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
           return GestureDetector(
             onTap: () {
               HapticFeedback.mediumImpact();
-              if (settingsProvider.openCount == 8) {
+              if (settingsProvider.openCount > 8) {
                 if(_appAdManager.rewardedAd != null){
                   _showAd(() {
                     Navigator.push(

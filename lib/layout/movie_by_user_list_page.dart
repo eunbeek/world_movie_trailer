@@ -28,7 +28,7 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
   bool fetchComplete = false;
   late RewardedAdManager _appAdManager;
   int customizedFlag = 0;
-
+  
   @override
   void initState() {
     super.initState();
@@ -36,7 +36,7 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
     _loadAd();
     _fetchMovies();  // Fetch movies
   }
-
+  
   Future<void> _fetchMovies() async {
     try {
       // Fetch the movies from the service
@@ -73,9 +73,12 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
   }
 
   void _loadAd() {
-    _appAdManager.loadAd(onAdLoaded: () {});
+    _appAdManager.loadAd(
+      onAdLoaded: () {},
+      onAdFailed: () {}
+    );
   }
-
+  
   void _showAd(Function onAdDismiss) {
     print('showAd');
     _appAdManager.showAdIfAvailable(() {
@@ -168,7 +171,7 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
           return GestureDetector(
             onTap: () {
               HapticFeedback.mediumImpact();
-              if (settingsProvider.openCount == 8) {
+              if (settingsProvider.openCount > 8) {
                 if (_appAdManager.rewardedAd != null) {
                   _showAd(() {
                     Navigator.push(
@@ -266,8 +269,8 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
                   ),
                 ),
                 Positioned(
-                  top: MediaQuery.of(context).size.height * 0.006, // Padding from the top
-                  right: MediaQuery.of(context).size.height * 0.006, // Padding from the right
+                  top: (MediaQuery.of(context).size.height / 1980) * 6, // Padding from the top
+                  right: (MediaQuery.of(context).size.height / 1980) * 6, // Padding from the right
                   child: IconButton(
                     icon: Opacity(
                       opacity: 1, // Adjust the opacity between 0.0 (invisible) and 1.0 (fully visible)

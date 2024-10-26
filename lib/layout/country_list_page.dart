@@ -143,7 +143,7 @@ class _CountryListPageState extends State<CountryListPage> {
                       Text(
                         getAppBarTitle(languageCode),
                         style: TextStyle(
-                          fontSize:  MediaQuery.of(context).size.height * 0.055,
+                          fontSize:  MediaQuery.of(context).size.height * 0.05,
                           fontWeight: FontWeight.bold,
                           height: 1.2,
                         ),

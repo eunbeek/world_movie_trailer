@@ -1,45 +1,29 @@
-import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:world_movie_trailer/common/ad_helper.dart';
 
 class RewardedAdManager {
   RewardedAd? rewardedAd;
   bool isShowingAd = false;
-
-  // Method to load the rewarded ad with timeout handling
-  void loadAdWithTimeout({required Function onAdLoaded, int timeoutSeconds = 5}) {
-    bool isAdLoaded = false;
-    loadAd(onAdLoaded: () {
-      isAdLoaded = true;
-      onAdLoaded();
-    });
-
-    // Timeout setting
-    Future.delayed(Duration(seconds: timeoutSeconds), () {
-      if (!isAdLoaded) {
-        print('Loading Ad timed out.');
-        onAdLoaded(); // Timeout occurred, invoke callback to proceed
-      }
-    });
-  }
   
   // Method to load the rewarded ad
-  void loadAd({required Function onAdLoaded}) {
-    RewardedAd.load(
-      adUnitId: AdHelper.rewardedUnitId,
-      request: const AdRequest(),
-      rewardedAdLoadCallback: RewardedAdLoadCallback(
-        onAdLoaded: (RewardedAd ad) {
-          print('Rewarded Ad loaded');
-          rewardedAd = ad;
-          onAdLoaded();
-        },
-        onAdFailedToLoad: (LoadAdError error) {
-          print('Failed to load Rewarded Ad: $error');
-        },
-      ),
-    );
-  }
+void loadAd({required Function onAdLoaded, required Function onAdFailed}) {
+  RewardedAd.load(
+    adUnitId: AdHelper.rewardedUnitId,
+    request: const AdRequest(),
+    rewardedAdLoadCallback: RewardedAdLoadCallback(
+      onAdLoaded: (RewardedAd ad) {
+        print('Rewarded Ad loaded');
+        rewardedAd = ad;
+        onAdLoaded();
+      },
+      onAdFailedToLoad: (LoadAdError error) {
+        print('Failed to load Rewarded Ad: $error');
+        rewardedAd = null;
+        onAdFailed(); // 로드 실패 시 콜백 호출
+      },
+    ),
+  );
+}
 
   // Method to show the ad
   void showAdIfAvailable(Function onAdDismissed) {
@@ -49,7 +33,10 @@ class RewardedAdManager {
     }
     if (rewardedAd == null) {
       print('Rewarded Ad is not loaded yet.');
-      loadAdWithTimeout(onAdLoaded: onAdDismissed);
+      loadAd(
+        onAdLoaded: () => showAdIfAvailable(onAdDismissed), 
+        onAdFailed: onAdDismissed,
+      );
       return;
     }
 
@@ -66,18 +53,15 @@ class RewardedAdManager {
         isShowingAd = false;
         ad.dispose();
         rewardedAd = null;
-        loadAd(onAdLoaded: (){});
+        onAdDismissed();
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
         print('Rewarded Ad failed to show: $error');
         isShowingAd = false;
         ad.dispose();
         rewardedAd = null;
-        loadAd(onAdLoaded: (){});
+        onAdDismissed();
       },
-      onAdClicked: (ad) {
-        print('Ad Clicked');
-      }
     );
 
     rewardedAd!.show(

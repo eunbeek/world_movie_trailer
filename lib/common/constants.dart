@@ -860,32 +860,32 @@ const labelFilterAllKR = "모든 예고편";
 const labelFilterRunningKR = "상영 중";
 const labelFilterUpcomingKR = "개봉 예정";
 
-const labelFilterAllJP = "すべての予告編";
+const labelFilterAllJP = "全て";
 const labelFilterRunningJP = "上映中";
-const labelFilterUpcomingJP = "開封予定";
+const labelFilterUpcomingJP = "公開予定";
 
 const labelFilterAllZH = "全部预告片";
 const labelFilterRunningZH = "上映中";
-const labelFilterUpcomingZH = "已发行";
+const labelFilterUpcomingZH = "即将上映";
 
 const labelFilterAllTW = "全部預告片";
 const labelFilterRunningTW = "上映中";
-const labelFilterUpcomingTW = "已發行 ";
+const labelFilterUpcomingTW = "即將上映 ";
 
 const labelFilterAllFR = "Tout";
 const labelFilterAllDE = "Alles";
 const labelFilterAllES = "Todo";
 const labelFilterAllHI = "सब";
 
-const labelFilterAllTH = "全部預告片";
-const labelFilterRunningTH = "上映中";
-const labelFilterUpcomingTH = "即將上映";
+const labelFilterAllTH = "ทั้งหมด";
+const labelFilterRunningTH = "กำลังฉาย";
+const labelFilterUpcomingTH = "เร็วๆ นี้";
 
 // poster
 const labelRelease = "Release";
 const labelReleaseKR = "개봉";
 const labelReleaseJP = "公開";
-const labelReleaseZH = "上映";
+const labelReleaseZH = "已发行";
 const labelReleaseTW = "已發行";
 const labelReleaseFR = "Sortie";
 const labelReleaseES = "Estreno";

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -96,9 +95,16 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
   }
 
   void _loadAd() async {
-    _appAdManager.loadAd(onAdLoaded: () {
-      _showAd();
-    });
+    _appAdManager.loadAd(
+      onAdLoaded: () {
+        _showAd();
+      },
+      onAdFailed: () {
+        setState(() {
+          _isAdDismissed = true;
+        });
+      }
+    );
   }
 
   void _showAd() {
@@ -130,20 +136,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
         int dayIndex = (dateToUpdate.weekday - 1) % 7;
         settingsProvider.markIsNewShown(dayIndex);
       }
-    }
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-
-    if (state == AppLifecycleState.resumed) {
-      // 앱이 백그라운드에서 복귀할 때 필요한 작업 수행
-      if (_appAdManager.isShowingAd) {
-        _loadAd();
-      }
-    } else if (state == AppLifecycleState.paused) {
-      // 앱이 백그라운드로 전환될 때 필요한 작업 수행
     }
   }
 

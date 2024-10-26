@@ -215,5 +215,5 @@ String? getTranslatedDetail(String detailKey, String languageCode) {
 }
 
 String convertCountryCodeToName(String code) {
-  return countryCodeToName[code.toUpperCase()] ?? 'Unknown Country';
+  return countryCodeToName[code.toUpperCase()] ?? code;
 }

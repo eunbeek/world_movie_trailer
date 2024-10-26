@@ -164,6 +164,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                             else
                               player,
                             if (!_isFullScreen) ...[
+                              SizedBox(height:10),
                               if(!widget.isCustomized)
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -461,7 +462,6 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                     ),
                                   ],
                                 ),
-                              
                               if (widget.movie.special!.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(left: 8.0),
@@ -473,11 +473,22 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                   ),
                                 ),
                               if (widget.movie.credits?["crew"] != null &&
-                                  widget.movie.credits?["crew"].isNotEmpty)
+                                  widget.movie.credits?["crew"].isNotEmpty && widget.movie.nameKR == null)
                                 Padding(
                                   padding: const EdgeInsets.only(left: 8.0),
                                   child: Text(
                                     '${getTranslatedDetail('Director', settingsProvider.language)}: ${widget.movie.credits?["crew"].firstWhere((crewMember) => crewMember["job"] == "Director",  orElse: () => widget.movie.credits?["crew"][0])["name"]}',
+                                    style: TextStyle(
+                                      fontSize: MediaQuery.of(context).size.height * 0.018,
+                                    ),
+                                  ),
+                                ),
+                              if (widget.movie.credits?["crew"] != null &&
+                                  widget.movie.credits?["crew"].isNotEmpty && widget.movie.nameKR != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 8.0),
+                                  child: Text(
+                                    '${getTranslatedDetail('Director', settingsProvider.language)}: ${getNameBySpecialSource(widget.movie, settingsProvider.language)}',
                                     style: TextStyle(
                                       fontSize: MediaQuery.of(context).size.height * 0.018,
                                     ),
@@ -489,6 +500,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                   padding: const EdgeInsets.only(left: 8.0),
                                   child: Text(
                                     '${getTranslatedDetail('Stars', settingsProvider.language)}: ${widget.movie.credits?["cast"]
+                                        .take(4)
                                         .map((castMember) => castMember["name"])
                                         .join(", ")}',
                                     style: TextStyle(

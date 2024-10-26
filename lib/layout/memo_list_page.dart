@@ -65,7 +65,10 @@ class _MemoListPageState extends State<MemoListPage> {
   }
 
   void _loadAd() {
-    _appAdManager.loadAd(onAdLoaded: () {});
+    _appAdManager.loadAd(
+      onAdLoaded: () {},
+      onAdFailed: () {}
+    );
   }
 
   void _showAd(Function onAdDismiss) {
@@ -174,7 +177,7 @@ class _MemoListPageState extends State<MemoListPage> {
                   child: GestureDetector(
                     onTap: () {
                       HapticFeedback.mediumImpact();
-                      if (settingsProvider.openCount == 8) {
+                      if (settingsProvider.openCount > 8) {
                         if (_appAdManager.rewardedAd != null) {
                           _showAd(() {
                             Navigator.push(

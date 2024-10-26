@@ -6,22 +6,21 @@
   <component name="ChangeListManager">
     <list default="true" id="eacff591-ea90-4d37-8fb1-bec3ae33478c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/app/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assets/images/icon_list_delete_xxhdpi.png" beforeDir="false" afterPath="$PROJECT_DIR$/../assets/images/icon_list_delete_xxhdpi.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../functions/tmdb.js" beforeDir="false" afterPath="$PROJECT_DIR$/../functions/tmdb.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../ios/Runner/Info.plist" beforeDir="false" afterPath="$PROJECT_DIR$/../ios/Runner/Info.plist" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../lib/common/ad_helper.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/common/ad_helper.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../lib/common/ad_manager/rewarded_ad_manager.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/common/ad_manager/rewarded_ad_manager.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../lib/common/constants.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/common/constants.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/common/services/movie_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/common/services/movie_service.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../lib/common/translate.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/common/translate.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/layout/country_list_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/layout/country_list_page.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../lib/layout/credits_list_apge.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/layout/credits_list_apge.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../lib/layout/memo_list_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/layout/memo_list_page.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../lib/layout/movie_by_user_list_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/layout/movie_by_user_list_page.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../lib/layout/movie_detail_chewie_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/layout/movie_detail_chewie_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/layout/movie_detail_page.dart" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../lib/layout/movie_detail_youtube_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/layout/movie_detail_youtube_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/layout/other_app_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/layout/other_app_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/layout/settings_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/layout/settings_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/layout/movie_list_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/layout/movie_list_page.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/main.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/model/movie.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/model/movie.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/../pubspec.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -124,30 +123,33 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
   <component name="ProjectId" id="2m3fB6k9mu7I7kKVyrPrfnfuknL" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "AnalyzeApkAction.lastApkPath": "/Volumes/LG External HDD/Projects/world_movie_trailer/build/app/outputs/apk/debug/app-debug.apk",
-    "ApkExportedModule": "android.app",
-    "ExportApk.ApkPathForandroid.app": "/Volumes/LG External HDD/Projects/world_movie_trailer/android/app",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "cidr.known.project.marker": "true",
-    "com.android.tools.idea.devicemanager.tab": "Physical",
-    "com.google.services.firebase.aqiPopupShown": "true",
-    "memory.settings.postsync.last.time.stamp": "1729507359262"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;AnalyzeApkAction.lastApkPath&quot;: &quot;/Volumes/LG External HDD/Projects/world_movie_trailer/build/app/outputs/apk/debug/app-debug.apk&quot;,
+    &quot;ApkExportedModule&quot;: &quot;android.app&quot;,
+    &quot;ExportApk.ApkPathForandroid.app&quot;: &quot;/Volumes/LG External HDD/Projects/world_movie_trailer/android/app&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;com.android.tools.idea.devicemanager.tab&quot;: &quot;Physical&quot;,
+    &quot;com.google.services.firebase.aqiPopupShown&quot;: &quot;true&quot;,
+    &quot;memory.settings.postsync.last.time.stamp&quot;: &quot;1729507359262&quot;
   },
-  "keyToStringList": {
-    "ExportApk.BuildVariants": [
-      "release"
+  &quot;keyToStringList&quot;: {
+    &quot;ExportApk.BuildVariants&quot;: [
+      &quot;release&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="app" type="AndroidRunConfigurationType" factoryName="Android App">
       <module name="android.app.main" />

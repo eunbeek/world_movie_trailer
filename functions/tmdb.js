@@ -114,17 +114,23 @@ async function fetchFullMovieInfo(movieId, countryCode) {
     }
 
     const trailerLink = youtubeVideo ? youtubeVideo.key : await fetchFirstYouTubeVideoId(data.original_title + trailerQuery[countryCode], countryCode.slice(-2));
+    // Select up to 4 cast members
+    const selectedCast = data.credits.cast.slice(0, 4);
 
-    // Limit the cast and crew to 4 members each
-    const limitedCast = data.credits.cast.slice(0, 4);
-    const limitedCrew = data.credits.crew.slice(0, 4);
+    // Filter crew to include only 'Directing' department and select up to 4
+    let directingCrew = data.credits.crew.filter((member) => member.known_for_department === "Directing").slice(0, 4);
+
+    // If no 'Directing' crew found, select up to 4 from the entire crew
+    if (directingCrew.length === 0) {
+      directingCrew = data.credits.crew.slice(0, 4);
+    }
 
     return {
       ...data,
       trailerLink,
       credits: {
-        cast: limitedCast,
-        crew: limitedCrew,
+        cast: selectedCast,
+        crew: directingCrew,
       },
     };
   } catch (err) {

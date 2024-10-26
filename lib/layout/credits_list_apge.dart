@@ -73,7 +73,7 @@ class CreditsList extends StatelessWidget {
                     ),
                   ),
                   trailing: Text(
-                    'Eugune',
+                    'Eugene',
                     style: TextStyle(
                       fontSize: MediaQuery.of(context).size.height * 0.02,
                     ),
@@ -130,7 +130,7 @@ class CreditsList extends StatelessWidget {
                     children: [
                       SizedBox(height: 12.0), 
                       Text(
-                        '  Jisu, Rene, Steve, Sylbee, Esther, Marcus, Danop, Stojan',
+                        '  Jisu, Rene, Steve, Sylbee, Kim and Choi Family, Esther, Marcus, Danop, Stojan',
                         style: TextStyle(
                           fontSize: MediaQuery.of(context).size.height * 0.017,
                         ),
