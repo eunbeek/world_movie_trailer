@@ -465,8 +465,8 @@ class _CountryListPageState extends State<CountryListPage> {
                     child: InkWell(
                       onTap: () {
                         if(settingsProvider.isVibrate) HapticFeedback.mediumImpact();
-                        LogHelper().logEvent('country_clicked', parameters: {'country_name': 'special'},);
                         if(settingsProvider.isQuotes) {
+                          LogHelper().logEvent('country_clicked', parameters: {'country_name': 'quote'},);
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -474,6 +474,7 @@ class _CountryListPageState extends State<CountryListPage> {
                             ),
                           );
                         } else {
+                          LogHelper().logEvent('country_clicked', parameters: {'country_name': special},);
                           Navigator.push(
                             context,
                             MaterialPageRoute(

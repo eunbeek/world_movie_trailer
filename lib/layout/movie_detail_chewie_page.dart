@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:chewie/chewie.dart';
 import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
+import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
@@ -35,6 +36,10 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
   void initState() {
     super.initState();
     _initializeVideoPlayer();
+    LogHelper().logEvent("trailer_watched", parameters: {
+      'movie': widget.movie.localTitle,
+      'timestamp': DateTime.now().toIso8601String(),
+    });
   }
 
   void _initializeVideoPlayer() {

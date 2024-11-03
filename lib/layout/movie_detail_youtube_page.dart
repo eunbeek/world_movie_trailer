@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
 import 'package:world_movie_trailer/model/movieByUser.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
@@ -36,6 +37,10 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   void initState() {
     super.initState();
     _initializeYoutubePlayer();
+    LogHelper().logEvent("trailer_watched", parameters: {
+      'movie': widget.movie.localTitle,
+      'timestamp': DateTime.now().toIso8601String(),
+    });
 
     // Enable both landscape and portrait mode when the page is opened
     SystemChrome.setPreferredOrientations([
@@ -473,7 +478,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                   ),
                                 ),
                               if (widget.movie.credits?["crew"] != null &&
-                                  widget.movie.credits?["crew"].isNotEmpty && widget.movie.nameKR == null)
+                                  widget.movie.credits?["crew"].isNotEmpty && widget.movie.special!.isEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(left: 8.0),
                                   child: Text(
@@ -483,17 +488,16 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                     ),
                                   ),
                                 ),
-                              if (widget.movie.credits?["crew"] != null &&
-                                  widget.movie.credits?["crew"].isNotEmpty && widget.movie.nameKR != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Text(
-                                    '${getTranslatedDetail('Director', settingsProvider.language)}: ${getNameBySpecialSource(widget.movie, settingsProvider.language)}',
-                                    style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.018,
+                              if (widget.movie.special!.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8.0),
+                                    child: Text(
+                                      '${getTranslatedDetail('Director', settingsProvider.language)}: ${getNameBySpecialSource(widget.movie, settingsProvider.language)}',
+                                      style: TextStyle(
+                                        fontSize: MediaQuery.of(context).size.height * 0.018,
+                                      ),
                                     ),
                                   ),
-                                ),
                               if (widget.movie.credits?["cast"] != null &&
                                   widget.movie.credits?["cast"].isNotEmpty)
                                 Padding(
