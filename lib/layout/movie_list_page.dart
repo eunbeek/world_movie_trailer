@@ -47,7 +47,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
         // specialList가 null이 아닐 경우 처리
         setState(() {
           allMovies = widget.specialList!;
-          _applyFilter(false);
+          _applyFilter();
           fetchComplete = true;
         });
       } else {
@@ -58,7 +58,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
         final movies = await MovieService.fetchMovie(widget.country, language);
         setState(() {
           allMovies = movies;
-          _applyFilter(false);  // Apply the initial filter after fetching movies
+          _applyFilter();  // Apply the initial filter after fetching movies
           fetchComplete = true;
         });
       }
@@ -71,7 +71,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
   }
 
   // Apply the filter based on selectedFilter
-  void _applyFilter(bool isMore) {
+  void _applyFilter() {
     setState(() {
       if (selectedFilter == listFilterAll) {
         filteredMovies = List.from(allMovies);
@@ -213,7 +213,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                         } else if (index == 2) {
                           selectedFilter = listFilterUpcoming;
                         }
-                        _applyFilter(false);
+                        _applyFilter();
                       });
                     },
                   ),
@@ -242,7 +242,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
     final settingsProvider = Provider.of<SettingsProvider>(context);
 
     if (movies.isEmpty) {
-      return ErrorPage();
+      return fetchComplete ? ErrorPage() : const Expanded(child:Center(child: CircularProgressIndicator()));
     }
 
     return Container(
