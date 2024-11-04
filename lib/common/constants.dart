@@ -415,7 +415,7 @@ Map<String, Map<String, String>> messageTranslations = {
     'memoDeleted': 'Deleted the memo.',
   },
   'ja': {
-    'duplicateMovie': '同じ映画 既にあり',
+    'duplicateMovie': '既に登録済みです',
     'addToLike': '「いいね」に映画追加',
     'addToDislike': '「よくないね」に映画追加',
     'addToBookmark': '「ブックマーク」に映画追加',
@@ -981,7 +981,7 @@ const Map<String, Map<String, String>> movieDetailTranslations = {
   },
    'Minute': {
     'ko': '분',
-    'ja': '上映時間',
+    'ja': '分',
     'zh': '分',
     'tw': '分',
     'fr': 'minutes',
