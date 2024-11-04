@@ -31,6 +31,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
   ChewieController? _chewieController;
   String _errorMessage = '';
   bool _isFullScreen = false;
+  late SettingsProvider _settingsProvider;
 
   @override
   void initState() {
@@ -40,6 +41,12 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
       'movie': widget.movie.localTitle,
       'timestamp': DateTime.now().toIso8601String(),
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _settingsProvider = Provider.of<SettingsProvider>(context); 
   }
 
   void _initializeVideoPlayer() {
@@ -111,9 +118,18 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
     return screenSize.height / screenSize.width;
   }
 
+  Future<void> showMovieSnackbar(BuildContext context, messageType) async {
+    // Show the Snackbar after the delay
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(getMessage(_settingsProvider.language, messageType)),
+        duration: const Duration(milliseconds: 500), // Adjusted duration for readability
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final settingsProvider = Provider.of<SettingsProvider>(context);
     return SafeArea(
       child: Scaffold(
         body: Stack(
@@ -167,7 +183,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                             : widget.movie.trailerUrl.isEmpty
                                 ? _buildErrorWidget()
                                 : Center(child: CircularProgressIndicator()),
-                        if (!_isFullScreen) _buildMovieDetails(settingsProvider),
+                        if (!_isFullScreen) _buildMovieDetails(),
                       ],
                     ),
                   ),
@@ -205,7 +221,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
     );
   }
 
-  Widget _buildMovieDetails(SettingsProvider settingsProvider) {
+  Widget _buildMovieDetails() {
     double iconSize = MediaQuery.of(context).size.height * 0.035;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,12 +236,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                   bool isUnique = await MovieByUserService.getIsUnique(1, widget.movie.localTitle);
 
                   if (!isUnique) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(getMessage(settingsProvider.language, 'duplicateMovie')),
-                        duration:Duration(milliseconds: 500), // Adjusted duration for readability
-                      ),
-                    );
+                    showMovieSnackbar(context, 'duplicateMovie');
                     return;  // Exit early if movie is duplicated
                   }
 
@@ -236,25 +247,16 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                       movie: widget.movie, // Current movie object
                     );
 
-                    await MovieByUserService.addMovie(1, addMovie);
+                    await MovieByUserService.addMovie(1, addMovie).then((_){
+                      showMovieSnackbar(context,'addToLike');
+                    });
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(getMessage(settingsProvider.language, 'addToLike')),
-                        duration:Duration(milliseconds: 500), // Adjusted duration for readability
-                      ),
-                    );
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(getMessage(settingsProvider.language, 'maxMoviesReached')),
-                        duration:Duration(milliseconds: 500), // Adjusted duration for readability
-                      ),
-                    );
+                    showMovieSnackbar(context,'maxMoviesReached');
                   }
                 },
                 icon: Image.asset(
-                  settingsProvider.isDarkTheme ? 'assets/images/dark/icon_like_fill_DT_xxhdpi.png' : 'assets/images/light/icon_like_fill_LT_xxhdpi.png',
+                  _settingsProvider.isDarkTheme ? 'assets/images/dark/icon_like_fill_DT_xxhdpi.png' : 'assets/images/light/icon_like_fill_LT_xxhdpi.png',
                   height: iconSize,
                   width: iconSize,
                 ),
@@ -264,12 +266,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                   bool isUnique = await MovieByUserService.getIsUnique(2, widget.movie.localTitle);
 
                   if (!isUnique) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content:  Text(getMessage(settingsProvider.language, 'duplicateMovie')),
-                        duration:Duration(milliseconds: 500), // Adjusted duration for readability
-                      ),
-                    );
+                    showMovieSnackbar(context,'duplicateMovie');
                     return;  // Exit early if movie is duplicated
                   }
 
@@ -280,25 +277,15 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                       movie: widget.movie, // Current movie object
                     );
 
-                    await MovieByUserService.addMovie(2, addMovie);
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(getMessage(settingsProvider.language, 'addToDislike')),
-                        duration:Duration(milliseconds: 500), // Adjusted duration for readability
-                      ),
-                    );
+                    await MovieByUserService.addMovie(2, addMovie).then((_){
+                      showMovieSnackbar(context,'addToDislike');
+                    });
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content:  Text(getMessage(settingsProvider.language, 'maxMoviesReached')),
-                        duration:Duration(milliseconds: 500), // Adjusted duration for readability
-                      ),
-                    );
+                    showMovieSnackbar(context,'maxMoviesReached');
                   }
                 },
                 icon: Image.asset(
-                  settingsProvider.isDarkTheme ? 'assets/images/dark/icon_dislike_fill_DT_xxhdpi.png' : 'assets/images/light/icon_dislike_fill_LT_xxhdpi.png',
+                  _settingsProvider.isDarkTheme ? 'assets/images/dark/icon_dislike_fill_DT_xxhdpi.png' : 'assets/images/light/icon_dislike_fill_LT_xxhdpi.png',
                   height: iconSize,
                   width: iconSize,
                 ),
@@ -309,22 +296,12 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                   bool isUnique = await MovieByUserService.getIsUnique(3, widget.movie.localTitle);
 
                   if (!isUnique) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(getMessage(settingsProvider.language, 'duplicateMovie')),
-                        duration:Duration(milliseconds: 500), // Adjusted duration for readability
-                      ),
-                    );
+                    showMovieSnackbar(context,'duplicateMovie');
                     return;  // Exit early if movie is duplicated
                   }
 
                   if (!isCount) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(getMessage(settingsProvider.language, 'maxMoviesReached')),
-                        duration:Duration(milliseconds: 500), // Adjusted duration for readability
-                      ),
-                    );
+                    showMovieSnackbar(context,'maxMoviesReached');
                     return;  // Exit early if count exceeded
                   }
 
@@ -336,19 +313,14 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                     );
 
                     // Add movie to MovieByUserService
-                    await MovieByUserService.addMovie(3, addMovie);
+                    await MovieByUserService.addMovie(3, addMovie).then((_){
+                      showMovieSnackbar(context,'addToBookmark');
+                    });
 
-                    // Show success message
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(getMessage(settingsProvider.language, 'addToBookmark')),
-                        duration: Duration(milliseconds: 500),  // Adjusted duration for readability
-                      ),
-                    );
                   }
                 },
                 icon: Image.asset(
-                  settingsProvider.isDarkTheme ? 'assets/images/dark/icon_bookmark_fill_DT_xxhdpi.png' : 'assets/images/light/icon_bookmark_fill_LT_xxhdpi.png',
+                  _settingsProvider.isDarkTheme ? 'assets/images/dark/icon_bookmark_fill_DT_xxhdpi.png' : 'assets/images/light/icon_bookmark_fill_LT_xxhdpi.png',
                   height: iconSize,
                   width: iconSize,
                 ),
@@ -387,7 +359,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                           children: <Widget>[
                             const SizedBox(height: 10),
                             Text(
-                              getMessage(settingsProvider.language, 'addMemo'),
+                              getMessage(_settingsProvider.language, 'addMemo'),
                               style: TextStyle(
                                 fontSize: MediaQuery.of(context).size.height * 0.019,
                                 fontWeight: FontWeight.bold,
@@ -414,7 +386,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                                   onPressed: () {
                                     Navigator.pop(context);
                                   },
-                                  child: Text(getMessage(settingsProvider.language, 'closeMemo')),
+                                  child: Text(getMessage(_settingsProvider.language, 'closeMemo')),
                                 ),
                                 ElevatedButton(
                                   onPressed: memoController.text.isEmpty || memoController.text.length >= 300
@@ -423,24 +395,14 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                                           String memo = memoController.text;
 
                                           if (memo.length >= 300) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text(getMessage(settingsProvider.language, 'maxMemosReached')),
-                                                duration: Duration(milliseconds: 500),
-                                              ),
-                                            );
+                                            showMovieSnackbar(context,'maxMemosReached');
                                           } else {
                                             if (existingMovie != null) {
                                               existingMovie.memo = memo;
                                               existingMovie.savedDate = DateTime.now();
-                                              await MovieByUserService.updateMovieMemo(existingMovie);
-
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(getMessage(settingsProvider.language, 'addToMemo')),
-                                                  duration: Duration(milliseconds: 500),
-                                                ),
-                                              );
+                                              await MovieByUserService.updateMovieMemo(existingMovie).then((_){
+                                                showMovieSnackbar(context,'addToMemo');
+                                              });
                                             } else {
                                               if (memo.isNotEmpty && await MovieByUserService.getIsAvailable(4)) {
                                                 MovieByUser addMovie = MovieByUser(
@@ -449,27 +411,17 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                                                   savedDate: DateTime.now(),
                                                   memo: memo,
                                                 );
-                                                await MovieByUserService.addMovie(4, addMovie);
-
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(getMessage(settingsProvider.language, 'addToMemo')),
-                                                    duration: Duration(milliseconds: 500),
-                                                  ),
-                                                );
+                                                await MovieByUserService.addMovie(4, addMovie).then((_){
+                                                  showMovieSnackbar(context,'addToMemo');
+                                                });
                                               } else {
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(getMessage(settingsProvider.language, 'maxMoviesReached')),
-                                                    duration: Duration(milliseconds: 500),
-                                                  ),
-                                                );
+                                                showMovieSnackbar(context,'maxMoviesReached');
                                               }
                                             }
                                             Navigator.pop(context);
                                           }
                                         },
-                                  child: Text(getMessage(settingsProvider.language, 'saveMemo')),
+                                  child: Text(getMessage(_settingsProvider.language, 'saveMemo')),
                                 ),
                               ],
                             ),
@@ -483,7 +435,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                   });
                 },
                 icon: Image.asset(
-                  settingsProvider.isDarkTheme
+                  _settingsProvider.isDarkTheme
                       ? 'assets/images/dark/icon_memo_DT_xxhdpi.png'
                       : 'assets/images/light/icon_memo_LT_xxhdpi.png',
                   height: iconSize,
@@ -496,7 +448,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
           Padding(
             padding: const EdgeInsets.only(left: 8.0),
             child: Text(
-              '${getTranslatedDetail('Year', settingsProvider.language)}: ${widget.movie.year}',
+              '${getTranslatedDetail('Year', _settingsProvider.language)}: ${widget.movie.year}',
               style: TextStyle(
                 fontSize: MediaQuery.of(context).size.height * 0.018,
               ),
@@ -506,7 +458,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
           Padding(
             padding: const EdgeInsets.only(left: 8.0),
             child: Text(
-              '${getTranslatedDetail('Director', settingsProvider.language)}: ${widget.movie.credits?["crew"][0]["name"]}',
+              '${getTranslatedDetail('Director', _settingsProvider.language)}: ${widget.movie.credits?["crew"][0]["name"]}',
               style: TextStyle(
                 fontSize: MediaQuery.of(context).size.height * 0.018,
               ),
@@ -516,7 +468,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
           Padding(
             padding: const EdgeInsets.only(left: 8.0),
             child: Text(
-              '${getTranslatedDetail('Stars', settingsProvider.language)}: ${widget.movie.credits?["cast"]
+              '${getTranslatedDetail('Stars', _settingsProvider.language)}: ${widget.movie.credits?["cast"]
                   .take(4)
                   .map((castMember) => castMember["name"])
                   .join(", ")}',
@@ -529,7 +481,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
           Padding(
             padding: const EdgeInsets.only(left: 8.0),
             child: Text(
-              '${getTranslatedDetail('Country', settingsProvider.language)}: ${convertCountryCodeToName(widget.movie.country)}',
+              '${getTranslatedDetail('Country', _settingsProvider.language)}: ${convertCountryCodeToName(widget.movie.country)}',
               style: TextStyle(
                 fontSize: MediaQuery.of(context).size.height * 0.018,
               ),
@@ -539,7 +491,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
           Padding(
             padding: const EdgeInsets.only(left: 8.0),
             child: Text(
-              '${getTranslatedDetail('Running Time', settingsProvider.language)}: ${widget.movie.runtime} minutes',
+              '${getTranslatedDetail('Running Time', _settingsProvider.language)}: ${widget.movie.runtime} minutes',
               style: TextStyle(
                 fontSize: MediaQuery.of(context).size.height * 0.018,
               ),
