@@ -23,12 +23,9 @@ class MovieListPage extends StatefulWidget {
   @override
   _MovieListPageState createState() => _MovieListPageState();
 }
-
 class _MovieListPageState extends State<MovieListPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  String selectedFilter = listFilterAll;
   List<Movie> allMovies = [];
-  List<Movie> filteredMovies = [];
   bool fetchComplete = false;
   late RewardedAdManager _appAdManager;
 
@@ -44,21 +41,17 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
   Future<void> _fetchMovies() async {
     try {
       if (widget.country == special && widget.specialList != null) {
-        // specialList가 null이 아닐 경우 처리
         setState(() {
           allMovies = widget.specialList!;
-          _applyFilter();
           fetchComplete = true;
         });
       } else {
         final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
         final language = settingsProvider.language;
         
-        // Fetch the movies from the service
         final movies = await MovieService.fetchMovie(widget.country, language);
         setState(() {
           allMovies = movies;
-          _applyFilter();  // Apply the initial filter after fetching movies
           fetchComplete = true;
         });
       }
@@ -68,23 +61,6 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
         fetchComplete = true;
       });
     }
-  }
-
-  // Apply the filter based on selectedFilter
-  void _applyFilter() {
-    setState(() {
-      if (selectedFilter == listFilterAll) {
-        filteredMovies = List.from(allMovies);
-      } else if (selectedFilter == listFilterRunning) {
-        filteredMovies = allMovies
-            .where((movie) => movie.status == listFilterRunning)
-            .toList();
-      } else if (selectedFilter == listFilterUpcoming) {
-        filteredMovies = allMovies
-            .where((movie) => movie.status == listFilterUpcoming)
-            .toList();
-      }
-    });
   }
 
   void _loadAd() {
@@ -101,6 +77,45 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
     });
   }
 
+  // List<Movie> _getFilteredMovies(String filter) {
+  //   print(allMovies.first.releaseDate);
+  //   if (filter == listFilterAll) {
+  //     return List.from(allMovies);
+  //   } else if (filter == listFilterRunning) {
+  //     return allMovies.where((movie) => movie.status == listFilterRunning).toList();
+  //   } else if (filter == listFilterUpcoming) {
+  //     return allMovies.where((movie) => movie.status == listFilterUpcoming).toList();
+  //   } else {
+  //     return [];
+  //   }
+  // }
+
+List<Movie> _getFilteredMovies(String filter) {
+  List<Movie> filteredList;
+
+  if (filter == listFilterAll) {
+    filteredList = List.from(allMovies);
+  } else if (filter == listFilterRunning) {
+    filteredList = allMovies.where((movie) => movie.status == listFilterRunning).toList();
+    // Sort by releaseDate (newest first), if releaseDate is null or empty, push to the end
+    filteredList.sort((a, b) {
+      DateTime dateA = (a.releaseDate != null && a.releaseDate.isNotEmpty)
+          ? DateTime.parse(a.releaseDate)
+          : DateTime(9999); // If releaseDate is null or empty, use a far future date
+      DateTime dateB = (b.releaseDate != null && b.releaseDate.isNotEmpty)
+          ? DateTime.parse(b.releaseDate)
+          : DateTime(9999); // If releaseDate is null or empty, use a far future date
+
+      return dateB.compareTo(dateA); // Sort in descending order (newest first)
+    });
+  } else if (filter == listFilterUpcoming) {
+    filteredList = allMovies.where((movie) => movie.status == listFilterUpcoming).toList();
+  } else {
+    return []; // Return empty if no filter matches
+  }
+
+  return filteredList;
+}
 
   @override
   Widget build(BuildContext context) {
@@ -110,10 +125,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
       child: Scaffold(
         body: Stack(
           children: [
-            // Background Image
             const BackgroundWidget(isPausePage: false),
-
-            // Main Content
             Column(
               children: [
                 Padding(
@@ -205,16 +217,6 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                     ],
                     onTap: (index) {
                       if (settingsProvider.isVibrate) HapticFeedback.mediumImpact();
-                      setState(() {
-                        if (index == 0) {
-                          selectedFilter = listFilterAll;
-                        } else if (index == 1) {
-                          selectedFilter = listFilterRunning;
-                        } else if (index == 2) {
-                          selectedFilter = listFilterUpcoming;
-                        }
-                        _applyFilter();
-                      });
                     },
                   ),
                 SizedBox(height: MediaQuery.of(context).size.height * 0.02),
@@ -223,13 +225,13 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                         child: TabBarView(
                           controller: _tabController,
                           children: [
-                            _buildMovieGrid(filteredMovies),
-                            _buildMovieGrid(filteredMovies),
-                            _buildMovieGrid(filteredMovies),
+                            _buildMovieGrid(_getFilteredMovies(listFilterAll)),
+                            _buildMovieGrid(_getFilteredMovies(listFilterRunning)),
+                            _buildMovieGrid(_getFilteredMovies(listFilterUpcoming)),
                           ],
                         ),
                       )
-                    : const Expanded(child:Center(child: CircularProgressIndicator())),
+                    : const Expanded(child: Center(child: CircularProgressIndicator())),
               ],
             ),
           ],
@@ -242,7 +244,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
     final settingsProvider = Provider.of<SettingsProvider>(context);
 
     if (movies.isEmpty) {
-      return fetchComplete ? ErrorPage() : const Expanded(child:Center(child: CircularProgressIndicator()));
+      return fetchComplete ? ErrorPage() : const Expanded(child: Center(child: CircularProgressIndicator()));
     }
 
     return Container(
@@ -304,21 +306,21 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                         topLeft: Radius.circular(15.0),
                         topRight: Radius.circular(15.0),
                       ),
-                      child: movie.posterUrl != ""?
-                       Image.network(
-                        movie.posterUrl,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                      )
-                      : Image.asset(
-                        settingsProvider.isDarkTheme
-                            ? 'assets/images/dark/blank_DT_xxhdpi.png'
-                            : 'assets/images/light/blank_LT_xxhdpi.png',
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                      ),
+                      child: movie.posterUrl != ""
+                          ? Image.network(
+                              movie.posterUrl,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                            )
+                          : Image.asset(
+                              settingsProvider.isDarkTheme
+                                  ? 'assets/images/dark/blank_DT_xxhdpi.png'
+                                  : 'assets/images/light/blank_LT_xxhdpi.png',
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                            ),
                     ),
                   ),
                   Padding(

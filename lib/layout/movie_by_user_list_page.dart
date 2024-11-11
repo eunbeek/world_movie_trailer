@@ -43,14 +43,6 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
       List<MovieByUser> movies = [];
 
       switch (widget.flag) {
-        case 'Like':
-          movies = await MovieByUserService.getMoviesByFlag(1);
-          customizedFlag = 1;
-          break;
-        case 'Dislike':
-          movies = await MovieByUserService.getMoviesByFlag(2);
-          customizedFlag = 2;
-          break;
         case 'Bookmark':
           movies = await MovieByUserService.getMoviesByFlag(3);
           customizedFlag = 3;

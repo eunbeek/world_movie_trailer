@@ -2,24 +2,18 @@ import 'package:hive/hive.dart';
 import 'package:world_movie_trailer/model/movieByUser.dart';
 
 class MovieByUserService {
-  static final String _boxNameLike = 'movieByUserBoxForLike';
-  static final String _boxNameDislike = 'movieByUserBoxForDislike';
   static final String _boxNameBookmark = 'movieByUserBoxForBookmark';
   static final String _boxNameMemo = 'movieByUserBoxForMemo';
 
   // Open the box (this should be called during initialization)
   static Future<Box<MovieByUser>> _openBox(int flag) async {
     switch (flag){
-      case 1:
-        return await Hive.openBox<MovieByUser>(_boxNameLike);
-      case 2: 
-        return await Hive.openBox<MovieByUser>(_boxNameDislike);
       case 3: 
         return await Hive.openBox<MovieByUser>(_boxNameBookmark);
       case 4: 
         return await Hive.openBox<MovieByUser>(_boxNameMemo); 
       default:
-        return await Hive.openBox<MovieByUser>(_boxNameLike);
+        return await Hive.openBox<MovieByUser>(_boxNameBookmark);
     }
   }
 

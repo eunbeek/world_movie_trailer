@@ -32,21 +32,32 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
   String _errorMessage = '';
   bool _isFullScreen = false;
   late SettingsProvider _settingsProvider;
+  bool _isBookmarked = false;
 
   @override
   void initState() {
     super.initState();
     _initializeVideoPlayer();
-    LogHelper().logEvent("trailer_watched", parameters: {
+    LogHelper().logEvent(widget.movie.special!.isNotEmpty? "special_trailer_watched": "trailer_watched", parameters: {
       'movie': widget.movie.localTitle,
       'timestamp': DateTime.now().toIso8601String(),
     });
+    // Check if movie is bookmarked asynchronously
+    Future.microtask(() => _checkIfBookmarked());
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _settingsProvider = Provider.of<SettingsProvider>(context); 
+  }
+
+  // Async method to check if the movie is bookmarked
+  Future<void> _checkIfBookmarked() async {
+    bool isUnique = await MovieByUserService.getIsUnique(3, widget.movie.localTitle);
+    setState(() {
+      _isBookmarked = !isUnique; // If it's unique, it's not bookmarked
+    });
   }
 
   void _initializeVideoPlayer() {
@@ -131,7 +142,9 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
+      maintainBottomViewPadding: true,
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         body: Stack(
           children: [
             if (!_isFullScreen) const BackgroundWidget(isPausePage: true),
@@ -231,81 +244,25 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-                IconButton(
-                onPressed: () async {
-                  bool isUnique = await MovieByUserService.getIsUnique(1, widget.movie.localTitle);
-
-                  if (!isUnique) {
-                    showMovieSnackbar(context, 'duplicateMovie');
-                    return;  // Exit early if movie is duplicated
-                  }
-
-                  if (await MovieByUserService.getIsAvailable(1)) {
-                    // Create MovieByUser object
-                    MovieByUser addMovie = MovieByUser(
-                      flag: 1, // Like flag
-                      movie: widget.movie, // Current movie object
-                    );
-
-                    await MovieByUserService.addMovie(1, addMovie).then((_){
-                      showMovieSnackbar(context,'addToLike');
-                    });
-
-                  } else {
-                    showMovieSnackbar(context,'maxMoviesReached');
-                  }
-                },
-                icon: Image.asset(
-                  _settingsProvider.isDarkTheme ? 'assets/images/dark/icon_like_fill_DT_xxhdpi.png' : 'assets/images/light/icon_like_fill_LT_xxhdpi.png',
-                  height: iconSize,
-                  width: iconSize,
-                ),
-              ),
               IconButton(
                 onPressed: () async {
-                  bool isUnique = await MovieByUserService.getIsUnique(2, widget.movie.localTitle);
+                  if (_isBookmarked) {
+                    // If the movie is already bookmarked, remove it
+                    final existingMovies = await MovieByUserService.getMoviesByFlag(3);
+                    final index = existingMovies.indexWhere((movie) => movie.movie.localTitle == widget.movie.localTitle);
 
-                  if (!isUnique) {
-                    showMovieSnackbar(context,'duplicateMovie');
-                    return;  // Exit early if movie is duplicated
+                    if (index != -1) {
+                      await MovieByUserService.deleteMovie(3, index);
+                      showMovieSnackbar(context, 'movieDeleted');
+                    }
                   }
-
-                  if (await MovieByUserService.getIsAvailable(2)) {
-                    // Create MovieByUser object
-                    MovieByUser addMovie = MovieByUser(
-                      flag: 2, // Dislike flag
-                      movie: widget.movie, // Current movie object
-                    );
-
-                    await MovieByUserService.addMovie(2, addMovie).then((_){
-                      showMovieSnackbar(context,'addToDislike');
-                    });
-                  } else {
-                    showMovieSnackbar(context,'maxMoviesReached');
-                  }
-                },
-                icon: Image.asset(
-                  _settingsProvider.isDarkTheme ? 'assets/images/dark/icon_dislike_fill_DT_xxhdpi.png' : 'assets/images/light/icon_dislike_fill_LT_xxhdpi.png',
-                  height: iconSize,
-                  width: iconSize,
-                ),
-              ),
-              IconButton(
-                onPressed: () async {
                   bool isCount = await MovieByUserService.getIsAvailable(3);
-                  bool isUnique = await MovieByUserService.getIsUnique(3, widget.movie.localTitle);
-
-                  if (!isUnique) {
-                    showMovieSnackbar(context,'duplicateMovie');
-                    return;  // Exit early if movie is duplicated
-                  }
-
                   if (!isCount) {
-                    showMovieSnackbar(context,'maxMoviesReached');
-                    return;  // Exit early if count exceeded
+                    showMovieSnackbar(context, 'maxMoviesReached');
+                    return;
                   }
 
-                  if (isCount && isUnique) {
+                  if (isCount && !_isBookmarked) {
                     // Create MovieByUser object
                     MovieByUser addMovie = MovieByUser(
                       flag: 3, // Bookmark flag
@@ -313,14 +270,22 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                     );
 
                     // Add movie to MovieByUserService
-                    await MovieByUserService.addMovie(3, addMovie).then((_){
-                      showMovieSnackbar(context,'addToBookmark');
+                    await MovieByUserService.addMovie(3, addMovie).then((_) {
+                      showMovieSnackbar(context, 'addToBookmark');
                     });
-
                   }
+                  setState(() {
+                    _isBookmarked = !_isBookmarked;
+                  });
                 },
                 icon: Image.asset(
-                  _settingsProvider.isDarkTheme ? 'assets/images/dark/icon_bookmark_fill_DT_xxhdpi.png' : 'assets/images/light/icon_bookmark_fill_LT_xxhdpi.png',
+                  _settingsProvider.isDarkTheme
+                      ? (_isBookmarked
+                          ? 'assets/images/dark/icon_bookmark_fill_DT_xxhdpi.png'
+                          : 'assets/images/dark/icon_bookmark_DT_xxhdpi.png')
+                      : (_isBookmarked
+                          ? 'assets/images/light/icon_bookmark_fill_LT_xxhdpi.png'
+                          : 'assets/images/light/icon_bookmark_LT_xxhdpi.png'),
                   height: iconSize,
                   width: iconSize,
                 ),

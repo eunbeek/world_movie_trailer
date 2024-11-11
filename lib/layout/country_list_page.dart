@@ -184,20 +184,6 @@ class _CountryListPageState extends State<CountryListPage> {
                               case 'Rearrange':
                                 isEditMode = !isEditMode;
                                 oldCountryOrder = countries;
-                              case 'Like':
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => MovieByUserListPage(flag: 'Like',),
-                                  ),
-                                );
-                              case 'Dislike':
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => MovieByUserListPage(flag: 'Dislike',),
-                                  ),
-                                );
                               case 'Bookmark':
                                 Navigator.push(
                                   context,
@@ -232,38 +218,6 @@ class _CountryListPageState extends State<CountryListPage> {
                                   ),
                                   SizedBox(width: 8,),
                                   Text(getMenuItemTitle(settingsProvider.language, 'Country Order')),
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem<String>(
-                              value: 'Like',
-                              child: Row(
-                                children: [
-                                  Image.asset(
-                                    settingsProvider.isDarkTheme
-                                        ? 'assets/images/dark/icon_like_DT_xxhdpi.png'
-                                        : 'assets/images/light/icon_like_LT_xxhdpi.png',
-                                    height: iconSize,
-                                    width: iconSize,
-                                  ),
-                                  SizedBox(width: 8,),
-                                  Text(getMenuItemTitle(settingsProvider.language, 'Like')),
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem<String>(
-                              value: 'Dislike',
-                              child: Row(
-                                children: [
-                                  Image.asset(
-                                    settingsProvider.isDarkTheme
-                                        ? 'assets/images/dark/icon_dislike_DT_xxhdpi.png'
-                                        : 'assets/images/light/icon_dislike_LT_xxhdpi.png',
-                                    height: iconSize,
-                                    width: iconSize,
-                                  ),
-                                  SizedBox(width: 8,),
-                                  Text(getMenuItemTitle(settingsProvider.language, 'Dislike')),
                                 ],
                               ),
                             ),
@@ -466,7 +420,7 @@ class _CountryListPageState extends State<CountryListPage> {
                       onTap: () {
                         if(settingsProvider.isVibrate) HapticFeedback.mediumImpact();
                         if(settingsProvider.isQuotes) {
-                          LogHelper().logEvent('country_clicked', parameters: {'country_name': 'quote'},);
+                          LogHelper().logEvent('special_quotes_clicked', parameters: {'section_name': 'quote'},);
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -474,7 +428,7 @@ class _CountryListPageState extends State<CountryListPage> {
                             ),
                           );
                         } else {
-                          LogHelper().logEvent('country_clicked', parameters: {'country_name': special},);
+                          LogHelper().logEvent('special_movie_clicked', parameters: {'section_name': specialSection!.special},);
                           Navigator.push(
                             context,
                             MaterialPageRoute(
