@@ -27,6 +27,7 @@ const kinepolisHeader = {
  */
 async function fetchMovieListFromKinepolis() {
   const movies = [];
+  const addedTitles = new Set();
 
   try {
     // Loop over the URLs
@@ -38,6 +39,12 @@ async function fetchMovieListFromKinepolis() {
 
         // Process each film
         data.films.forEach((item) => {
+          let title = item.title || "Untitled";
+          // Remove 'VOSE' if it appears at the start and trim any extra whitespace
+          title = title.startsWith("VOSE") ? title.replace(/^VOSE\s*/i, "").trim() : title;
+
+          if (addedTitles.has(title)) return; // Skip if title already exists
+
           // Format the release date (if available)
           const formattedDate = item.releaseDate ? item.releaseDate.split("T")[0] : "N/A";
           // Format the cast and crew in the specified format
@@ -52,10 +59,10 @@ async function fetchMovieListFromKinepolis() {
           // Extract movie runtime and description
           const runtime = item.duration;
           const spec = item.synopsis || "No description available";
-          console.log( item.countryOfOrigin);
+
           // Add the movie details to the movies array
           movies.push({
-            localTitle: item.title || "Untitled", // Movie title
+            localTitle: title || "Untitled", // Movie title
             runtime: runtime,
             posterUrl: posterUrl,
             country: item.countryOfOrigin ? item.countryOfOrigin.code : "Unknown",
@@ -66,6 +73,7 @@ async function fetchMovieListFromKinepolis() {
             credits: {cast: formattedCast, crew: formattedCrew},
             isYoutube: false,
           });
+          addedTitles.add(title);
         });
       } else {
         console.error("Failed to fetch data:", response.status);

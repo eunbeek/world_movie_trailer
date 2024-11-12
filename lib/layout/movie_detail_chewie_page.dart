@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:chewie/chewie.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
+import 'package:world_movie_trailer/main.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
@@ -129,14 +133,15 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
     return screenSize.height / screenSize.width;
   }
 
-  Future<void> showMovieSnackbar(BuildContext context, messageType) async {
-    // Show the Snackbar after the delay
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(getMessage(_settingsProvider.language, messageType)),
-        duration: const Duration(milliseconds: 500), // Adjusted duration for readability
-      ),
-    );
+  Future<void> showMovieSnackbar(String messageType) async {
+    Future.delayed(Duration(milliseconds: 700)).then((_) {
+      scaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text(getMessage(_settingsProvider.language, messageType)),
+          duration: const Duration(milliseconds: 500),
+        ),
+      );
+    });
   }
 
   @override
@@ -253,12 +258,12 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
 
                     if (index != -1) {
                       await MovieByUserService.deleteMovie(3, index);
-                      showMovieSnackbar(context, 'movieDeleted');
+                      showMovieSnackbar('movieDeleted');
                     }
                   }
                   bool isCount = await MovieByUserService.getIsAvailable(3);
                   if (!isCount) {
-                    showMovieSnackbar(context, 'maxMoviesReached');
+                    showMovieSnackbar('maxMoviesReached');
                     return;
                   }
 
@@ -271,7 +276,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
 
                     // Add movie to MovieByUserService
                     await MovieByUserService.addMovie(3, addMovie).then((_) {
-                      showMovieSnackbar(context, 'addToBookmark');
+                      showMovieSnackbar('addToBookmark');
                     });
                   }
                   setState(() {
@@ -360,13 +365,13 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                                           String memo = memoController.text;
 
                                           if (memo.length >= 300) {
-                                            showMovieSnackbar(context,'maxMemosReached');
+                                            showMovieSnackbar('maxMemosReached');
                                           } else {
                                             if (existingMovie != null) {
                                               existingMovie.memo = memo;
                                               existingMovie.savedDate = DateTime.now();
                                               await MovieByUserService.updateMovieMemo(existingMovie).then((_){
-                                                showMovieSnackbar(context,'addToMemo');
+                                                showMovieSnackbar('addToMemo');
                                               });
                                             } else {
                                               if (memo.isNotEmpty && await MovieByUserService.getIsAvailable(4)) {
@@ -377,10 +382,10 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                                                   memo: memo,
                                                 );
                                                 await MovieByUserService.addMovie(4, addMovie).then((_){
-                                                  showMovieSnackbar(context,'addToMemo');
+                                                  showMovieSnackbar('addToMemo');
                                                 });
                                               } else {
-                                                showMovieSnackbar(context,'maxMoviesReached');
+                                                showMovieSnackbar('maxMoviesReached');
                                               }
                                             }
                                             Navigator.pop(context);
@@ -406,6 +411,21 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                   height: iconSize,
                   width: iconSize,
                 ),
+              ),
+              IconButton(
+                icon: Icon(
+                  Platform.isIOS 
+                    ? Icons.ios_share_outlined  // iOS에서 사용할 아이콘
+                    : Icons.share_outlined,     // Android에서 사용할 아이콘
+                ),
+                iconSize: iconSize,
+                onPressed: () => {
+                  Share.share(
+                    '${widget.movie.trailerUrl}',
+                    subject: 'Share ${widget.movie.localTitle} Movie Trailer',
+                    sharePositionOrigin: Rect.fromLTWH(0, 0, MediaQuery.of(context).size.width, MediaQuery.of(context).size.height / 2),
+                  )
+                }, // No action
               ),
             ],
           ),

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
+import 'package:world_movie_trailer/main.dart';
 import 'package:world_movie_trailer/model/movieByUser.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:world_movie_trailer/model/movie.dart';
@@ -131,13 +132,15 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
     return screenSize.height / screenSize.width;
   }
 
-  Future<void> showMovieSnackbar(BuildContext context, String messageType) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(getMessage(_settingsProvider.language, messageType)),
-        duration: const Duration(milliseconds: 500), // Adjusted duration for readability
-      ),
-    );
+  Future<void> showMovieSnackbar(String messageType) async {
+    Future.delayed(Duration(milliseconds: 700)).then((_) {
+      scaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text(getMessage(_settingsProvider.language, messageType)),
+          duration: const Duration(milliseconds: 500),
+        ),
+      );
+    });
   }
 
   @override
@@ -215,12 +218,12 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
 
                                           if (index != -1) {
                                             await MovieByUserService.deleteMovie(3, index);
-                                            showMovieSnackbar(context, 'movieDeleted');
+                                            showMovieSnackbar('movieDeleted');
                                           }
                                         }
                                         bool isCount = await MovieByUserService.getIsAvailable(3);
                                         if (!isCount) {
-                                          showMovieSnackbar(context, 'maxMoviesReached');
+                                          showMovieSnackbar('maxMoviesReached');
                                           return;
                                         }
 
@@ -233,7 +236,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
 
                                           // Add movie to MovieByUserService
                                           await MovieByUserService.addMovie(3, addMovie).then((_) {
-                                            showMovieSnackbar(context, 'addToBookmark');
+                                            showMovieSnackbar('addToBookmark');
                                           });
                                         }
                                         setState(() {
@@ -322,13 +325,13 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                                                 String memo = memoController.text;
 
                                                                 if (memo.length >= 300) {
-                                                                  showMovieSnackbar(context, 'maxMemosReached');
+                                                                  showMovieSnackbar('maxMemosReached');
                                                                 } else {
                                                                   if (existingMovie != null) {
                                                                     existingMovie.memo = memo;
                                                                     existingMovie.savedDate = DateTime.now();
                                                                     await MovieByUserService.updateMovieMemo(existingMovie).then((_){
-                                                                      showMovieSnackbar(context, 'addToMemo');
+                                                                      showMovieSnackbar('addToMemo');
                                                                     });
                                                                   } else {
                                                                     if (memo.isNotEmpty && await MovieByUserService.getIsAvailable(4)) {
@@ -339,10 +342,10 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                                                         memo: memo,
                                                                       );
                                                                       await MovieByUserService.addMovie(4, addMovie).then((_){
-                                                                        showMovieSnackbar(context, 'addToMemo');
+                                                                        showMovieSnackbar('addToMemo');
                                                                       });
                                                                     } else {
-                                                                      showMovieSnackbar(context, 'maxMoviesReached');
+                                                                      showMovieSnackbar('maxMoviesReached');
                                                                     }
                                                                   }
                                                                   Navigator.pop(context);

@@ -117,9 +117,19 @@ async function fetchFullMovieInfo(movieId, countryCode) {
     // Select up to 4 cast members
     const selectedCast = data.credits.cast.slice(0, 4);
 
-    // Filter crew to include only 'Directing' department and select up to 4
-    let directingCrew = data.credits.crew.filter((member) => member.known_for_department === "Directing").slice(0, 4);
+    // Filter crew to prioritize 'Director' job, and fill up with 'Directing' department if needed
+    let directingCrew = data.credits.crew
+        .filter((member) => member.job === "Director")
+        .slice(0, 4); // First, select up to 4 "Director" jobs
 
+    // If there are fewer than 4 "Director" members, add from "Directing" department
+    if (directingCrew.length < 4) {
+      const additionalDirectors = data.credits.crew
+          .filter((member) => member.known_for_department === "Directing" && member.job !== "Director")
+          .slice(0, 4 - directingCrew.length); // Only add enough to reach 4 total
+
+      directingCrew = directingCrew.concat(additionalDirectors); // Combine both lists
+    }
     // If no 'Directing' crew found, select up to 4 from the entire crew
     if (directingCrew.length === 0) {
       directingCrew = data.credits.crew.slice(0, 4);

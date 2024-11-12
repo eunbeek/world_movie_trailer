@@ -88,7 +88,7 @@ class _QuoteListPageState extends State<QuoteListPage> {
                         child: Text(
                           getSpecialQuoteSource(languageCode),
                           style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.height * 0.03,
+                            fontSize: MediaQuery.of(context).size.height * 0.02,
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,

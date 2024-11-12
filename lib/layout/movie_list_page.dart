@@ -34,7 +34,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
     super.initState();
     _appAdManager = RewardedAdManager();
     _loadAd();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 3, vsync: this, initialIndex: 1);
     _fetchMovies();  // Fetch movies
   }
 
@@ -77,45 +77,68 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
     });
   }
 
-  // List<Movie> _getFilteredMovies(String filter) {
-  //   print(allMovies.first.releaseDate);
-  //   if (filter == listFilterAll) {
-  //     return List.from(allMovies);
-  //   } else if (filter == listFilterRunning) {
-  //     return allMovies.where((movie) => movie.status == listFilterRunning).toList();
-  //   } else if (filter == listFilterUpcoming) {
-  //     return allMovies.where((movie) => movie.status == listFilterUpcoming).toList();
-  //   } else {
-  //     return [];
-  //   }
-  // }
 
-List<Movie> _getFilteredMovies(String filter) {
-  List<Movie> filteredList;
+  List<Movie> _getFilteredMovies(String filter) {
+    List<Movie> filteredList = [];
 
-  if (filter == listFilterAll) {
-    filteredList = List.from(allMovies);
-  } else if (filter == listFilterRunning) {
-    filteredList = allMovies.where((movie) => movie.status == listFilterRunning).toList();
-    // Sort by releaseDate (newest first), if releaseDate is null or empty, push to the end
-    filteredList.sort((a, b) {
-      DateTime dateA = (a.releaseDate != null && a.releaseDate.isNotEmpty)
-          ? DateTime.parse(a.releaseDate)
-          : DateTime(9999); // If releaseDate is null or empty, use a far future date
-      DateTime dateB = (b.releaseDate != null && b.releaseDate.isNotEmpty)
-          ? DateTime.parse(b.releaseDate)
-          : DateTime(9999); // If releaseDate is null or empty, use a far future date
+    if (filter == listFilterAll) {
+      filteredList = List.from(allMovies);
+      // Separate items with and without valid release dates
+      List<Movie> validDates = filteredList
+          .where((movie) => movie.releaseDate.isNotEmpty)
+          .toList();
 
-      return dateB.compareTo(dateA); // Sort in descending order (newest first)
-    });
-  } else if (filter == listFilterUpcoming) {
-    filteredList = allMovies.where((movie) => movie.status == listFilterUpcoming).toList();
-  } else {
-    return []; // Return empty if no filter matches
+      List<Movie> noDates = filteredList
+          .where((movie) => movie.releaseDate.isEmpty)
+          .toList();
+
+      // Sort only the items with valid release dates
+      validDates.sort((a, b) {
+        DateTime dateA = DateTime.parse(a.releaseDate);
+        DateTime dateB = DateTime.parse(b.releaseDate);
+        return dateB.compareTo(dateA); // Sort in descending order (newest first)
+      });
+
+      // Combine the lists: valid dates first, no dates at the end
+      filteredList = [...validDates, ...noDates];
+    } else if (filter == listFilterRunning) {
+      filteredList = allMovies.where((movie) => movie.status == listFilterRunning).toList();
+      // Sort by releaseDate (newest first), if releaseDate is null or empty, push to the end
+      filteredList.sort((a, b) {
+        DateTime dateA = (a.releaseDate.isNotEmpty)
+            ? DateTime.parse(a.releaseDate)
+            : DateTime(9999); // If releaseDate is null or empty, use a far future date
+        DateTime dateB = (b.releaseDate.isNotEmpty)
+            ? DateTime.parse(b.releaseDate)
+            : DateTime(9999); // If releaseDate is null or empty, use a far future date
+
+        return dateB.compareTo(dateA); // Sort in descending order (newest first)
+      });
+    } else if (filter == listFilterUpcoming) {
+      filteredList = allMovies.where((movie) => movie.status == listFilterUpcoming).toList();
+      // Separate items with and without valid release dates
+      List<Movie> validDates = filteredList
+          .where((movie) => movie.releaseDate.isNotEmpty)
+          .toList();
+
+      List<Movie> noDates = filteredList
+          .where((movie) => movie.releaseDate.isEmpty)
+          .toList();
+
+      // Sort only the items with valid release dates
+      validDates.sort((a, b) {
+        DateTime dateA = DateTime.parse(a.releaseDate);
+        DateTime dateB = DateTime.parse(b.releaseDate);
+        return dateA.compareTo(dateB); // Sort in descending order (newest first)
+      });
+
+      // Combine the lists: valid dates first, no dates at the end
+      filteredList = [...validDates, ...noDates];
+    } else {
+      return []; // Return empty if no filter matches
+    }
+    return filteredList;
   }
-
-  return filteredList;
-}
 
   @override
   Widget build(BuildContext context) {

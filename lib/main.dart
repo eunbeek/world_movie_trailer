@@ -16,6 +16,7 @@ import 'package:world_movie_trailer/model/settings.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -153,6 +154,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
     return SafeArea(
       child: MaterialApp(
         title: appTitle,
+        scaffoldMessengerKey: scaffoldMessengerKey,
         themeMode: settingsProvider.isDarkTheme ? ThemeMode.dark : ThemeMode.light,
         theme: ThemeData.light(),
         darkTheme: ThemeData.dark(),
