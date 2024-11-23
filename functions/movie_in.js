@@ -116,7 +116,7 @@ async function fetchMovieListFromInox() {
         const spec = item.synopsis || "No description available";
 
         const formattedReleaseDate = formatReleaseDate(item.releaseDate || "N/A");
-
+        if (movies.some((movie)=> movie.localTitle === item.filmName)) return;
         movies.push({
           localTitle: item.filmName || "Untitled",
           runtime: runtime,
@@ -157,7 +157,7 @@ async function fetchMovieListFromInox() {
         const spec = item.synopsis || "No description available";
 
         const formattedReleaseDate = formatReleaseDate(item.releaseDate || "N/A");
-
+        if (movies.some((movie)=> movie.localTitle == item.filmName)) return;
         movies.push({
           localTitle: item.filmName || "Untitled",
           runtime: runtime,

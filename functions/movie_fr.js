@@ -41,6 +41,8 @@ async function fetchMovieListFromUga() {
 
       movieBoxes.each((i, movieBox) => {
         const aTag = $(movieBox).find("a");
+        if (movies.some((movie) => movie.localTitle === aTag.attr("title"))) return;
+
         const movie = {
           localTitle: aTag.attr("title"),
           posterUrl: aTag.find("img").attr("data-src"),

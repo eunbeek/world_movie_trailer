@@ -30,6 +30,8 @@ async function fetchMovieListFromTraumpalast() {
         const releaseDateTag = $(movieBox).find("time[itemprop='datePublished']");
         const runtimeTag = $(movieBox).find("span[itemprop='duration']");
 
+        if (movies.some((movie) => movie.localTitle === titleTag.text().trim())) return;
+
         const movie = {
           localTitle: titleTag.text().trim(),
           posterUrl: "https://leonberg.traumpalast.de" + imgTag.attr("data-srcset").split(" ")[0],

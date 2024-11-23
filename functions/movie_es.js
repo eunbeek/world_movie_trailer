@@ -57,9 +57,8 @@ async function fetchMovieListFromKinepolis() {
           const runtime = item.duration;
           const spec = item.synopsis || "No description available";
 
-          if (movies.some((movie) => movie.localTitle === title)) {
-            return;
-          }
+          if (movies.some((movie) => movie.localTitle === title)) return;
+
           // Add the movie details to the movies array
           movies.push({
             localTitle: title || "Untitled", // Movie title

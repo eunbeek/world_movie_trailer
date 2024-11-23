@@ -456,41 +456,41 @@ exports.testFetchMovieListJP = functions.runWith({timeoutSeconds: 540}).https.on
   }
 });
 
-// /**
-//  * Test function for fetching and processing movie data from Cineplex.
-//  * Can be triggered via an HTTP request.
-//  *
-//  * @param {Object} req - The request object.
-//  * @param {Object} res - The response object.
-//  * @returns {Promise<void>} Sends a JSON response when the function completes.
-//  */
-// exports.testFetchMovieListCA = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
-//   try {
-//     const processedCount = 0;
-//     const startTime = Date.now();
+/**
+ * Test function for fetching and processing movie data from Cineplex.
+ * Can be triggered via an HTTP request.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} Sends a JSON response when the function completes.
+ */
+exports.testFetchMovieListCA = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
+  try {
+    const processedCount = 0;
+    const startTime = Date.now();
 
-//     const allMovies = await fetchMovieListFromCineplex();
+    const allMovies = await fetchMovieListFromCineplex();
 
-//     console.log(`Cineplex Movies: ${allMovies.length}`);
-//     const moviesWithTrailer = await processBatch("en-CA", allMovies, processedCount, startTime);
+    console.log(`Cineplex Movies: ${allMovies.length}`);
+    const moviesWithTrailer = await processBatch("en-CA", allMovies, processedCount, startTime);
 
-//     await saveMoviesAsJson("ca", moviesWithTrailer);
+    await saveMoviesAsJson("ca", moviesWithTrailer);
 
-//     const timestamp = new Date().toISOString();
-//     console.log(`Success: [${timestamp}] Country: CA, Movie Count: ${moviesWithTrailer.length}`);
+    const timestamp = new Date().toISOString();
+    console.log(`Success: [${timestamp}] Country: CA, Movie Count: ${moviesWithTrailer.length}`);
 
-//     res.status(200).json({
-//       success: true,
-//       timestamp,
-//       country: "CA",
-//       movieCount: moviesWithTrailer.length,
-//       movies: moviesWithTrailer,
-//     });
-//   } catch (error) {
-//     console.error("Error fetching movie list:", error);
-//     res.status(500).json({success: false, error: error.message});
-//   }
-// });
+    res.status(200).json({
+      success: true,
+      timestamp,
+      country: "CA",
+      movieCount: moviesWithTrailer.length,
+      movies: moviesWithTrailer,
+    });
+  } catch (error) {
+    console.error("Error fetching movie list:", error);
+    res.status(500).json({success: false, error: error.message});
+  }
+});
 
 // /**
 //  * Test function for fetching and processing movie data from ShowTime.
