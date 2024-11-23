@@ -22,7 +22,7 @@ const eigaMoreUpcoming = "https://eiga.com/movie/video/coming/";
  * @param {Array} [moviesJP] - List of movies to avoid duplicates.
  * @return {Promise<Array>} - A promise that resolves to a list of running movies.
  */
-async function fetchRunningFromEIGA(moviesJP = []) {
+async function fetchRunningFromEIGA() {
   const urls = [eigaRunning, eigaMore, eigaAllRelease];
   const movies = [];
 
@@ -42,10 +42,12 @@ async function fetchRunningFromEIGA(moviesJP = []) {
         const aTag = $(movieBox).find("div.img-box a");
         if (aTag) {
           const title = $(aTag).find("img").attr("alt").trim();
-          if (moviesJP.length > 0 && moviesJP.some((movieJP) => movieJP.localTitle === title)) return;
-
           const posterUrl = $(aTag).find("img").attr("src");
           const releaseDate = $(movieBox).find("small.time").text().trim().replace(/劇場公開日|公開/g, "");
+
+          if (posterUrl && posterUrl.startsWith("https://eiga.k-img.com/images/movie/noimg")) {
+            return; // Skip this movie and move to the next one
+          }
 
           // Extract the current year
           const currentDate = new Date();
@@ -132,6 +134,10 @@ async function fetchUpcomingFromEIGA(moviesJP = []) {
 
           const posterUrl = $(movieBox).find("div.img-thumb img").attr("src");
           const releaseDate = $(movieBox).find("p.published").text().trim().replace("劇場公開日：", "");
+
+          if (posterUrl && posterUrl.startsWith("https://eiga.k-img.com/images/movie/noimg")) {
+            return; // Skip this movie and move to the next one
+          }
 
           // Convert Japanese date format (e.g., 2024年8月31日) to YYYY-MM-DD
           const formattedDate = releaseDate.replace(/(\d{4})年(\d{1,2})月(\d{1,2})日/, (match, year, month, day) => {
