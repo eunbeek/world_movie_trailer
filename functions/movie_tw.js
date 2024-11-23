@@ -13,6 +13,14 @@ const showTimeHeaders = {
   "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
 };
 
+/**
+ * Strips HTML tags from a string.
+ * @param {string} str - The input string containing HTML.
+ * @return {string} - The cleaned string without HTML tags.
+ */
+function removeHtmlTags(str) {
+  return str.replace(/<[^>]*>/g, ""); // Removes everything between '<' and '>'
+}
 
 /**
  * Fetches movie data from ShowTime
@@ -34,18 +42,24 @@ async function fetchMovieListFromShowTime() {
         const posterUrl = item.coverImagePortrait ? item.coverImagePortrait.url : "";
         const trailerUrl = item.previewVideo ? item.previewVideo.data : "";
         const runtime = Math.round(item.duration / 60);
-        const spec = item.description || "No description available";
+        let spec = item.description || "No description available";
 
-        movies.push({
-          localTitle: item.name,
-          runtime: runtime,
-          posterUrl: posterUrl,
-          source: "showtimes",
-          trailerUrl: trailerUrl,
-          spec: spec,
-          releaseDate: formattedDate,
-          credits: {cast: formattedCast, crew: formattedCrew},
-        });
+        spec = removeHtmlTags(spec);
+
+        const isDuplicate = movies.some((movie) => movie.localTitle === item.name);
+
+        if (!isDuplicate) {
+          movies.push({
+            localTitle: item.name,
+            runtime: runtime,
+            posterUrl: posterUrl,
+            source: "showtimes",
+            trailerUrl: trailerUrl,
+            spec: spec,
+            releaseDate: formattedDate,
+            credits: {cast: formattedCast, crew: formattedCrew},
+          });
+        }
       });
     } else {
       console.error("Failed to fetch data:", response.status);
