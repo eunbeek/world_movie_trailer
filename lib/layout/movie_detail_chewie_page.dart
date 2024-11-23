@@ -144,6 +144,26 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
     });
   }
 
+  Widget _buildRunningTime() {
+    try {
+      if (widget.movie.runtime != "") {
+        return Padding(
+          padding: const EdgeInsets.only(left: 8.0),
+          child: Text(
+            '${getTranslatedDetail('Running Time', _settingsProvider.language)}: ${widget.movie.runtime} ${getTranslatedDetail('Minute', _settingsProvider.language)}',
+            style: TextStyle(
+              fontSize: MediaQuery.of(context).size.height * 0.018,
+            ),
+          ),
+        );
+      } else {
+        return SizedBox.shrink(); // Return an empty widget if no runtime
+      }
+    } catch (error) {
+      return SizedBox.shrink(); // Return an empty widget if there is an error
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -472,16 +492,8 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
               ),
             ),
           ),
-        if (widget.movie.runtime != "")
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: Text(
-              '${getTranslatedDetail('Running Time', _settingsProvider.language)}: ${widget.movie.runtime} minutes',
-              style: TextStyle(
-                fontSize: MediaQuery.of(context).size.height * 0.018,
-              ),
-            ),
-          ),
+        if (widget.movie.runtime != "") 
+          _buildRunningTime(),
         const SizedBox(height: 10),
         if (widget.movie.spec != "ERR404")
           Padding(
