@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
 import 'package:share_plus/share_plus.dart';
@@ -122,6 +123,7 @@ class SettingsPage extends StatelessWidget {
                 const Divider(),
                 ListTile(
                   onTap: () => {
+                    LogHelper().logEvent('userdata_clicked'),
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -247,6 +249,8 @@ class SettingsPage extends StatelessWidget {
                 const Divider(),
                 ListTile(
                   onTap: () {
+                    LogHelper().logEvent('appshare_clicked');
+                    
                     String url;
 
                     if (Platform.isAndroid) {
@@ -271,6 +275,8 @@ class SettingsPage extends StatelessWidget {
                 const Divider(),
                 ListTile(
                   onTap: () async {
+                    LogHelper().logEvent('review_clicked');
+
                     String url;
 
                     if (Platform.isAndroid) {
@@ -297,6 +303,7 @@ class SettingsPage extends StatelessWidget {
                 const Divider(),
                 ListTile(
                   onTap: () => {
+                    LogHelper().logEvent('otherapps_clicked'),
                     Navigator.push(
                       context,
                       MaterialPageRoute(

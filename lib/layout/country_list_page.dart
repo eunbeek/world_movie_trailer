@@ -200,6 +200,7 @@ class _CountryListPageState extends State<CountryListPage> {
                                 );
                             }
                             print('Selected: $newValue');
+                            LogHelper().logEvent('pchange_clicked');
                             setState(() {
                               isDropdownVisible = false;
                             });
@@ -262,6 +263,7 @@ class _CountryListPageState extends State<CountryListPage> {
                             width: iconSize,
                           ),
                           onPressed: () {
+                            LogHelper().logEvent('setting_clicked');
                             Navigator.push(
                               context,
                               MaterialPageRoute(

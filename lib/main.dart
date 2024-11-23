@@ -82,6 +82,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
 
     _appAdManager = RewardedAdManager();
     if (widget.isInitialSetting) {
+      LogHelper().logEvent('new_user_installed');
       _isAdDismissed = true;
     } else {
       _loadAd();
