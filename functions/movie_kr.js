@@ -73,9 +73,10 @@ async function fetchMovieListFromCgv(lotteMovies) {
           localTitle.replace(/^\[.*?\]/, "").trim() :
           localTitle;
 
-        if (lotteMovies.some((movie) => movie.localTitle === processedTitle)) {
+        if (lotteMovies.some((movie) => movie.localTitle === processedTitle) || movies.some((movie) => movie.localTitle === processedTitle)) {
           return;
         }
+
         const posterUrl = $(elem).find(".thumb-image img").attr("src");
         const movie = {
           localTitle: processedTitle,
@@ -130,7 +131,7 @@ async function _processAdditionalMovies(movieList, movies, lotteMovies) {
         localTitle.replace(/^\[.*?\]/, "").trim() :
         localTitle;
 
-      if (lotteMovies.some((movie) => movie.localTitle === processedTitle)) {
+      if (lotteMovies.some((movie) => movie.localTitle === processedTitle) || movies.some((movie) => movie.localTitle === processedTitle)) {
         return;
       }
 
@@ -185,6 +186,10 @@ async function fetchMovieListFromLotte() {
           movieJson.MovieNameKR.trim();
 
         const finalTitle = processedTitle.replace(/([가-힣a-zA-Z])(\d)/g, "$1 $2");
+
+        if (movies.some((movie) => movie.localTitle === processedTitle)) {
+          return;
+        }
 
         movies.push({
           localTitle: finalTitle,
