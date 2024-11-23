@@ -27,7 +27,6 @@ async function fetchRunningFromEIGA() {
   const movies = [];
 
   for (const url of urls) {
-    console.log(url);
     try {
       const response = await axios.get(url);
 
@@ -130,7 +129,11 @@ async function fetchUpcomingFromEIGA(moviesJP = []) {
         const aTag = $(movieBox).find("a");
         if (aTag) {
           const title = $(movieBox).find("div.img-thumb img").attr("alt").trim();
-          if (moviesJP.length > 0 && moviesJP.some((movieJP) => movieJP.localTitle === title)) return;
+
+          // Skip if movie exists in moviesJP or movies array
+          if (moviesJP.some((movieJP) => movieJP.localTitle === title) || movies.some((movie) => movie.localTitle === title)) {
+            return; // Skip this movie if it's already in either list
+          }
 
           const posterUrl = $(movieBox).find("div.img-thumb img").attr("src");
           const releaseDate = $(movieBox).find("p.published").text().trim().replace("劇場公開日：", "");
