@@ -63,8 +63,8 @@ exports.fetchMovieListJP = functions
       const processedCount = 0;
       const startTime = Date.now();
 
-      const runningMovies = await fetchRunningFromEIGA(false);
-      const upcomingMovies = await fetchUpcomingFromEIGA(false);
+      const runningMovies = await fetchRunningFromEIGA();
+      const upcomingMovies = await fetchUpcomingFromEIGA(runningMovies);
       const allMovies = [...runningMovies, ...upcomingMovies];
 
       const moviesWithTrailer = await processBatch("ja-JP", allMovies, processedCount, startTime);
@@ -432,8 +432,8 @@ exports.testFetchMovieListJP = functions.runWith({timeoutSeconds: 540}).https.on
     const processedCount = 0;
     const startTime = Date.now();
 
-    const runningMovies = await fetchRunningFromEIGA(false);
-    const upcomingMovies = await fetchUpcomingFromEIGA(false);
+    const runningMovies = await fetchRunningFromEIGA();
+    const upcomingMovies = await fetchUpcomingFromEIGA(runningMovies);
     const allMovies = [...runningMovies, ...upcomingMovies];
 
     const moviesWithTrailer = await processBatch("ja-JP", allMovies, processedCount, startTime);
