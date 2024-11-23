@@ -351,7 +351,7 @@ class _MemoListPageState extends State<MemoListPage> {
                                 },
                               ),
                               IconButton(
-                                icon: Icon(Icons.close, size: MediaQuery.of(context).size.height * 0.030,),
+                                icon: Icon(Icons.delete_outline , size: MediaQuery.of(context).size.height * 0.030,),
                                 onPressed: () async {
                                   // Delete the movie and refresh the list
                                   await MovieByUserService.deleteMovie(movie.flag, index);
