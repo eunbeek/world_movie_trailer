@@ -119,13 +119,23 @@ class MovieService {
         }
 
         return movie;
-      }).where((movie)=> movie.trailerUrl.isNotEmpty && movie.localTitle.isNotEmpty)
+      }).where((movie)=> movie.trailerUrl.isNotEmpty && movie.localTitle.isNotEmpty && movie.posterUrl.isNotEmpty)
       .toList();
+
+      // Remove duplicates based on localTitle
+      var uniqueMovies = <String, Movie>{};
+      for (var movie in movies) {
+        // Use the cleaned title for uniqueness
+        uniqueMovies[movie.localTitle] = movie;
+      }
+
+      // Convert the Map back to a list
+      List<Movie> finalMovies = uniqueMovies.values.toList();
 
       // Return a Map containing the timestamp and the processed movies
       return {
         'timestamp': timestamp,
-        'movies': movies,
+        'movies': finalMovies,
       };
     } catch (e) {
       print('Error reading movies: $e');
