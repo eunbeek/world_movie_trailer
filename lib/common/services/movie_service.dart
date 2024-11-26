@@ -122,11 +122,18 @@ class MovieService {
       }).where((movie)=> movie.trailerUrl.isNotEmpty && movie.localTitle.isNotEmpty && movie.posterUrl.isNotEmpty)
       .toList();
 
-      // Remove duplicates based on localTitle
+      String normalizeTitle(String title) {
+        return title
+            .replaceAll(RegExp(r'[-:]', multiLine: true), ' ') // Replace `-` and `:` with a space
+            .replaceAll(RegExp(r'\s+'), ' ') // Collapse multiple spaces into one
+            .trim(); // Trim leading and trailing spaces
+      }
+
       var uniqueMovies = <String, Movie>{};
       for (var movie in movies) {
-        // Use the cleaned title for uniqueness
-        uniqueMovies[movie.localTitle] = movie;
+        // Use the normalized title for uniqueness
+        String normalizedTitle = normalizeTitle(movie.localTitle);
+        uniqueMovies[normalizedTitle] = movie;
       }
 
       // Convert the Map back to a list

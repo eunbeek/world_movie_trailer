@@ -13,6 +13,7 @@ import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
 import 'package:world_movie_trailer/common/background.dart';
 import 'package:world_movie_trailer/common/error_page.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class MovieListPage extends StatefulWidget {
   final String country;
@@ -330,11 +331,16 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                         topRight: Radius.circular(15.0),
                       ),
                       child: movie.posterUrl != ""
-                          ? Image.network(
-                              movie.posterUrl,
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: double.infinity,
+                          ? CachedNetworkImage(
+                              imageUrl: movie.posterUrl, // 이미지 URL
+                              fit: BoxFit.cover,         // 기존 BoxFit 설정 그대로 유지
+                              width: double.infinity,    // 기존 너비
+                              height: double.infinity,   // 기존 높이
+                              errorWidget: (context, url, error) => Icon(
+                                Icons.error,                // 에러 발생 시 아이콘 표시
+                                size: 50,
+                                color: Colors.red,
+                              ),
                             )
                           : Image.asset(
                               settingsProvider.isDarkTheme
