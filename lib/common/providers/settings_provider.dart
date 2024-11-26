@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive/hive.dart';
+import 'package:world_movie_trailer/common/services/alarm_service.dart';
 import 'package:world_movie_trailer/model/settings.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 
 class SettingsProvider with ChangeNotifier {
   final Settings _settings;
-
+  final alarmService = AlarmService();
+  
   SettingsProvider(Settings newSettings, bool isInitialSetting) 
     : _settings = newSettings {
     if (isInitialSetting) _saveSettings();
@@ -36,6 +39,10 @@ class SettingsProvider with ChangeNotifier {
   int get lastSpecialNumber => _settings.lastSpecialNumber;
 
   DateTime? get lastSpecialFetched => _settings.lastSpecialFetched;
+
+  Map<int, Map<String, bool>> get isAlarmOnByDay =>
+    _settings.isAlarmOnByDay ?? countryByDay.map((day, countries) =>
+      MapEntry(day, {for (var country in countries) country: true}));
 
   // update & setter
   set language(String newLanguage) {
@@ -130,6 +137,30 @@ class SettingsProvider with ChangeNotifier {
   void updateLastSpecialFetched(DateTime lastFetched){
     print('updateLastSpecialFetched');
     _settings.lastSpecialFetched = lastFetched;
+    _saveSettings();
+    notifyListeners();
+  }
+
+  Future<void> updateAlarmForCountryByDay(int day, String country, bool isOn) async {
+    print('updateAlarmForCountryByDay: ${country} : ${isOn}');
+    _settings.isAlarmOnByDay ??= countryByDay.map((day, countries) =>
+      MapEntry(day, {for (var country in countries) country: true}));
+
+    if (_settings.isAlarmOnByDay![day] != null) {
+      _settings.isAlarmOnByDay![day]![country] = isOn;
+      if(isOn) {
+        await alarmService.registerDailyAlarms(this);
+      } else {
+        await alarmService.cancelAlarm(day, country);
+      }
+      _saveSettings();
+      notifyListeners();
+    }
+  }
+
+  void resetAlarms() {
+    _settings.isAlarmOnByDay = countryByDay.map((day, countries) =>
+      MapEntry(day, {for (var country in countries) country: true}));
     _saveSettings();
     notifyListeners();
   }

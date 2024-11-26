@@ -48,6 +48,11 @@ class Settings extends HiveObject {
   @HiveField(13)
   DateTime lastSpecialFetched;
 
+  // Future: Alarm
+  @HiveField(14)
+  Map<int, Map<String, bool>>? isAlarmOnByDay;
+
+
   Settings({
     required this.language,
     required this.theme,
@@ -63,6 +68,7 @@ class Settings extends HiveObject {
     required this.lastDate,
     this.lastSpecialNumber = 0, 
     required this.lastSpecialFetched,
+    this.isAlarmOnByDay,   // Future: Alarm
   });
 
   // Factory constructor to create default settings
@@ -96,6 +102,11 @@ class Settings extends HiveObject {
       defaultNewShown[currentWeekday]!.updateAll((key, value) => true);
     }
 
+    // Future: Alarm
+    final defaultIsAlarmOnByDay = countryByDay.map((day, countries) => 
+      MapEntry(day, {for (var country in countries) country: true})
+    );
+
     return Settings(
       language: deviceLanguage,
       theme: 'dark',
@@ -110,6 +121,7 @@ class Settings extends HiveObject {
       isNewShown: defaultNewShown,
       lastDate: DateTime.now(),
       lastSpecialFetched: DateTime.now(),
+      isAlarmOnByDay: defaultIsAlarmOnByDay,
     );
   }
 }

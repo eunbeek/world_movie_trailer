@@ -39,6 +39,7 @@ Map<String, Map<String, String>> settingLabel = {
     'lastusage': '마지막 사용 시간',
     'setting': '설정하기',
     'vibrate': '진동',
+    'alarm': '알람', // 추가된 알람
     'caption': '자막',
     'language': '언어',
     'theme': '테마',
@@ -63,6 +64,7 @@ Map<String, Map<String, String>> settingLabel = {
     'lastusage': 'Last Usage Time',
     'setting': 'Settings',
     'vibrate': 'Haptics',
+    'alarm': 'Alarm', // 추가된 알람
     'caption': 'Caption',
     'language': 'Language',
     'theme': 'Theme',
@@ -87,6 +89,7 @@ Map<String, Map<String, String>> settingLabel = {
     'lastusage': '最後の使用時間',
     'setting': '設定',
     'vibrate': '振動',
+    'alarm': 'アラーム', // 추가된 알람
     'caption': 'キャプション',
     'language': '言語',
     'theme': 'テーマ',
@@ -111,6 +114,7 @@ Map<String, Map<String, String>> settingLabel = {
     'lastusage': '最後使用時間',
     'setting': '設定',
     'vibrate': '震動',
+    'alarm': '鬧鐘', // 추가된 알람
     'caption': '字幕',
     'language': '語言',
     'theme': '主題',
@@ -135,6 +139,7 @@ Map<String, Map<String, String>> settingLabel = {
     'lastusage': 'Dernière utilisation',
     'setting': 'Paramètres',
     'vibrate': 'Vibration',
+    'alarm': 'Alarme', // 추가된 알람
     'caption': 'Sous-titres',
     'language': 'Langue',
     'theme': 'Thème',
@@ -159,6 +164,7 @@ Map<String, Map<String, String>> settingLabel = {
     'lastusage': 'Letzte Nutzung',
     'setting': 'Einstellungen',
     'vibrate': 'Vibration',
+    'alarm': 'Wecker', // 추가된 알람
     'caption': 'Untertitel',
     'language': 'Sprache',
     'theme': 'Thema',
@@ -183,6 +189,7 @@ Map<String, Map<String, String>> settingLabel = {
     'lastusage': '最后使用时间',
     'setting': '设置',
     'vibrate': '震动',
+    'alarm': '闹钟', // 추가된 알람
     'caption': '字幕',
     'language': '语言',
     'theme': '主题',
@@ -207,6 +214,7 @@ Map<String, Map<String, String>> settingLabel = {
     'lastusage': 'Último uso',
     'setting': 'Configuración',
     'vibrate': 'Vibración',
+    'alarm': 'Alarma', // 추가된 알람
     'caption': 'Subtítulos',
     'language': 'Idioma',
     'theme': 'Tema',
@@ -231,6 +239,7 @@ Map<String, Map<String, String>> settingLabel = {
     'lastusage': 'अंतिम उपयोग समय',
     'setting': 'सेटिंग्स',
     'vibrate': 'कंपन',
+    'alarm': 'अलार्म', // 추가된 알람
     'caption': 'कैप्शन',
     'language': 'भाषा',
     'theme': 'थीम',
@@ -255,6 +264,7 @@ Map<String, Map<String, String>> settingLabel = {
     'lastusage': 'เวลาการใช้งานล่าสุด',
     'setting': 'การตั้งค่า',
     'vibrate': 'การสั่นสะเทือน',
+    'alarm': 'ปลุก', // 추가된 알람
     'caption': 'คำบรรยาย',
     'language': 'ภาษา',
     'theme': 'ธีม',

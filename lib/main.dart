@@ -7,6 +7,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:world_movie_trailer/common/ad_manager/rewarded_ad_manager.dart';
 import 'package:world_movie_trailer/common/background.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
+import 'package:world_movie_trailer/common/services/alarm_service.dart';
 import 'package:world_movie_trailer/firebase_options.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/layout/country_list_page.dart';
@@ -43,6 +44,10 @@ void main() async {
   bool isInitialSetting = settingsBox.get('app_settings') == null;
 
   LogHelper();
+
+  final alarmService = AlarmService(); // `main`에서 생성
+  await alarmService.initialize();
+  await alarmService.requestPermission();
 
   runApp(
     MultiProvider(
@@ -88,8 +93,9 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
       _loadAd();
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+      await initializeAlarms(settingsProvider);
       settingsProvider.resetOpenCount();
       settingsProvider.updateIsQuotes(!settingsProvider.isQuotes);
       _updateNewShownStatus(settingsProvider);
@@ -183,5 +189,15 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
               ),
       ),
     );
+  }
+}
+
+Future<void> initializeAlarms(SettingsProvider settingsProvider) async {
+  if (settingsProvider.isAlarmOnByDay.isEmpty) {
+    settingsProvider.resetAlarms(); // 알람 상태를 초기화
+    await AlarmService().registerDailyAlarms(settingsProvider); // 알람 등록
+  } else {
+    // 기존 알람 상태에 따라 알람 재등록
+    await AlarmService().registerDailyAlarms(settingsProvider);
   }
 }

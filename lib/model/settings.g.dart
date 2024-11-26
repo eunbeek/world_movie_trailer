@@ -32,13 +32,15 @@ class SettingsAdapter extends TypeAdapter<Settings> {
       lastDate: fields[11] as DateTime,
       lastSpecialNumber: fields[12] as int,
       lastSpecialFetched: fields[13] as DateTime,
+      isAlarmOnByDay: (fields[14] as Map?)?.map((dynamic k, dynamic v) =>
+          MapEntry(k as int, (v as Map).cast<String, bool>())),
     );
   }
 
   @override
   void write(BinaryWriter writer, Settings obj) {
     writer
-      ..writeByte(14)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.language)
       ..writeByte(1)
@@ -66,7 +68,9 @@ class SettingsAdapter extends TypeAdapter<Settings> {
       ..writeByte(12)
       ..write(obj.lastSpecialNumber)
       ..writeByte(13)
-      ..write(obj.lastSpecialFetched);
+      ..write(obj.lastSpecialFetched)
+      ..writeByte(14)
+      ..write(obj.isAlarmOnByDay);
   }
 
   @override

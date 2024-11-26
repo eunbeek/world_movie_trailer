@@ -8,6 +8,7 @@ import 'package:world_movie_trailer/common/translate.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
+import 'package:world_movie_trailer/layout/alarm_list_page.dart';
 import 'package:world_movie_trailer/layout/credits_list_apge.dart';
 
 import 'package:world_movie_trailer/layout/other_app_page.dart';
@@ -169,6 +170,26 @@ class SettingsPage extends StatelessWidget {
                       settingsProvider.updateIsVibrate(value);
                     },
                   ),
+                ),
+                const Divider(),
+                ListTile(
+                  onTap: () => {
+                    LogHelper().logEvent('alarm_clicked'),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                          AlarmListPage(),
+                      ),
+                    )
+                  },
+                  title: Text(
+                    getSettingsLabel(settingsProvider.language, "alarm"),
+                    style: TextStyle(
+                      fontSize: MediaQuery.of(context).size.height * 0.02,
+                    ),
+                  ),
+                  trailing: const Icon(Icons.chevron_right), // Add arrow icon
                 ),
                 const Divider(),
                 ListTile(
@@ -348,7 +369,7 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ),
                   trailing: Text(
-                    'v 1.0.0',
+                    'v 1.0.2',
                     style: TextStyle(
                       fontSize: MediaQuery.of(context).size.height * 0.02,
                     ),
