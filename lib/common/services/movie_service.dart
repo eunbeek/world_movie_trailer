@@ -119,7 +119,7 @@ class MovieService {
         }
 
         return movie;
-      }).where((movie)=> movie.trailerUrl.isNotEmpty && movie.localTitle.isNotEmpty && movie.posterUrl.isNotEmpty)
+      }).where((movie)=> movie.trailerUrl.isNotEmpty && movie.localTitle.isNotEmpty && movie.posterUrl.isNotEmpty && movie.releaseDate.isNotEmpty)
       .toList();
 
       String normalizeTitle(String title) {
@@ -129,13 +129,18 @@ class MovieService {
             .trim(); // Trim leading and trailing spaces
       }
 
+      // Use a map to ensure unique trailerUrls and titles
       var uniqueMovies = <String, Movie>{};
-      for (var movie in movies) {
-        // Use the normalized title for uniqueness
-        String normalizedTitle = normalizeTitle(movie.localTitle);
-        uniqueMovies[normalizedTitle] = movie;
-      }
+      var trailerUrls = <String>{};
 
+      for (var movie in movies) {
+        String normalizedTitle = normalizeTitle(movie.localTitle);
+
+        if (!trailerUrls.contains(movie.trailerUrl)) {
+          uniqueMovies[normalizedTitle] = movie;
+          trailerUrls.add(movie.trailerUrl);
+        }
+      }
       // Convert the Map back to a list
       List<Movie> finalMovies = uniqueMovies.values.toList();
 
