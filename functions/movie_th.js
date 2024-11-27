@@ -39,6 +39,7 @@ async function fetchMovieListFromSf() {
           localTitle: details.name["th"],
           posterUrl: details.image_url["port"],
           source: "sf",
+          releaseDate: details.opening_date,
           batch: false,
         };
         movies.push(movie);

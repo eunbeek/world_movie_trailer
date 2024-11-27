@@ -73,6 +73,12 @@ async function fetchMovieListFromCgv(lotteMovies) {
           localTitle.replace(/^\[.*?\]/, "").trim() :
           localTitle;
 
+        const txtInfo = $(elem).find(".box-contents .txt-info").find("strong").text();
+        const dateMatch = txtInfo.match(/\d{4}\.\d{2}\.\d{2}/);
+        let releaseDate;
+        if (dateMatch) {
+          releaseDate = dateMatch[0].replace(/\./g, "-"); // "2024-11-27"
+        }
         if (lotteMovies.some((movie) => movie.localTitle === processedTitle) || movies.some((movie) => movie.localTitle === processedTitle)) {
           return;
         }
@@ -81,6 +87,7 @@ async function fetchMovieListFromCgv(lotteMovies) {
         const movie = {
           localTitle: processedTitle,
           posterUrl: posterUrl,
+          releaseDate: releaseDate,
           country: "kr",
           source: "cgv",
           batch: false,
@@ -127,6 +134,8 @@ async function _processAdditionalMovies(movieList, movies, lotteMovies) {
     try {
       const localTitle = movieJson.Title || "Unknown";
       const posterUrl = movieJson.PosterImage.LargeImage;
+      const releaseDate = movieJson.OpenDate;
+      const formattedDate = releaseDate.replace(/\./g, "-");
       const processedTitle = localTitle.startsWith("[") ?
         localTitle.replace(/^\[.*?\]/, "").trim() :
         localTitle;
@@ -138,6 +147,8 @@ async function _processAdditionalMovies(movieList, movies, lotteMovies) {
       const movie = {
         localTitle: processedTitle,
         posterUrl: posterUrl,
+        releaseDate: formattedDate,
+        country: "kr",
         source: "cgv",
         batch: false,
       };
@@ -195,6 +206,7 @@ async function fetchMovieListFromLotte() {
           localTitle: finalTitle,
           posterUrl: movieJson.PosterURL,
           source: "lotte",
+          releaseDate: movieJson.ReleaseDate.split(" ")[0],
           batch: false,
         });
       });

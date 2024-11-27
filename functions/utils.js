@@ -37,7 +37,7 @@ async function processBatch(country, moviesData, processedCount, startTime, isSp
         movie.trailerUrl = fetchedMovie.trailerLink || "";
         movie.country = movie.country ? movie.country : fetchedMovie.origin_country ? fetchedMovie.origin_country[0]: "";
         movie.spec = fetchedMovie.overview ? fetchedMovie.overview : movie.spec ? movie.spec: "";
-        movie.releaseDate = fetchedMovie.release_date ? fetchedMovie.release_date : movie.releaseDate? movie.releaseDate : "";
+        movie.releaseDate = movie.releaseDate? movie.releaseDate : fetchedMovie.release_date ? fetchedMovie.release_date : "";
         movie.runtime = fetchedMovie.runtime ? fetchedMovie.runtime : movie.runtime ? movie.runtime : "";
         movie.credits = fetchedMovie.credits ? fetchedMovie.credits : movie.credits ? movie.credits : {};
       }
