@@ -125,19 +125,16 @@ class CreditsList extends StatelessWidget {
                       fontSize: MediaQuery.of(context).size.height * 0.018,
                     ),
                   ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 12.0), 
-                      Text(
-                        '  Jisu, Rene, Steve, Sylbee, Kim and Choi Family, Esther, Marcus, Danop, Stojan',
-                        style: TextStyle(
-                          fontSize: MediaQuery.of(context).size.height * 0.017,
-                        ),
-                        maxLines: 3,
-                        overflow: TextOverflow.visible,
+                  subtitle: Padding(
+                    padding: EdgeInsets.all(12),
+                    child: Text(
+                      'Jisu, Rene, Steve, Sylbee, Kim and Choi Family, Esther, Marcus, Danop, Stojan, DVDPrime, Toronto Korean Developers',
+                      style: TextStyle(
+                        fontSize: MediaQuery.of(context).size.height * 0.017,
                       ),
-                    ],
+                      maxLines: 3,
+                      overflow: TextOverflow.visible,
+                    ),
                   ),
                 ),
               ],
