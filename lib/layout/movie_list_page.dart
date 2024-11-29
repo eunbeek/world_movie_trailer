@@ -36,7 +36,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
     super.initState();
     _appAdManager = RewardedAdManager();
     _loadAd();
-    _tabController = TabController(length: 3, vsync: this, initialIndex: 1);
+    _tabController = TabController(length: 3, vsync: this, initialIndex: widget.country == special ? 0 : 1);
     _fetchMovies();  // Fetch movies
   }
 

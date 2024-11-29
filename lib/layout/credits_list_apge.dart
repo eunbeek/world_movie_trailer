@@ -132,7 +132,7 @@ class CreditsList extends StatelessWidget {
                       style: TextStyle(
                         fontSize: MediaQuery.of(context).size.height * 0.017,
                       ),
-                      maxLines: 3,
+                      maxLines: 10,
                       overflow: TextOverflow.visible,
                     ),
                   ),

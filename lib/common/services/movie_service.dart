@@ -121,7 +121,7 @@ class MovieService {
         return movie;
       }).where((movie)=> movie.trailerUrl.isNotEmpty && movie.localTitle.isNotEmpty && movie.posterUrl.isNotEmpty && movie.releaseDate.isNotEmpty)
       .toList();
-
+      
       String normalizeTitle(String title) {
         return title
             .replaceAll(RegExp(r'[-:]', multiLine: true), ' ') // Replace `-` and `:` with a space
@@ -147,7 +147,7 @@ class MovieService {
       // Return a Map containing the timestamp and the processed movies
       return {
         'timestamp': timestamp,
-        'movies': finalMovies,
+        'movies': countryCode == 'special' ? movies: finalMovies,
       };
     } catch (e) {
       print('Error reading movies: $e');
