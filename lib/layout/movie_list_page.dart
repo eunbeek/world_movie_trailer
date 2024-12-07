@@ -372,7 +372,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                         const SizedBox(height: 4),
                         if (releaseDate != null)
                           Text(
-                            '$releaseDate ${getReleaseLabel(settingsProvider.language)}',
+                            releaseDate,
                             style: TextStyle(
                               color: const Color(0xffc7c7c7),
                               fontSize: MediaQuery.of(context).size.height * 0.013,
