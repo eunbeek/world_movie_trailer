@@ -292,7 +292,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
             onTap: () {
               HapticFeedback.mediumImpact();
               LogHelper().logEvent('movie ${movie.localTitle} clicked in ${tabIndex == 0 ? 'All' : index == 1 ? 'Running' : 'Upcoming'} tab');
-              if (settingsProvider.openCount > 8) {
+              if (settingsProvider.openCount > 10) {
                 if(_appAdManager.rewardedAd != null){
                   _showAd(() {
                     Navigator.push(
