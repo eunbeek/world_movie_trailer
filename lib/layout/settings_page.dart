@@ -352,7 +352,7 @@ class SettingsPage extends StatelessWidget {
                     )
                   },
                   title: Text(
-                    'Open Source Info',
+                    getSettingsLabel(settingsProvider.language, "opensource"),
                     style: TextStyle(
                       fontSize: MediaQuery.of(context).size.height * 0.02,
                     ),

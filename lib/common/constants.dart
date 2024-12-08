@@ -55,6 +55,7 @@ Map<String, Map<String, String>> settingLabel = {
     'totalOpen': '예고편 본 총 횟수',
     'views': '회',
     'credits': '크레딧',
+    'opensource': '오픈 소스 정보',
   },
   'en': {
     'userdata': 'User Data',
@@ -79,6 +80,7 @@ Map<String, Map<String, String>> settingLabel = {
     'totalOpen': 'Total Trailer Views',
     'views': 'views',
     'credits': 'Credits',
+    'opensource': 'Open Source Info',
   },
   'ja': {
     'userdata': 'ユーザーデータ',
@@ -103,6 +105,7 @@ Map<String, Map<String, String>> settingLabel = {
     'totalOpen': '予告編の視聴回数',
     'views': '回',
     'credits': 'クレジット',
+    'opensource': 'オープンソース情報'
   },
   'tw': {
     'userdata': '使用者資料',
@@ -127,6 +130,7 @@ Map<String, Map<String, String>> settingLabel = {
     'totalOpen': '預告片的總觀看次數',
     'views': '次',
     'credits': '製作人員名單',
+    'opensource': '開源資訊',
   },
   'fr': {
     'userdata': 'Données utilisateur',
@@ -151,6 +155,7 @@ Map<String, Map<String, String>> settingLabel = {
     'totalOpen': 'Nombre total de visionnages de la bande-annonce',
     'views': 'vues',
     'credits': 'Crédits',
+    'opensource': 'Info sur le code source ouvert',
   },
   'de': {
     'userdata': 'Nutzerdaten',
@@ -175,6 +180,7 @@ Map<String, Map<String, String>> settingLabel = {
     'totalOpen': 'Gesamtanzahl der Traileransichten',
     'views': 'Ansichten',
     'credits': 'Abspann',
+    'opensource': 'Open-Source-Info',
   },
   'zh': {
     'userdata': '应用版本',
@@ -199,6 +205,7 @@ Map<String, Map<String, String>> settingLabel = {
     'totalOpen': '总预告片观看次数',
     'views': '次',
     'credits': '制作人员名单',
+    'opensource': '开源信息'
   },
   'es': {
     'userdata': 'Datos de usuario',
@@ -223,6 +230,7 @@ Map<String, Map<String, String>> settingLabel = {
     'totalOpen': 'Total de vistas de trailers',
     'views': 'vistas',
     'credits': 'Créditos',
+    'opensource': 'Info de código abierto'
   },
   'hi': {
     'userdata': 'उपयोगकर्ता डेटा',
@@ -247,6 +255,7 @@ Map<String, Map<String, String>> settingLabel = {
     'totalOpen': 'कुल ट्रेलर देखे जाने की संख्या',
     'views': 'दृश्य',
     'credits': 'खेल कर्मचारी',
+    'opensource': 'ओपन सोर्स जानकारी'
   },
   'th': {
     'userdata': 'ข้อมูลผู้ใช้',
@@ -271,6 +280,7 @@ Map<String, Map<String, String>> settingLabel = {
     'totalOpen': 'ยอดการดูตัวอย่างภาพยนตร์',
     'views': 'ครั้ง',
     'credits': 'ทีมงานสร้างแอป',
+    'opensource': 'ข้อมูลโอเพ่นซอร์ส'
   },
 };
 
