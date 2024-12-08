@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:world_movie_trailer/layout/credits_list_apge.dart';
+import 'package:world_movie_trailer/layout/open_source_list_page.dart';
 
 import 'package:world_movie_trailer/layout/other_app_page.dart';
 import 'package:world_movie_trailer/layout/user_data_page.dart';
@@ -333,6 +334,25 @@ class SettingsPage extends StatelessWidget {
                   },
                   title: Text(
                     getSettingsLabel(settingsProvider.language, "credits"),
+                    style: TextStyle(
+                      fontSize: MediaQuery.of(context).size.height * 0.02,
+                    ),
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                ),
+                const Divider(),
+                ListTile(
+                  onTap: () => {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                          OpenSourceList(),
+                      ),
+                    )
+                  },
+                  title: Text(
+                    'Open Source Info',
                     style: TextStyle(
                       fontSize: MediaQuery.of(context).size.height * 0.02,
                     ),
