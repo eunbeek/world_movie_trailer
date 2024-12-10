@@ -15,9 +15,12 @@ const {fetchMovieListFromInox} = require("./movie_in");
 const {fetchMovieListFromTMDBByCN} = require("./movie_cn");
 const {fetchMovieInSpecialSection} = require("./movie_special");
 const {fetchQuotesInSpecialSection} = require("./quote_special");
-const {processBatch, saveMoviesAsJson, saveQuotesAsJson} = require("./utils");
+const {processBatch, saveMoviesAsJson, saveQuotesAsJson, updateMovieTrailer, deleteMovieByManual} = require("./utils");
 
 admin.initializeApp();
+
+const cors = require("cors");
+const corsHandler = cors({origin: true});
 
 /**
  * Fetches movies from CGV and Lotte, processes trailers, and saves the result.
@@ -875,35 +878,87 @@ exports.testFetchQuoteListSpecial = functions.runWith({timeoutSeconds: 540}).htt
  * @param {Object} res - The response object.
  * @returns {Promise<void>} Sends a JSON response with the movie list when the function completes.
  */
-exports.readMovieListByCountry = functions.https.onRequest(async (req, res) => {
-  const country = req.query.country;
+exports.readMovieListByCountry = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    const country = req.query.country;
 
-  if (!country) {
-    return res.status(400).json({success: false, message: "Country code is required."});
-  }
-
-  try {
-    const bucket = admin.storage().bucket();
-    const fileName = `movies_${country.toLowerCase()}.json`; // Construct the file name based on the country code
-    const file = bucket.file(fileName);
-
-    const exists = await file.exists();
-    if (!exists[0]) {
-      return res.status(404).json({success: false, message: "File not found for the specified country code."});
+    if (!country) {
+      return res.status(400).json({success: false, message: "Country code is required."});
     }
 
-    const fileContents = await file.download();
-    const movies = JSON.parse(fileContents.toString());
+    try {
+      const bucket = admin.storage().bucket();
+      const fileName = `movies_${country.toLowerCase()}.json`; // Construct the file name based on the country code
+      const file = bucket.file(fileName);
 
-    res.status(200).json({
-      success: true,
-      country: country.toUpperCase(),
-      movieCount: movies.movies.length,
-      timestamp: movies.timestamp,
-      movies: movies.movies,
-    });
-  } catch (error) {
-    console.error("Error reading movie list:", error);
-    res.status(500).json({success: false, error: error.message});
-  }
+      const exists = await file.exists();
+      if (!exists[0]) {
+        return res.status(404).json({success: false, message: "File not found for the specified country code."});
+      }
+
+      const fileContents = await file.download();
+      const movies = JSON.parse(fileContents.toString());
+
+      res.status(200).json({
+        success: true,
+        country: country.toUpperCase(),
+        movieCount: movies.movies.length,
+        timestamp: movies.timestamp,
+        movies: movies.movies,
+      });
+    } catch (error) {
+      console.error("Error reading movie list:", error);
+      res.status(500).json({success: false, error: error.message});
+    }
+  });
+});
+
+/**
+   * Saves the list of quotes as a JSON file in Firebase Storage.
+   *
+   * @param {string} country - The country code for the movies.
+   * @param {string} title - The movie title
+   * @param {string} newTrailerUrl - new trailer url
+   * @return {Promise<void>} Saves the quote list in Firebase Storage.
+   */
+exports.updateMovieTrailer = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    const {country, title, newTrailerUrl} = req.body;
+
+    if (!country || !title || !newTrailerUrl) {
+      return res.status(400).json({success: false, message: "Missing required parameters."});
+    }
+
+    try {
+      const result = await updateMovieTrailer(country, title, newTrailerUrl);
+      res.status(200).json(result);
+    } catch (error) {
+      console.error("Error in updateMovieTrailer function:", error);
+      res.status(500).json({success: false, error: error.message});
+    }
+  });
+});
+
+/**
+ * Deletes a movie by title via HTTP request.
+ *
+ * @param {object} req - The request object.
+ * @param {object} res - The response object.
+ */
+exports.deleteMovieByManual = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    const {country, title} = req.body;
+
+    if (!country || !title) {
+      return res.status(400).json({success: false, message: "Country and title are required."});
+    }
+
+    try {
+      const result = await deleteMovieByManual(country, title);
+      res.status(200).json(result);
+    } catch (error) {
+      console.error("Error deleting movie:", error);
+      res.status(500).json({success: false, message: error.message});
+    }
+  });
 });
