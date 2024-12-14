@@ -115,11 +115,39 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void unmarkIsNewShown(int day, String country){
+  void unmarkIsNewShown(String country) {
     print('unmarkIsNewShown');
-    _settings.isNewShown[day]![country] = false;
+    for (final day in _settings.isNewShown.keys) {
+      if (_settings.isNewShown[day]?.containsKey(country) == true) {
+        _settings.isNewShown[day]![country] = false;
+        _saveSettings();
+        notifyListeners();
+        return; // Exit the loop once the country is found and updated
+      }
+    }
+    print('Country not found in any day');
+  }
+
+  void markAllIsNewShown(){
+    print('markAllIsNewShown');
+    _settings.isNewShown.forEach((day, countries) {
+      countries.updateAll((key, value) => true);
+    });
     _saveSettings();
     notifyListeners();
+  }
+
+  void unmarkAllIsNewShown(){
+    print('unmarkAllIsNewShown');
+    _settings.isNewShown.forEach((day, countries) {
+      countries.updateAll((key, value) => false);
+    });
+    _saveSettings();
+    notifyListeners();
+  }
+
+  bool getCountryStatus(String country) {
+    return _settings.isNewShown.values.any((countries) => countries[country] == true);
   }
 
   void updateLastDate(DateTime openDate){

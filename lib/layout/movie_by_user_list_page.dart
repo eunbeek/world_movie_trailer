@@ -163,7 +163,7 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
           return GestureDetector(
             onTap: () {
               HapticFeedback.mediumImpact();
-              if (settingsProvider.openCount > 8) {
+              if (settingsProvider.openCount > 10) {
                 if (_appAdManager.rewardedAd != null) {
                   _showAd(() {
                     Navigator.push(

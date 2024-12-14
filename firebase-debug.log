@@ -1,0 +1,42 @@
+[debug] [2024-12-09T07:44:01.319Z] ----------------------------------------------------------------------
+[debug] [2024-12-09T07:44:01.320Z] Command:       /Users/ekim/.nvm/versions/node/v18.20.4/bin/node /Users/ekim/.nvm/versions/node/v18.20.4/bin/firebase emulators:start --only hosting
+[debug] [2024-12-09T07:44:01.320Z] CLI Version:   13.17.0
+[debug] [2024-12-09T07:44:01.320Z] Platform:      darwin
+[debug] [2024-12-09T07:44:01.320Z] Node Version:  v18.20.4
+[debug] [2024-12-09T07:44:01.326Z] Time:          Mon Dec 09 2024 02:44:01 GMT-0500 (Eastern Standard Time)
+[debug] [2024-12-09T07:44:01.327Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2024-12-09T07:44:01.384Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-12-09T07:44:01.384Z] > authorizing via signed-in user (dmsql1678@gmail.com)
+[info] i  emulators: Starting emulators: hosting {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: hosting"}}
+[debug] [2024-12-09T07:44:01.561Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2024-12-09T07:44:01.561Z] [hosting] Hosting Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2024-12-09T07:44:01.561Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"hosting":[{"address":"127.0.0.1","family":"IPv4","port":5000}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2024-12-09T07:44:01.565Z] [hub] writing locator at /var/folders/x3/1_m1np211yn2wsty2blq7ttr0000gn/T/hub-world-movie-trailer.json
+[debug] [2024-12-09T07:44:01.571Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/world-movie-trailer/sites 
+[debug] [2024-12-09T07:44:01.922Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/world-movie-trailer/sites 200
+[debug] [2024-12-09T07:44:01.922Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/world-movie-trailer/sites {"sites":[{"name":"projects/world-movie-trailer/sites/world-movie-trailer","defaultUrl":"https://world-movie-trailer.web.app","type":"DEFAULT_SITE"}]}
+[debug] [2024-12-09T07:44:01.922Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/world-movie-trailer/webApps/-/config [none]
+[debug] [2024-12-09T07:44:02.423Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/world-movie-trailer/webApps/-/config 200
+[debug] [2024-12-09T07:44:02.423Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/world-movie-trailer/webApps/-/config {"projectId":"world-movie-trailer","storageBucket":"world-movie-trailer.appspot.com","locationId":"us-central","apiKey":"AIzaSyD5D-K3UTFbBr5aBwrHCzciDYjPaa4bi2I","authDomain":"world-movie-trailer.firebaseapp.com","messagingSenderId":"917295366628"}
+[debug] [2024-12-09T07:44:02.434Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/world-movie-trailer [none]
+[debug] [2024-12-09T07:44:02.650Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/world-movie-trailer 200
+[debug] [2024-12-09T07:44:02.650Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/world-movie-trailer {"projectId":"world-movie-trailer","projectNumber":"917295366628","displayName":"world-movie-trailer","name":"projects/world-movie-trailer","resources":{"hostingSite":"world-movie-trailer","storageBucket":"world-movie-trailer.appspot.com","locationId":"us-central"},"state":"ACTIVE","etag":"1_5a38e92b-ba0f-466e-a282-c842379b9138"}
+[info] i  hosting[world-movie-trailer]: Serving hosting files from: public {"metadata":{"emulator":{"name":"hosting"},"message":"Serving hosting files from: \u001b[1mpublic\u001b[22m"}}
+[info] ✔  hosting[world-movie-trailer]: Local server: http://127.0.0.1:5000 {"metadata":{"emulator":{"name":"hosting"},"message":"Local server: \u001b[4m\u001b[1mhttp://127.0.0.1:5000\u001b[22m\u001b[24m"}}
+[warn] ⚠  emulators: The Emulator UI is not starting, either because none of the running emulators have a UI component or the Emulator UI cannot determine the Project ID. Pass the --project flag to specify a project. {"metadata":{"emulator":{"name":"hub"},"message":"The Emulator UI is not starting, either because none of the running emulators have a UI component or the Emulator UI cannot determine the Project ID. Pass the --project flag to specify a project."}}
+[info] 
+┌─────────────────────────────────────────────────────────────┐
+│ ✔  All emulators ready! It is now safe to connect your app. │
+└─────────────────────────────────────────────────────────────┘
+
+┌──────────┬────────────────┐
+│ Emulator │ Host:Port      │
+├──────────┼────────────────┤
+│ Hosting  │ 127.0.0.1:5000 │
+└──────────┴────────────────┘
+  Emulator Hub running at 127.0.0.1:4400
+  Other reserved ports: 4500
+
+Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
+ 

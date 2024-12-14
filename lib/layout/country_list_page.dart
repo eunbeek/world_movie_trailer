@@ -120,12 +120,7 @@ class _CountryListPageState extends State<CountryListPage> {
     final settingsProvider = Provider.of<SettingsProvider>(context);
     final languageCode = settingsProvider.language;
     final countries = settingsProvider.countryOrder;
-    int currentWeekday = DateTime.now().weekday-1;
-    final countriesOfTheDay = countryByDay[currentWeekday] ?? []; // origin
 
-    final localizedCountriesOfTheDay = countriesOfTheDay.map((countryCode) {
-      return localizedCountries[languageCode]?[countryCode] ?? countryCode;
-    }).toList();
 
     return Scaffold(
       body: SafeArea(
@@ -310,8 +305,8 @@ class _CountryListPageState extends State<CountryListPage> {
                                 final String? originCountry = localizedCountries[languageCode]?.entries
                                     .firstWhere((entry) => entry.value == countries[index], orElse: () => MapEntry('', '')).key;
 
-                                if (originCountry != null && localizedCountriesOfTheDay.contains(countries[index])) {
-                                  settingsProvider.unmarkIsNewShown(currentWeekday, originCountry);
+                                if (originCountry != null) {
+                                  settingsProvider.unmarkIsNewShown(originCountry);
                                 }
 
                                 LogHelper().logEvent('country_clicked', parameters: {'country_name': countries[index]});
@@ -359,11 +354,8 @@ class _CountryListPageState extends State<CountryListPage> {
                                       if (
                                         !isEditMode &&
                                         localizedCountries[languageCode] != null && 
-                                        settingsProvider.isNewShown[currentWeekday] != null && 
-                                        settingsProvider.isNewShown[currentWeekday]![
-                                          localizedCountries[languageCode]!.entries
-                                            .firstWhere((entry) => entry.value == countries[index], orElse: () => MapEntry('', '')).key
-                                        ] == true // new 상태가 true인지 확인
+                                        settingsProvider.getCountryStatus(localizedCountries[languageCode]!.entries
+                                            .firstWhere((entry) => entry.value == countries[index], orElse: () => MapEntry('', '')).key)
                                       ) 
                                         Positioned(
                                           top: boxHeight * 0.35,

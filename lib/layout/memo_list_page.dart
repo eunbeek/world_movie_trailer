@@ -177,7 +177,7 @@ class _MemoListPageState extends State<MemoListPage> {
                   child: GestureDetector(
                     onTap: () {
                       HapticFeedback.mediumImpact();
-                      if (settingsProvider.openCount > 8) {
+                      if (settingsProvider.openCount > 10) {
                         if (_appAdManager.rewardedAd != null) {
                           _showAd(() {
                             Navigator.push(
@@ -351,7 +351,13 @@ class _MemoListPageState extends State<MemoListPage> {
                                 },
                               ),
                               IconButton(
-                                icon: Icon(Icons.delete_outline , size: MediaQuery.of(context).size.height * 0.030,),
+                                icon: Image.asset(
+                                  settingsProvider.isDarkTheme
+                                      ? 'assets/images/dark/icon_delete_DT_xxhdpi.png'
+                                      : 'assets/images/light/icon_delete_LT_xxhdpi.png',
+                                      height: MediaQuery.of(context).size.height * 0.030,
+                                      width: MediaQuery.of(context).size.height * 0.030,
+                                ),
                                 onPressed: () async {
                                   // Delete the movie and refresh the list
                                   await MovieByUserService.deleteMovie(movie.flag, index);
