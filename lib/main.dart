@@ -128,10 +128,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
 
     settingsProvider.updateLastDate(currentDate);
 
-    if (gap >= 7) {
-      for (int i = 0; i < 7; i++) {
-        settingsProvider.markIsNewShown(i);
-      }
+    if (gap > 6) {
+      settingsProvider.markAllIsNewShown();
     } else {
       for (int i = 1; i <= gap; i++) {
         DateTime dateToUpdate = lastOpenDate.add(Duration(days: i));
