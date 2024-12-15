@@ -124,7 +124,11 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
   void _updateNewShownStatus(SettingsProvider settingsProvider) {
     DateTime lastOpenDate = settingsProvider.lastDate;
     DateTime currentDate = DateTime.now();
-    int gap = currentDate.difference(lastOpenDate).inDays;
+
+    DateTime lastDateOnly = DateTime(lastOpenDate.year, lastOpenDate.month, lastOpenDate.day);
+    DateTime currentDateOnly = DateTime(currentDate.year, currentDate.month, currentDate.day);
+
+    int gap = currentDateOnly.difference(lastDateOnly).inDays;
 
     settingsProvider.updateLastDate(currentDate);
 
