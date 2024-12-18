@@ -29,6 +29,7 @@ class AlarmService {
     );
 
     tz.initializeTimeZones();
+        debugTimezones();
   }
 
   /// iOS 알림 수신 처리
@@ -76,8 +77,13 @@ class AlarmService {
         importance: Importance.high,
         priority: Priority.high,
         showWhen: false,
+        ongoing: true,
       ),
-      iOS: DarwinNotificationDetails(),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
     );
 
     settingsProvider.isAlarmOnByDay.forEach((day, countries) {
@@ -112,11 +118,20 @@ class AlarmService {
     final now = tz.TZDateTime.now(tz.local);
     final daysToNext = (day - now.weekday + 7) % 7;
     final nextDate = now.add(Duration(days: daysToNext));
-    return tz.TZDateTime(tz.local, nextDate.year, nextDate.month, nextDate.day, 9, 0);
+    return tz.TZDateTime(tz.local, nextDate.year, nextDate.month, nextDate.day, 9, 24);
   }
 
   /// 고유 ID 생성
   int getAlarmId(int day, String country) {
     return day.hashCode ^ country.hashCode;
+  }
+
+  void debugTimezones() {
+    final now = tz.TZDateTime.now(tz.local); // 현재 지역 시간 가져오기
+    final utcNow = tz.TZDateTime.now(tz.UTC); // UTC 기준 현재 시간 가져오기
+    
+    print('Local Timezone: ${now.location}');
+    print('Local Time: $now');
+    print('UTC Time: $utcNow');
   }
 }

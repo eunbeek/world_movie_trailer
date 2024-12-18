@@ -45,7 +45,7 @@ void main() async {
 
   LogHelper();
 
-  final alarmService = AlarmService(); // `main`에서 생성
+  final alarmService = AlarmService();
   await alarmService.initialize();
   await alarmService.requestPermission();
 
