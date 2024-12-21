@@ -7,6 +7,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:world_movie_trailer/common/ad_manager/rewarded_ad_manager.dart';
 import 'package:world_movie_trailer/common/background.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
+import 'package:world_movie_trailer/common/services/alarm_service.dart';
 import 'package:world_movie_trailer/firebase_options.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/layout/country_list_page.dart';
@@ -43,6 +44,10 @@ void main() async {
   bool isInitialSetting = settingsBox.get('app_settings') == null;
 
   LogHelper();
+
+  final alarmService = AlarmService();
+  await alarmService.initialize();
+  await alarmService.requestPermission();
 
   runApp(
     MultiProvider(
@@ -88,8 +93,9 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
       _loadAd();
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+      await initializeAlarms(settingsProvider);
       settingsProvider.resetOpenCount();
       settingsProvider.updateIsQuotes(!settingsProvider.isQuotes);
       _updateNewShownStatus(settingsProvider);
@@ -185,5 +191,26 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
               ),
       ),
     );
+  }
+}
+
+Future<void> initializeAlarms(SettingsProvider settingsProvider) async {
+  // Reset or verify existing alarm states
+  final currentAlarms = settingsProvider.isAlarmOn;
+  if (currentAlarms.isEmpty) {
+    // If no alarms exist, reset to default and register them
+    settingsProvider.resetAlarms();
+    if(settingsProvider.isDailyAlarmOn){
+      await AlarmService().registerDailyAlarms(settingsProvider);
+      if(settingsProvider.isBookmarkAlarmOn) await AlarmService().registerReleaseAlarmsFromList(settingsProvider, true);
+      if(settingsProvider.isMemoAlarmOn) await AlarmService().registerReleaseAlarmsFromList(settingsProvider, false);
+    }
+  } else {
+    // Check and re-register alarms only for active states
+    if(settingsProvider.isDailyAlarmOn){
+      await AlarmService().registerDailyAlarms(settingsProvider);
+      if(settingsProvider.isBookmarkAlarmOn) await AlarmService().registerReleaseAlarmsFromList(settingsProvider, true);
+      if(settingsProvider.isMemoAlarmOn) await AlarmService().registerReleaseAlarmsFromList(settingsProvider, false);
+    }
   }
 }

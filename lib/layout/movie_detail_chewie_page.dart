@@ -295,7 +295,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                     );
 
                     // Add movie to MovieByUserService
-                    await MovieByUserService.addMovie(3, addMovie).then((_) {
+                    await MovieByUserService.addMovie(3, addMovie, _settingsProvider).then((_) {
                       showMovieSnackbar('addToBookmark');
                     });
                   }
@@ -401,7 +401,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                                                   savedDate: DateTime.now(),
                                                   memo: memo,
                                                 );
-                                                await MovieByUserService.addMovie(4, addMovie).then((_){
+                                                await MovieByUserService.addMovie(4, addMovie, _settingsProvider).then((_){
                                                   showMovieSnackbar('addToMemo');
                                                 });
                                               } else {

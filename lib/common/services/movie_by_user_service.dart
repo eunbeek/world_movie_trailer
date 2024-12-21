@@ -1,9 +1,12 @@
 import 'package:hive/hive.dart';
+import 'package:world_movie_trailer/common/providers/settings_provider.dart';
+import 'package:world_movie_trailer/common/services/alarm_service.dart';
 import 'package:world_movie_trailer/model/movieByUser.dart';
 
 class MovieByUserService {
   static final String _boxNameBookmark = 'movieByUserBoxForBookmark';
   static final String _boxNameMemo = 'movieByUserBoxForMemo';
+  static final alarmService = AlarmService();
 
   // Open the box (this should be called during initialization)
   static Future<Box<MovieByUser>> _openBox(int flag) async {
@@ -18,14 +21,27 @@ class MovieByUserService {
   }
 
   // Add a movie with a flag (like, dislike, bookmark)
-  static Future<void> addMovie(int flag, MovieByUser movieByUser) async {
+  static Future<void> addMovie(int flag, MovieByUser movieByUser, SettingsProvider settingsProvider) async {
     final box = await _openBox(flag);
-      // Fetch current movies
-    final movies = box.values.toList();
-    movies.insert(0, movieByUser);  // Add the new movie at the beginning
 
-    await box.clear();  // Clear the current box
-    await box.addAll(movies);  // Add the movies back in FILO order
+    // Fetch current movies
+    final movies = box.values.toList();
+    movies.insert(0, movieByUser); // Add the new movie at the beginning
+
+    // 알람 등록 조건 확인 및 실행
+    if (settingsProvider.isDailyAlarmOn) {
+      if (flag == 3 && settingsProvider.isBookmarkAlarmOn) {
+        // 북마크 알람 등록
+        await alarmService.registerReleaseAlarmForMovie(settingsProvider, movieByUser, true);
+      } else if (flag == 4 && settingsProvider.isMemoAlarmOn) {
+        // 메모 알람 등록
+        await alarmService.registerReleaseAlarmForMovie(settingsProvider, movieByUser, false);
+      }
+    }
+
+    // Clear and add movies back in FILO order
+    await box.clear();
+    await box.addAll(movies);
   }
 
   // Update a movie by index
@@ -37,7 +53,14 @@ class MovieByUserService {
   // Delete a movie by index
   static Future<void> deleteMovie(int flag, int index) async {
     final box = await _openBox(flag);
-    await box.deleteAt(index);
+    final movieToDelete = box.getAt(index);
+    if (movieToDelete != null) {
+      // Cancel the alarm for the movie
+      await alarmService.cancelReleaseAlarm(flag == 3, movieToDelete.movie.trailerUrl);
+
+      // Delete the movie from the box
+      await box.deleteAt(index);
+    }
   }
 
   // Get all movies by flag

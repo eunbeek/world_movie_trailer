@@ -16,6 +16,10 @@ String getOtherAppName(String languageCode, String field){
   return otherAppName[field]?[languageCode.toLowerCase()]?? field;
 }
 
+String getAlarmsLabel(String languageCode, String field){
+  return alarmLabel[languageCode.toLowerCase()]?[field] ?? '';
+}
+
 // Country list - app bar
 String getAppBarTitle(String languageCode) {
   return countryAppBars[languageCode.toUpperCase()] ?? countryAppBars['EN']!;

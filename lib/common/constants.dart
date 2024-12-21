@@ -31,6 +31,89 @@ Map<String, Map<String, String>> otherAppName = {
   }
 };
 
+Map<String, Map<String, String>> alarmLabel = {
+  'ko': {
+    'alarmAll': '알림 허용',
+    'title': '월드 무비 트레일러 업데이트:',
+    'country': '의 새로운 영화를 확인하세요!',
+    'bookmark': '북마크한 영화',
+    'memo': '메모한 영화',
+    'release': '가 내일 개봉합니다!',
+  },
+  'en': {
+    'alarmAll': 'Allow Notification',
+    'title': 'World Movie Trailer Update:',
+    'country': 'Check out the new movies in AAA!',
+    'bookmark': 'The bookmarked movie',
+    'memo': 'The noted movie',
+    'release': 'is releasing tomorrow!',
+  },
+  'ja': {
+    'alarmAll': '通知を許可',
+    'title': 'ワールドムービートレーラー更新:',
+    'country': 'AAAの新しい映画をチェックしよう！',
+    'bookmark': 'ブックマークした映画',
+    'memo': 'メモした映画',
+    'release': 'が明日公開します！',
+  },
+  'zh': {
+    'alarmAll': '允许通知',
+    'title': '世界电影预告片更新:',
+    'country': '快来看看AAA的新电影！',
+    'bookmark': '收藏的电影',
+    'memo': '记录的电影',
+    'release': '明天上映！',
+  },
+  'tw': {
+    'alarmAll': '允許通知',
+    'title': '世界電影預告片更新:',
+    'country': '快來看看AAA的新電影！',
+    'bookmark': '收藏的電影',
+    'memo': '記錄的電影',
+    'release': '明天上映！',
+  },
+  'fr': {
+    'alarmAll': 'Autoriser les notifications',
+    'title': 'Mise à jour de World Movie Trailer:',
+    'country': 'Découvrez les nouveaux films - AAA',
+    'bookmark': 'Le film que vous avez mis en favori',
+    'memo': 'Le film que vous avez noté',
+    'release': 'sort demain !',
+  },
+  'de': {
+    'alarmAll': 'Benachrichtigungen erlauben',
+    'title': 'World Movie Trailer Update:',
+    'country': 'Schauen Sie sich die neuen Filme in AAA an!',
+    'bookmark': 'Der markierte Film',
+    'memo': 'Der notierte Film',
+    'release': 'wird morgen veröffentlicht!',
+  },
+  'es': {
+    'alarmAll': 'Permitir notificaciones',
+    'title': 'Actualización de World Movie Trailer:',
+    'country': '¡Descubre las nuevas películas en AAA!',
+    'bookmark': 'La película que marcaste',
+    'memo': 'La película que anotaste',
+    'release': 'se estrena mañana!',
+  },
+  'hi': {
+    'alarmAll': 'नोटिफिकेशन की अनुमति दें',
+    'title': 'वर्ल्ड मूवी ट्रेलर अपडेट:',
+    'country': 'AAA की नई फिल्मों को देखें!',
+    'bookmark': 'बुकमार्क की गई फिल्म',
+    'memo': 'नोट की गई फिल्म',
+    'release': 'कल रिलीज हो रही है!',
+  },
+  'th': {
+    'alarmAll': 'อนุญาตการแจ้งเตือน',
+    'title': 'อัปเดต ตัวอย่างหนังทั่วโลก:',
+    'country': 'เช็กรายชื่อภาพยนตร์ใหม่ในAAA!',
+    'bookmark': 'ภาพยนตร์ที่คุณทำเครื่องหมายไว้',
+    'memo': 'ภาพยนตร์ที่คุณบันทึกไว้',
+    'release': 'จะเข้าฉายพรุ่งนี้!',
+  },
+};
+
 Map<String, Map<String, String>> settingLabel = {
   'ko': {
     'userdata': '사용자 데이터',
@@ -39,6 +122,7 @@ Map<String, Map<String, String>> settingLabel = {
     'lastusage': '마지막 사용 시간',
     'setting': '설정하기',
     'vibrate': '진동',
+    'alarm': '알림',
     'caption': '자막',
     'language': '언어',
     'theme': '테마',
@@ -64,6 +148,7 @@ Map<String, Map<String, String>> settingLabel = {
     'lastusage': 'Last Usage Time',
     'setting': 'Settings',
     'vibrate': 'Haptics',
+    'alarm': 'Notification', 
     'caption': 'Caption',
     'language': 'Language',
     'theme': 'Theme',
@@ -89,6 +174,7 @@ Map<String, Map<String, String>> settingLabel = {
     'lastusage': '最後の使用時間',
     'setting': '設定',
     'vibrate': '振動',
+    'alarm': '通知',
     'caption': 'キャプション',
     'language': '言語',
     'theme': 'テーマ',
@@ -114,6 +200,7 @@ Map<String, Map<String, String>> settingLabel = {
     'lastusage': '最後使用時間',
     'setting': '設定',
     'vibrate': '震動',
+    'alarm': '通知',
     'caption': '字幕',
     'language': '語言',
     'theme': '主題',
@@ -132,6 +219,32 @@ Map<String, Map<String, String>> settingLabel = {
     'credits': '製作人員名單',
     'opensource': '開源資訊',
   },
+  'zh': {
+    'userdata': '应用版本',
+    'initdate': '开始日期',
+    'totalhour': '总使用时间',
+    'lastusage': '最后使用时间',
+    'setting': '设置',
+    'vibrate': '震动',
+    'alarm': '通知',
+    'caption': '字幕',
+    'language': '语言',
+    'theme': '主题',
+    'light': '亮色',
+    'dark': '暗黑',
+    'sns': 'Twitter链接',
+    'twitter': 'Twitter',
+    'share': '分享应用',
+    'other': 'Sunny的游戏和应用',
+    'review': '留下评论',
+    'version': '应用版本',
+    'privacy': '隐私政策',
+    'terms': '服务条款',
+    'totalOpen': '总预告片观看次数',
+    'views': '次',
+    'credits': '制作人员名单',
+    'opensource': '开源信息'
+  },
   'fr': {
     'userdata': 'Données utilisateur',
     'initdate': 'Date de début',
@@ -139,6 +252,7 @@ Map<String, Map<String, String>> settingLabel = {
     'lastusage': 'Dernière utilisation',
     'setting': 'Paramètres',
     'vibrate': 'Vibration',
+    'alarm': 'Notification',
     'caption': 'Sous-titres',
     'language': 'Langue',
     'theme': 'Thème',
@@ -164,6 +278,7 @@ Map<String, Map<String, String>> settingLabel = {
     'lastusage': 'Letzte Nutzung',
     'setting': 'Einstellungen',
     'vibrate': 'Vibration',
+    'alarm': 'Benachrichtigung',
     'caption': 'Untertitel',
     'language': 'Sprache',
     'theme': 'Thema',
@@ -182,31 +297,6 @@ Map<String, Map<String, String>> settingLabel = {
     'credits': 'Abspann',
     'opensource': 'Open-Source-Info',
   },
-  'zh': {
-    'userdata': '应用版本',
-    'initdate': '开始日期',
-    'totalhour': '总使用时间',
-    'lastusage': '最后使用时间',
-    'setting': '设置',
-    'vibrate': '震动',
-    'caption': '字幕',
-    'language': '语言',
-    'theme': '主题',
-    'light': '亮色',
-    'dark': '暗黑',
-    'sns': 'Twitter链接',
-    'twitter': 'Twitter',
-    'share': '分享应用',
-    'other': 'Sunny的游戏和应用',
-    'review': '留下评论',
-    'version': '应用版本',
-    'privacy': '隐私政策',
-    'terms': '服务条款',
-    'totalOpen': '总预告片观看次数',
-    'views': '次',
-    'credits': '制作人员名单',
-    'opensource': '开源信息'
-  },
   'es': {
     'userdata': 'Datos de usuario',
     'initdate': 'Fecha de inicio',
@@ -214,6 +304,7 @@ Map<String, Map<String, String>> settingLabel = {
     'lastusage': 'Último uso',
     'setting': 'Configuración',
     'vibrate': 'Vibración',
+    'alarm': 'Notificación',
     'caption': 'Subtítulos',
     'language': 'Idioma',
     'theme': 'Tema',
@@ -239,6 +330,7 @@ Map<String, Map<String, String>> settingLabel = {
     'lastusage': 'अंतिम उपयोग समय',
     'setting': 'सेटिंग्स',
     'vibrate': 'कंपन',
+    'alarm': 'सूचना',
     'caption': 'कैप्शन',
     'language': 'भाषा',
     'theme': 'थीम',
@@ -264,6 +356,7 @@ Map<String, Map<String, String>> settingLabel = {
     'lastusage': 'เวลาการใช้งานล่าสุด',
     'setting': 'การตั้งค่า',
     'vibrate': 'การสั่นสะเทือน',
+    'alarm': 'การแจ้งเตือน',
     'caption': 'คำบรรยาย',
     'language': 'ภาษา',
     'theme': 'ธีม',
@@ -285,15 +378,28 @@ Map<String, Map<String, String>> settingLabel = {
 };
 
 final Map<int, List<String>> countryByDay = {
-  0: ['korea'],          // Monday
-  1: ['japan'],          // Tuesday
-  2: ['usa', 'canada'], // Wednesday
-  3: ['india', 'spain', 'taiwan', 'china'], // Thursday
-  4: ['france'],        // Friday
-  5: ['germany'],          // Saturday
-  6: ['australia', 'thailand'],   // Sunday
+  1: ['korea'],          // Monday
+  2: ['japan'],          // Tuesday
+  3: ['usa', 'canada'], // Wednesday
+  4: ['india', 'spain', 'taiwan', 'china'], // Thursday
+  5: ['france'],        // Friday
+  6: ['germany'],          // Saturday
+  7: ['australia', 'thailand'],   // Sunday
 };
-  
+
+final Map<String, List<String>> countryByLanguage = {
+  'ko': ['korea', 'usa'],  
+  'ja': ['japan', 'usa'],
+  'zh': ['china', 'taiwan', 'usa'], 
+  'tw': ['taiwan', 'china', 'usa'], 
+  'fr': ['france', 'usa'],   
+  'de': ['germany', 'usa'],     
+  'es': ['spain', 'usa'], 
+  'hi': ['india', 'usa'],
+  'th': ['thailand', 'usa'],
+  'en': ['usa', 'canada', 'autralia'],  
+};
+
 Map<String, Map<String, String>> countryNameByLan = {
   'ko': {
     'ko': '한국어',
