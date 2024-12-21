@@ -50,8 +50,16 @@ class Settings extends HiveObject {
 
   // Future: Alarm
   @HiveField(14)
-  Map<int, Map<String, bool>>? isAlarmOnByDay;
+  Map<int, Map<String, bool>>? isAlarmOn;
 
+  @HiveField(15)
+  bool? isDailyAlarmOn;
+
+  @HiveField(16)
+  bool? isBookmarkAlarmOn;
+
+  @HiveField(17)
+  bool? isMemoAlarmOn;
 
   Settings({
     required this.language,
@@ -68,7 +76,10 @@ class Settings extends HiveObject {
     required this.lastDate,
     this.lastSpecialNumber = 0, 
     required this.lastSpecialFetched,
-    this.isAlarmOnByDay,   // Future: Alarm
+    this.isAlarmOn,   // Future: Alarm
+    this.isDailyAlarmOn,
+    this.isBookmarkAlarmOn,
+    this.isMemoAlarmOn,
   });
 
   // Factory constructor to create default settings
@@ -103,9 +114,12 @@ class Settings extends HiveObject {
     }
 
     // Future: Alarm
-    final defaultIsAlarmOnByDay = countryByDay.map((day, countries) => 
-      MapEntry(day, {for (var country in countries) country: true})
-    );
+    final defaultAlarmByLan = countryByLanguage[deviceLanguage];
+    final defaultIsAlarmOn = countryByDay.map((day, countries) {
+      return MapEntry(day, {
+        for (var country in countries) country: defaultAlarmByLan?.contains(country) ?? false,
+      });
+    });
 
     return Settings(
       language: deviceLanguage,
@@ -121,7 +135,10 @@ class Settings extends HiveObject {
       isNewShown: defaultNewShown,
       lastDate: DateTime.now(),
       lastSpecialFetched: DateTime.now(),
-      isAlarmOnByDay: defaultIsAlarmOnByDay,
+      isAlarmOn: defaultIsAlarmOn,
+      isDailyAlarmOn: true,
+      isBookmarkAlarmOn: true,
+      isMemoAlarmOn: true,
     );
   }
 }

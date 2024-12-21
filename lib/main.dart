@@ -195,11 +195,22 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
 }
 
 Future<void> initializeAlarms(SettingsProvider settingsProvider) async {
-  if (settingsProvider.isAlarmOnByDay.isEmpty) {
-    settingsProvider.resetAlarms(); // 알람 상태를 초기화
-    await AlarmService().registerDailyAlarms(settingsProvider); // 알람 등록
+  // Reset or verify existing alarm states
+  final currentAlarms = settingsProvider.isAlarmOn;
+  if (currentAlarms.isEmpty) {
+    // If no alarms exist, reset to default and register them
+    settingsProvider.resetAlarms();
+    if(settingsProvider.isDailyAlarmOn){
+      await AlarmService().registerDailyAlarms(settingsProvider);
+      if(settingsProvider.isBookmarkAlarmOn) await AlarmService().registerReleaseAlarmsFromList(settingsProvider, true);
+      if(settingsProvider.isMemoAlarmOn) await AlarmService().registerReleaseAlarmsFromList(settingsProvider, false);
+    }
   } else {
-    // 기존 알람 상태에 따라 알람 재등록
-    await AlarmService().registerDailyAlarms(settingsProvider);
+    // Check and re-register alarms only for active states
+    if(settingsProvider.isDailyAlarmOn){
+      await AlarmService().registerDailyAlarms(settingsProvider);
+      if(settingsProvider.isBookmarkAlarmOn) await AlarmService().registerReleaseAlarmsFromList(settingsProvider, true);
+      if(settingsProvider.isMemoAlarmOn) await AlarmService().registerReleaseAlarmsFromList(settingsProvider, false);
+    }
   }
 }

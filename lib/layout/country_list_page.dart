@@ -23,7 +23,7 @@ class CountryListPage extends StatefulWidget {
   _CountryListPageState createState() => _CountryListPageState();
 }
 
-class _CountryListPageState extends State<CountryListPage> {
+class _CountryListPageState extends State<CountryListPage> with WidgetsBindingObserver {
   Movie? specialSection;
   bool isEditMode = false;
   bool isDropdownVisible = false; 
@@ -33,11 +33,32 @@ class _CountryListPageState extends State<CountryListPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchSpecialMovies();
     });
   }
-  
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _unmarkNewOnExit();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      _unmarkNewOnExit();
+    }
+  }
+
+  void _unmarkNewOnExit() {
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    settingsProvider.unmarkAllIsNewShown();
+    print("All 'NEW' flags unmarked due to app exit or navigation.");
+  }
+
   Future<void> _fetchSpecialMovies() async {
     try {
       final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
@@ -120,8 +141,7 @@ class _CountryListPageState extends State<CountryListPage> {
     final settingsProvider = Provider.of<SettingsProvider>(context);
     final languageCode = settingsProvider.language;
     final countries = settingsProvider.countryOrder;
-
-
+    
     return Scaffold(
       body: SafeArea(
         child: Stack(
@@ -180,6 +200,7 @@ class _CountryListPageState extends State<CountryListPage> {
                                 isEditMode = !isEditMode;
                                 oldCountryOrder = countries;
                               case 'Bookmark':
+                                _unmarkNewOnExit();
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -187,6 +208,7 @@ class _CountryListPageState extends State<CountryListPage> {
                                   ),
                                 );
                               case 'Memo':
+                                _unmarkNewOnExit();
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -258,6 +280,7 @@ class _CountryListPageState extends State<CountryListPage> {
                             width: iconSize,
                           ),
                           onPressed: () {
+                            _unmarkNewOnExit();
                             LogHelper().logEvent('setting_clicked');
                             Navigator.push(
                               context,
@@ -302,13 +325,7 @@ class _CountryListPageState extends State<CountryListPage> {
 
                                 if (settingsProvider.isVibrate) HapticFeedback.mediumImpact();
 
-                                final String? originCountry = localizedCountries[languageCode]?.entries
-                                    .firstWhere((entry) => entry.value == countries[index], orElse: () => MapEntry('', '')).key;
-
-                                if (originCountry != null) {
-                                  settingsProvider.unmarkIsNewShown(originCountry);
-                                }
-
+                                _unmarkNewOnExit();
                                 LogHelper().logEvent('country_clicked', parameters: {'country_name': countries[index]});
 
                                 Navigator.push(
@@ -414,6 +431,7 @@ class _CountryListPageState extends State<CountryListPage> {
                       onTap: () {
                         if(settingsProvider.isVibrate) HapticFeedback.mediumImpact();
                         if(settingsProvider.isQuotes) {
+                          _unmarkNewOnExit();
                           LogHelper().logEvent('special_quotes_clicked', parameters: {'section_name': 'quote'},);
                           Navigator.push(
                             context,
@@ -422,6 +440,7 @@ class _CountryListPageState extends State<CountryListPage> {
                             ),
                           );
                         } else {
+                          _unmarkNewOnExit();
                           LogHelper().logEvent('special_movie_clicked', parameters: {'section_name': specialSection!.special},);
                           Navigator.push(
                             context,

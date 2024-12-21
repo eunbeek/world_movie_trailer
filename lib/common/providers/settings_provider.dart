@@ -40,9 +40,14 @@ class SettingsProvider with ChangeNotifier {
 
   DateTime? get lastSpecialFetched => _settings.lastSpecialFetched;
 
-  Map<int, Map<String, bool>> get isAlarmOnByDay =>
-    _settings.isAlarmOnByDay ?? countryByDay.map((day, countries) =>
-      MapEntry(day, {for (var country in countries) country: true}));
+  Map<int, Map<String, bool>> get isAlarmOn =>
+    _settings.isAlarmOn ?? _initializeAlarms();
+
+  bool get isDailyAlarmOn => _settings.isDailyAlarmOn ?? true; 
+
+  bool get isBookmarkAlarmOn => _settings.isBookmarkAlarmOn ?? true;
+
+  bool get isMemoAlarmOn => _settings.isMemoAlarmOn ?? true;
 
   // update & setter
   set language(String newLanguage) {
@@ -170,26 +175,70 @@ class SettingsProvider with ChangeNotifier {
   }
 
   Future<void> updateAlarmForCountryByDay(int day, String country, bool isOn) async {
-    print('updateAlarmForCountryByDay: ${country} : ${isOn}');
-    _settings.isAlarmOnByDay ??= countryByDay.map((day, countries) =>
-      MapEntry(day, {for (var country in countries) country: true}));
+    print('updateAlarmForCountryByDay: $country : $isOn');
 
-    if (_settings.isAlarmOnByDay![day] != null) {
-      _settings.isAlarmOnByDay![day]![country] = isOn;
-      if(isOn) {
+    _settings.isAlarmOn ??= _initializeAlarms();
+
+    if (_settings.isAlarmOn![day]?.containsKey(country) == true) {
+      _settings.isAlarmOn![day]![country] = isOn;
+
+      if (isOn) {
         await alarmService.registerDailyAlarms(this);
       } else {
         await alarmService.cancelAlarm(day, country);
       }
+
       _saveSettings();
       notifyListeners();
     }
   }
 
   void resetAlarms() {
-    _settings.isAlarmOnByDay = countryByDay.map((day, countries) =>
-      MapEntry(day, {for (var country in countries) country: true}));
+    print('resetAlarms');
+    _settings.isAlarmOn = _initializeAlarms();
     _saveSettings();
+    notifyListeners();
+  }
+
+  void updateIsDailyAlarmOn(bool dailyAlarm) async {
+    print('updateIsDailyAlarmOn');
+    _settings.isDailyAlarmOn = dailyAlarm;
+    _saveSettings();
+    if (dailyAlarm) {
+      await alarmService.registerDailyAlarms(this);
+      if(isBookmarkAlarmOn) await alarmService.registerReleaseAlarmsFromList(this, true);
+      if(isMemoAlarmOn) await alarmService.registerReleaseAlarmsFromList(this, false);
+    } else {
+      await alarmService.cancelAllAlarms();
+    }
+    notifyListeners();
+  }
+
+  void updateIsBookmarkAlarmOn(bool bookmarkAlarmOn) async {
+    print('updateIsBookmarkAlarmOn');
+    _settings.isBookmarkAlarmOn = bookmarkAlarmOn;
+    _saveSettings();
+  
+    if (bookmarkAlarmOn) {
+      await alarmService.registerReleaseAlarmsFromList(this, true);
+    } else {
+      await alarmService.cancelReleaseAlarmsByFlag(true);
+    }
+
+    notifyListeners();
+  }
+
+  void updateIsMemoAlarmOn(bool memoAlarm) async {
+    print('updateIsMemoAlarmOn');
+    _settings.isMemoAlarmOn = memoAlarm;
+    _saveSettings();
+
+    if (memoAlarm) {
+      await alarmService.registerReleaseAlarmsFromList(this, false);
+    } else {
+      await alarmService.cancelReleaseAlarmsByFlag(false);
+    }
+
     notifyListeners();
   }
 
@@ -211,5 +260,18 @@ class SettingsProvider with ChangeNotifier {
     return _settings.countryOrder.map((countryKey) {
       return localizedCountries[_settings.language]?[countryKey] ?? countryKey;
     }).toList();
+  }
+
+  Map<int, Map<String, bool>> _initializeAlarms() {
+    final defaultLanguageCountries = countryByLanguage[_settings.language] ?? [];
+    return _settings.isAlarmOn ??= countryByDay.map((day, countries) {
+      return MapEntry(
+        day,
+        {
+          for (var country in countries)
+            country: defaultLanguageCountries.contains(country),
+        },
+      );
+    });
   }
 }

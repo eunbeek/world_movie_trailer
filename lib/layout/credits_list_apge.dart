@@ -34,7 +34,6 @@ class CreditsList extends StatelessWidget {
             data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
             child: Column(
               children: <Widget>[
-                const Divider(),
                 ListTile(
                   title: Text(
                     'Producer',

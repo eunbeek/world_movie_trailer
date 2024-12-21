@@ -36,11 +36,85 @@ class AlarmListPage extends StatelessWidget {
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            children: _buildCountryList(context, settingsProvider),
+            children: [
+              // All Alarm
+              _buildAllAlarmOn(context, settingsProvider),
+
+              // Bookmark & Memo Group
+              _buildBookmarkAndMemoGroup(context, settingsProvider),
+
+              // Divider
+              const Divider(height: 20),
+
+              // Country List
+              ..._buildCountryList(context, settingsProvider),
+            ],
           ),
         ),
         bottomNavigationBar: _buildBottomNavigationBar(context, settingsProvider),
       ),
+    );
+  }
+
+  Widget _buildAllAlarmOn(BuildContext context, SettingsProvider settingsProvider) {
+    return Column(
+      children: [
+        ListTile(
+          title: Text(
+            getAlarmsLabel(settingsProvider.language, 'alarmAll'),
+            style: TextStyle(
+              fontSize: MediaQuery.of(context).size.height * 0.02,
+            ),
+          ),
+          trailing: Switch(
+            value: settingsProvider.isDailyAlarmOn,
+            onChanged: (bool value) {
+              settingsProvider.updateIsDailyAlarmOn(value);
+            },
+          ),
+        ),
+        const Divider(height: 20),
+      ],
+    );
+  }
+
+   /// Builds the Bookmark and Memo group with switches.
+  Widget _buildBookmarkAndMemoGroup(BuildContext context, SettingsProvider settingsProvider) {
+    return Column(
+      children: [
+        ListTile(
+          title: Text(
+            getMenuItemTitle(settingsProvider.language, 'Bookmark'),
+            style: TextStyle(
+              fontSize: MediaQuery.of(context).size.height * 0.02,
+            ),
+          ),
+          trailing: Switch(
+            value: !settingsProvider.isDailyAlarmOn ? false : settingsProvider.isBookmarkAlarmOn,
+            onChanged: (bool value) {
+              settingsProvider.updateIsBookmarkAlarmOn(value);
+            },
+          ),
+        ),
+        Divider(
+          color: Colors.grey[700], 
+          thickness: 0.2, 
+        ),
+        ListTile(
+          title: Text(
+            getMenuItemTitle(settingsProvider.language, 'Memo'),
+            style: TextStyle(
+              fontSize: MediaQuery.of(context).size.height * 0.02,
+            ),
+          ),
+          trailing: Switch(
+            value: !settingsProvider.isDailyAlarmOn ? false : settingsProvider.isMemoAlarmOn,
+            onChanged: (bool value) {
+              settingsProvider.updateIsMemoAlarmOn(value);
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -56,7 +130,13 @@ class AlarmListPage extends StatelessWidget {
 
       // Add a divider after every country except the last one
       if (i < allCountries.length - 1) {
-        countryWidgets.add(const Divider());
+        // countryWidgets.add(const Divider());
+        countryWidgets.add( 
+          Divider(
+            color: Colors.grey[700], 
+            thickness: 0.2, 
+          )
+        );
       }
     }
 
@@ -75,10 +155,11 @@ class AlarmListPage extends StatelessWidget {
         ),
       ),
       trailing: Switch(
-        value: settingsProvider.isAlarmOnByDay?.values
+        value: !settingsProvider.isDailyAlarmOn ? false : settingsProvider.isAlarmOn?.values
                 .any((countryMap) => countryMap[countryKey] == true) ??
             false, // Check any day with this country's alarm
         onChanged: (bool value) {
+          print('_toggleCountryAlarms');
           _toggleCountryAlarms(settingsProvider, countryKey, value);
         },
       ),
@@ -87,7 +168,7 @@ class AlarmListPage extends StatelessWidget {
 
   /// Toggles the alarm for the specified country across all days.
   void _toggleCountryAlarms(SettingsProvider settingsProvider, String countryKey, bool isOn) {
-    settingsProvider.isAlarmOnByDay?.forEach((day, countryMap) {
+    settingsProvider.isAlarmOn?.forEach((day, countryMap) {
       if (countryMap.containsKey(countryKey)) {
         settingsProvider.updateAlarmForCountryByDay(day, countryKey, isOn);
       }
