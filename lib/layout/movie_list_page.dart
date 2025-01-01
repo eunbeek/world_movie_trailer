@@ -81,6 +81,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
 
 
   List<Movie> _getFilteredMovies(String filter) {
+    final now = DateTime.now();
     List<Movie> filteredList = [];
 
     if (filter == listFilterAll) {
@@ -104,7 +105,12 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
       // Combine the lists: valid dates first, no dates at the end
       filteredList = [...validDates, ...noDates];
     } else if (filter == listFilterRunning) {
-      filteredList = allMovies.where((movie) => movie.status == listFilterRunning).toList();
+      filteredList = allMovies.where((movie) {
+        if (movie.releaseDate.isEmpty) return false;
+        final releaseDate = DateTime.parse(movie.releaseDate);
+        return releaseDate.isBefore(now);
+      }).toList();
+
       // Sort by releaseDate (newest first), if releaseDate is null or empty, push to the end
       filteredList.sort((a, b) {
         DateTime dateA = (a.releaseDate.isNotEmpty)
@@ -117,25 +123,27 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
         return dateB.compareTo(dateA); // Sort in descending order (newest first)
       });
     } else if (filter == listFilterUpcoming) {
-      filteredList = allMovies.where((movie) => movie.status == listFilterUpcoming).toList();
-      // Separate items with and without valid release dates
-      List<Movie> validDates = filteredList
-          .where((movie) => movie.releaseDate.isNotEmpty)
-          .toList();
+      List<Movie> noDates = [];
+      filteredList = allMovies.where((movie) {
+        if (movie.releaseDate.isEmpty) {
+          noDates.add(movie);
+          return false;
+        }
+        final releaseDate = DateTime.parse(movie.releaseDate);
+        return releaseDate.isAfter(now);
+      }).toList();
 
-      List<Movie> noDates = filteredList
-          .where((movie) => movie.releaseDate.isEmpty)
-          .toList();
-
+      
+      print(noDates.length);
       // Sort only the items with valid release dates
-      validDates.sort((a, b) {
+      filteredList.sort((a, b) {
         DateTime dateA = DateTime.parse(a.releaseDate);
         DateTime dateB = DateTime.parse(b.releaseDate);
         return dateA.compareTo(dateB); // Sort in descending order (newest first)
       });
 
       // Combine the lists: valid dates first, no dates at the end
-      filteredList = [...validDates, ...noDates];
+      filteredList = [...filteredList, ...noDates];
     } else {
       return []; // Return empty if no filter matches
     }
