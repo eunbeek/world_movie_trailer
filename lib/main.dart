@@ -95,10 +95,10 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-      await initializeAlarms(settingsProvider);
+      await initializeAlarms(settingsProvider, widget.isInitialSetting);
       settingsProvider.resetOpenCount();
       settingsProvider.updateIsQuotes(!settingsProvider.isQuotes);
-      _updateNewShownStatus(settingsProvider);
+      _updateNewShownStatus(settingsProvider, widget.isInitialSetting);
     });
   }
 
@@ -127,7 +127,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
     });
   }
 
-  void _updateNewShownStatus(SettingsProvider settingsProvider) {
+  void _updateNewShownStatus(SettingsProvider settingsProvider, bool isInitialSetting) {
     DateTime lastOpenDate = settingsProvider.lastDate;
     DateTime currentDate = DateTime.now();
 
@@ -138,9 +138,15 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
 
     settingsProvider.updateLastDate(currentDate);
 
-    if (gap > 6) {
+    if (isInitialSetting) {
+      // 동일 날짜라면 현재 날짜만 업데이트
+      int dayIndex = (currentDateOnly.weekday - 1) % 7;
+      settingsProvider.markIsNewShown(dayIndex);
+    } else if (gap > 6) {
+      // 7일 이상 gap이 있는 경우 모든 국가를 표시로 설정
       settingsProvider.markAllIsNewShown();
     } else {
+      // gap에 해당하는 날짜만 업데이트
       for (int i = 1; i <= gap; i++) {
         DateTime dateToUpdate = lastOpenDate.add(Duration(days: i));
         int dayIndex = (dateToUpdate.weekday - 1) % 7;
@@ -194,23 +200,21 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
   }
 }
 
-Future<void> initializeAlarms(SettingsProvider settingsProvider) async {
+Future<void> initializeAlarms(SettingsProvider settingsProvider, bool isInitialSetting) async {
+
+  // new user
+  if(isInitialSetting){
+    await AlarmService().registerDailyAlarms(settingsProvider);
+  }
+
   // Reset or verify existing alarm states
   final currentAlarms = settingsProvider.isAlarmOn;
-  if (currentAlarms.isEmpty) {
-    // If no alarms exist, reset to default and register them
+
+  // existing user(only 1 time run)
+  if(currentAlarms.isEmpty){
     settingsProvider.resetAlarms();
-    if(settingsProvider.isDailyAlarmOn){
-      await AlarmService().registerDailyAlarms(settingsProvider);
-      if(settingsProvider.isBookmarkAlarmOn) await AlarmService().registerReleaseAlarmsFromList(settingsProvider, true);
-      if(settingsProvider.isMemoAlarmOn) await AlarmService().registerReleaseAlarmsFromList(settingsProvider, false);
-    }
-  } else {
-    // Check and re-register alarms only for active states
-    if(settingsProvider.isDailyAlarmOn){
-      await AlarmService().registerDailyAlarms(settingsProvider);
-      if(settingsProvider.isBookmarkAlarmOn) await AlarmService().registerReleaseAlarmsFromList(settingsProvider, true);
-      if(settingsProvider.isMemoAlarmOn) await AlarmService().registerReleaseAlarmsFromList(settingsProvider, false);
-    }
+    await AlarmService().registerDailyAlarms(settingsProvider);
+    await AlarmService().registerReleaseAlarmsFromList(settingsProvider, true);
+    await AlarmService().registerReleaseAlarmsFromList(settingsProvider, false);
   }
 }

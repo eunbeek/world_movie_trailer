@@ -35,7 +35,7 @@ Map<String, Map<String, String>> alarmLabel = {
   'ko': {
     'alarmAll': '알림 허용',
     'title': '월드 무비 트레일러 업데이트:',
-    'country': '의 새로운 영화를 확인하세요!',
+    'country': 'AAA의 새로운 영화를 확인하세요!',
     'bookmark': '북마크한 영화',
     'memo': '메모한 영화',
     'release': '가 내일 개봉합니다!',
@@ -52,7 +52,7 @@ Map<String, Map<String, String>> alarmLabel = {
     'alarmAll': '通知を許可',
     'title': 'ワールドムービートレーラー更新:',
     'country': 'AAAの新しい映画をチェックしよう！',
-    'bookmark': 'ブックマークした映画',
+    'bookmark': 'お気に入りにした映画',
     'memo': 'メモした映画',
     'release': 'が明日公開します！',
   },
@@ -190,7 +190,7 @@ Map<String, Map<String, String>> settingLabel = {
     'terms': '利用規約',
     'totalOpen': '予告編の視聴回数',
     'views': '回',
-    'credits': 'クレジット',
+    'credits': 'エンドロール',
     'opensource': 'オープンソース情報'
   },
   'tw': {

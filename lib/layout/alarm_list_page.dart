@@ -92,7 +92,7 @@ class AlarmListPage extends StatelessWidget {
           trailing: Switch(
             value: !settingsProvider.isDailyAlarmOn ? false : settingsProvider.isBookmarkAlarmOn,
             onChanged: (bool value) {
-              settingsProvider.updateIsBookmarkAlarmOn(value);
+              if(settingsProvider.isDailyAlarmOn) settingsProvider.updateIsBookmarkAlarmOn(value);
             },
           ),
         ),
@@ -110,7 +110,7 @@ class AlarmListPage extends StatelessWidget {
           trailing: Switch(
             value: !settingsProvider.isDailyAlarmOn ? false : settingsProvider.isMemoAlarmOn,
             onChanged: (bool value) {
-              settingsProvider.updateIsMemoAlarmOn(value);
+              if(settingsProvider.isDailyAlarmOn) settingsProvider.updateIsMemoAlarmOn(value);
             },
           ),
         ),
@@ -146,7 +146,8 @@ class AlarmListPage extends StatelessWidget {
   /// Builds a single country list tile with alarm toggle.
   Widget _buildCountryListTile(BuildContext context, SettingsProvider settingsProvider, String countryKey) {
     final localizedCountryName = localizedCountries[settingsProvider.language]?[countryKey] ?? countryKey;
-
+    bool isSwitchValue = settingsProvider.isAlarmOn?.values.any((countryMap) => countryMap[countryKey] == true) ??
+    false; // 초기 값을 설정
     return ListTile(
       title: Text(
         localizedCountryName,
@@ -154,13 +155,22 @@ class AlarmListPage extends StatelessWidget {
           fontSize: MediaQuery.of(context).size.height * 0.02,
         ),
       ),
-      trailing: Switch(
-        value: !settingsProvider.isDailyAlarmOn ? false : settingsProvider.isAlarmOn?.values
-                .any((countryMap) => countryMap[countryKey] == true) ??
-            false, // Check any day with this country's alarm
-        onChanged: (bool value) {
-          print('_toggleCountryAlarms');
-          _toggleCountryAlarms(settingsProvider, countryKey, value);
+      trailing: StatefulBuilder(
+        builder: (BuildContext context, StateSetter setState) {
+          return Switch(
+            value: !settingsProvider.isDailyAlarmOn ? false : isSwitchValue,
+            onChanged: (bool value) {
+              if (settingsProvider.isDailyAlarmOn) {
+                // 즉시 반영
+                setState(() {
+                  isSwitchValue = value;
+                });
+
+                // Provider 상태 업데이트
+                _toggleCountryAlarms(settingsProvider, countryKey, value);
+              }
+            },
+          );
         },
       ),
     );

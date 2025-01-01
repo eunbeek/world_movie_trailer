@@ -8,6 +8,7 @@ import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
 import 'package:world_movie_trailer/common/translate.dart';
 import 'package:world_movie_trailer/model/movieByUser.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class AlarmService {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -34,7 +35,7 @@ class AlarmService {
     );
 
     initializeTimeZone();
-    debugTimezones();
+    // debugTimezones();
   }
 
   Future<void> initializeTimeZone() async {
@@ -68,10 +69,11 @@ class AlarmService {
     print('Notification Selected: ${notificationResponse.payload}');
   }
 
-  /// 알림 권한 요청 (iOS만 해당)
+  /// 알림 권한 요청 (iOS 및 Android 모두)
   Future<void> requestPermission() async {
     if (Platform.isIOS) {
-      final bool? granted = await flutterLocalNotificationsPlugin
+      // iOS specific notification permission
+      final bool? granted = await FlutterLocalNotificationsPlugin()
           .resolvePlatformSpecificImplementation<
               IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(
@@ -84,6 +86,29 @@ class AlarmService {
         print('iOS Notification Permission Granted');
       } else {
         print('iOS Notification Permission Denied');
+      }
+    } else if (Platform.isAndroid) {
+      print('android permission ready');
+      // Check and request POST_NOTIFICATIONS for Android 13+
+      if (await Permission.notification.isDenied) {
+        final PermissionStatus status = await Permission.notification.request();
+        if (status.isGranted) {
+          print('Android Notification Permission Granted');
+        } else {
+          print('Android Notification Permission Denied');
+        }
+      }
+
+      // Check and request SCHEDULE_EXACT_ALARM for Android 12+
+      final AndroidFlutterLocalNotificationsPlugin? androidPlugin =
+          flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+
+      final bool? exactAlarmGranted = await androidPlugin?.requestExactAlarmsPermission();
+      if (exactAlarmGranted == true) {
+        print('Android Exact Alarm Permission Granted');
+      } else {
+        print('Android Exact Alarm Permission Denied');
       }
     }
   }
@@ -107,6 +132,8 @@ class AlarmService {
         priority: Priority.high,
         showWhen: false,
         ongoing: true,
+        icon: '@mipmap/ic_launcher',
+        largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
       ),
       iOS: DarwinNotificationDetails(
         presentAlert: true,
@@ -129,7 +156,7 @@ class AlarmService {
           await flutterLocalNotificationsPlugin.zonedSchedule(
             getAlarmId(day, country),
             getAlarmsLabel(settingsProvider.language, 'title'),
-            '${localizedCountries[settingsProvider.language]?[country]}${getAlarmsLabel(settingsProvider.language, 'country')}',
+            getAlarmsLabel(settingsProvider.language, 'country', localizedCountries[settingsProvider.language]?[country]),
             nextNotificationTime,
             platformChannel,
             uiLocalNotificationDateInterpretation:
@@ -155,7 +182,7 @@ class AlarmService {
     return day.hashCode ^ country.hashCode;
   }
 
-  /// Register release alarms for all movies stored in the list
+  /// Register release alarms for all movies stored in the list(only 1 time for existing user)
   Future<void> registerReleaseAlarmsFromList(SettingsProvider settingsProvider, bool isBookmark) async {
     // Fetch all movies based on the flag
     final movies = await MovieByUserService.getMoviesByFlag(isBookmark ? 3 : 4);
@@ -196,6 +223,8 @@ class AlarmService {
             importance: Importance.high,
             priority: Priority.high,
             showWhen: true,
+            icon: '@mipmap/ic_launcher',
+            largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
           ),
           iOS: DarwinNotificationDetails(
             presentAlert: true,
@@ -224,6 +253,7 @@ class AlarmService {
     }
   }
 
+  // register release alarm by bookmark, memo
   Future<void> registerReleaseAlarmForMovie(SettingsProvider settingsProvider, MovieByUser movieByUser, bool isBookmark) async {
     final movie = movieByUser.movie;
 
@@ -236,13 +266,13 @@ class AlarmService {
     try {
       final releaseDate = DateTime.parse(movie.releaseDate);
 
-      // 하루 전날 오후 3시
+      // 하루 전날 오전 3시
       final preReleaseAlarmTime = tz.TZDateTime(
         tz.local,
         releaseDate.year,
         releaseDate.month,
         releaseDate.day - 1,
-        15, // 오후 3시
+        3, // 오전 3시
         0,
       );
 
@@ -280,6 +310,8 @@ class AlarmService {
           importance: Importance.high,
           priority: Priority.high,
           showWhen: true,
+          icon: '@mipmap/ic_launcher',
+          largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
         ),
         iOS: DarwinNotificationDetails(
           presentAlert: true,
@@ -299,7 +331,7 @@ class AlarmService {
             UILocalNotificationDateInterpretation.wallClockTime,
       );
 
-      print('Release alarm set for "${movie.localTitle}" on $preReleaseAlarmTime');
+      print('Release alarm set for "${movie.localTitle}" on $releaseAlarmTime');
     } catch (e) {
       print('Failed to schedule alarm for "${movie.localTitle}": $e');
     }

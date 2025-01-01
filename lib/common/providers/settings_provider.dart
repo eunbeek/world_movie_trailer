@@ -196,6 +196,8 @@ class SettingsProvider with ChangeNotifier {
   void resetAlarms() {
     print('resetAlarms');
     _settings.isAlarmOn = _initializeAlarms();
+    _settings.isBookmarkAlarmOn = true;
+    _settings.isMemoAlarmOn = true;
     _saveSettings();
     notifyListeners();
   }
