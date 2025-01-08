@@ -282,8 +282,8 @@ class SettingsPage extends StatelessWidget {
                     }
 
                     Share.share(
-                      'Check out this app: $url',
-                      subject: 'Check out this App',
+                      '${countryAppBarsForShare[settingsProvider.language]} : $url',
+                      subject: countryAppBarsForShare[settingsProvider.language],
                       sharePositionOrigin: Rect.fromLTWH(0, 0, MediaQuery.of(context).size.width, MediaQuery.of(context).size.height / 2),
                     );
                   },
@@ -389,7 +389,7 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ),
                   trailing: Text(
-                    'v 1.1.0',
+                    'v 1.2.0',
                     style: TextStyle(
                       fontSize: MediaQuery.of(context).size.height * 0.02,
                     ),

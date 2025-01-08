@@ -133,7 +133,6 @@ class AlarmService {
         showWhen: false,
         ongoing: true,
         icon: '@mipmap/ic_launcher',
-        largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
       ),
       iOS: DarwinNotificationDetails(
         presentAlert: true,
@@ -224,7 +223,6 @@ class AlarmService {
             priority: Priority.high,
             showWhen: true,
             icon: '@mipmap/ic_launcher',
-            largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
           ),
           iOS: DarwinNotificationDetails(
             presentAlert: true,
@@ -311,7 +309,6 @@ class AlarmService {
           priority: Priority.high,
           showWhen: true,
           icon: '@mipmap/ic_launcher',
-          largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
         ),
         iOS: DarwinNotificationDetails(
           presentAlert: true,

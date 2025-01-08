@@ -30,6 +30,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
   List<Movie> allMovies = [];
   bool fetchComplete = false;
   late RewardedAdManager _appAdManager;
+  String _selectedFilter = 'date_new'; 
 
   @override
   void initState() {
@@ -37,7 +38,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
     _appAdManager = RewardedAdManager();
     _loadAd();
     _tabController = TabController(length: 3, vsync: this, initialIndex: widget.country == special ? 0 : 1);
-    _fetchMovies();  // Fetch movies
+    _fetchMovies();
   }
 
   Future<void> _fetchMovies() async {
@@ -81,29 +82,30 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
 
 
   List<Movie> _getFilteredMovies(String filter) {
-    final now = DateTime.now();
     List<Movie> filteredList = [];
 
+    final now = DateTime.now();
     if (filter == listFilterAll) {
       filteredList = List.from(allMovies);
-      // Separate items with and without valid release dates
-      List<Movie> validDates = filteredList
-          .where((movie) => movie.releaseDate.isNotEmpty)
-          .toList();
 
-      List<Movie> noDates = filteredList
-          .where((movie) => movie.releaseDate.isEmpty)
-          .toList();
+      if (_selectedFilter == 'date_new'){
+        filteredList.sort((a, b) {
+          DateTime dateA = DateTime.parse(a.releaseDate);
+          DateTime dateB = DateTime.parse(b.releaseDate);
+          return dateB.compareTo(dateA);
+        });
+      } else if (_selectedFilter == 'date_old') {
+        filteredList.sort((a, b) {
+          DateTime dateA = DateTime.parse(a.releaseDate);
+          DateTime dateB = DateTime.parse(b.releaseDate);
+          return dateA.compareTo(dateB); 
+        });
+      } else if (_selectedFilter == 'alphabet_asc') {
+        filteredList.sort((a, b) => a.localTitle.compareTo(b.localTitle));
+      } else if (_selectedFilter == 'alphabet_desc') {
+        filteredList.sort((a, b) => b.localTitle.compareTo(a.localTitle));
+      }
 
-      // Sort only the items with valid release dates
-      validDates.sort((a, b) {
-        DateTime dateA = DateTime.parse(a.releaseDate);
-        DateTime dateB = DateTime.parse(b.releaseDate);
-        return dateB.compareTo(dateA); // Sort in descending order (newest first)
-      });
-
-      // Combine the lists: valid dates first, no dates at the end
-      filteredList = [...validDates, ...noDates];
     } else if (filter == listFilterRunning) {
       filteredList = allMovies.where((movie) {
         if (movie.releaseDate.isEmpty) return false;
@@ -111,41 +113,48 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
         return releaseDate.isBefore(now);
       }).toList();
 
-      // Sort by releaseDate (newest first), if releaseDate is null or empty, push to the end
-      filteredList.sort((a, b) {
-        DateTime dateA = (a.releaseDate.isNotEmpty)
-            ? DateTime.parse(a.releaseDate)
-            : DateTime(9999); // If releaseDate is null or empty, use a far future date
-        DateTime dateB = (b.releaseDate.isNotEmpty)
-            ? DateTime.parse(b.releaseDate)
-            : DateTime(9999); // If releaseDate is null or empty, use a far future date
-
-        return dateB.compareTo(dateA); // Sort in descending order (newest first)
-      });
+      if (_selectedFilter == 'date_new'){
+        filteredList.sort((a, b) {
+          DateTime dateA = DateTime.parse(a.releaseDate);
+          DateTime dateB = DateTime.parse(b.releaseDate);
+          return dateB.compareTo(dateA); 
+        });
+      } else if (_selectedFilter == 'date_old') {
+        filteredList.sort((a, b) {
+          DateTime dateA = DateTime.parse(a.releaseDate);
+          DateTime dateB = DateTime.parse(b.releaseDate);
+          return dateA.compareTo(dateB); 
+        });
+      } else if (_selectedFilter == 'alphabet_asc') {
+        filteredList.sort((a, b) => a.localTitle.compareTo(b.localTitle));
+      } else if (_selectedFilter == 'alphabet_desc') {
+        filteredList.sort((a, b) => b.localTitle.compareTo(a.localTitle));
+      }
     } else if (filter == listFilterUpcoming) {
-      List<Movie> noDates = [];
       filteredList = allMovies.where((movie) {
-        if (movie.releaseDate.isEmpty) {
-          noDates.add(movie);
-          return false;
-        }
+        if (movie.releaseDate.isEmpty) return false;
         final releaseDate = DateTime.parse(movie.releaseDate);
         return releaseDate.isAfter(now);
       }).toList();
-
-      
-      print(noDates.length);
-      // Sort only the items with valid release dates
-      filteredList.sort((a, b) {
-        DateTime dateA = DateTime.parse(a.releaseDate);
-        DateTime dateB = DateTime.parse(b.releaseDate);
-        return dateA.compareTo(dateB); // Sort in descending order (newest first)
-      });
-
-      // Combine the lists: valid dates first, no dates at the end
-      filteredList = [...filteredList, ...noDates];
+        filteredList.sort((a, b) {
+          DateTime dateA = DateTime.parse(a.releaseDate);
+          DateTime dateB = DateTime.parse(b.releaseDate);
+          return dateB.compareTo(dateA);
+        });
+      if (_selectedFilter == 'date_new'){
+      } else if (_selectedFilter == 'date_old') {
+        filteredList.sort((a, b) {
+          DateTime dateA = DateTime.parse(a.releaseDate);
+          DateTime dateB = DateTime.parse(b.releaseDate);
+          return dateA.compareTo(dateB);
+        });
+      } else if (_selectedFilter == 'alphabet_asc') {
+        filteredList.sort((a, b) => a.localTitle.compareTo(b.localTitle));
+      } else if (_selectedFilter == 'alphabet_desc') {
+        filteredList.sort((a, b) => b.localTitle.compareTo(a.localTitle));
+      }
     } else {
-      return []; // Return empty if no filter matches
+      return [];
     }
     return filteredList;
   }
@@ -185,12 +194,116 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                           textAlign: TextAlign.center,
                         ),
                       ),
-                      const IconButton(
-                        icon: Icon(
-                          Icons.arrow_back,
-                          color: Colors.transparent,
+                      PopupMenuButton<String>(
+                        icon: Image.asset(
+                            settingsProvider.isDarkTheme
+                                ? 'assets/images/dark/icon_sort_DT_xxhdpi.png'
+                                : 'assets/images/light/icon_sort_LT_xxhdpi.png',
+                            height: MediaQuery.of(context).size.height * 0.03,
+                            width: MediaQuery.of(context).size.height * 0.03,
                         ),
-                        onPressed: null,
+                        onSelected: (String value) {
+                          setState(() {
+                            _selectedFilter = value;
+                          });
+                        },
+                        position: PopupMenuPosition.under,
+                        itemBuilder: (BuildContext context) {
+                          return [
+                            PopupMenuItem<String>(
+                              value: 'date_new',
+                              child: Container(
+                                constraints: BoxConstraints(minWidth: 150), // 최소 너비 설정
+                                child: Row(
+                                  children: [
+                                    if (_selectedFilter == 'date_new')
+                                      Image.asset(
+                                        settingsProvider.isDarkTheme
+                                            ? 'assets/images/dark/icon_check_DT_xxhdpi.png'
+                                            : 'assets/images/light/icon_check_LT_xxhdpi.png',
+                                        width: 20,
+                                        height: 20,
+                                      ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      getSortFilterLabel(settingsProvider.language, 'date_new'),
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'date_old',
+                              child: Container(
+                                constraints: BoxConstraints(minWidth: 150), // 최소 너비 설정
+                                child: Row(
+                                  children: [
+                                    if (_selectedFilter == 'date_old')
+                                      Image.asset(
+                                        settingsProvider.isDarkTheme
+                                            ? 'assets/images/dark/icon_check_DT_xxhdpi.png'
+                                            : 'assets/images/light/icon_check_LT_xxhdpi.png',
+                                        width: 20,
+                                        height: 20,
+                                      ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      getSortFilterLabel(settingsProvider.language, 'date_old'),
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'alphabet_asc',
+                              child: Container(
+                                constraints: BoxConstraints(minWidth: 150), // 최소 너비 설정
+                                child: Row(
+                                  children: [
+                                    if (_selectedFilter == 'alphabet_asc')
+                                      Image.asset(
+                                        settingsProvider.isDarkTheme
+                                            ? 'assets/images/dark/icon_check_DT_xxhdpi.png'
+                                            : 'assets/images/light/icon_check_LT_xxhdpi.png',
+                                        width: 20,
+                                        height: 20,
+                                      ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      getSortFilterLabel(settingsProvider.language, 'alphabet_asc'),
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'alphabet_desc',
+                              child: Container(
+                                constraints: BoxConstraints(minWidth: 150), // 최소 너비 설정
+                                child: Row(
+                                  children: [
+                                    if (_selectedFilter == 'alphabet_desc')
+                                      Image.asset(
+                                        settingsProvider.isDarkTheme
+                                            ? 'assets/images/dark/icon_check_DT_xxhdpi.png'
+                                            : 'assets/images/light/icon_check_LT_xxhdpi.png',
+                                        width: 20,
+                                        height: 20,
+                                      ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      getSortFilterLabel(settingsProvider.language, 'alphabet_desc'),
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ];
+                        },
                       ),
                     ],
                   ),
@@ -300,7 +413,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
             onTap: () {
               HapticFeedback.mediumImpact();
               LogHelper().logEvent('movie ${movie.localTitle} clicked in ${tabIndex == 0 ? 'All' : index == 1 ? 'Running' : 'Upcoming'} tab');
-              if (settingsProvider.openCount > 10) {
+              if (settingsProvider.openCount > adLimitNum) {
                 if(_appAdManager.rewardedAd != null){
                   _showAd(() {
                     Navigator.push(

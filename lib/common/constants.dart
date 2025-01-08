@@ -4,6 +4,8 @@ const appTitle = "World Movie Trailer";
 // settings_provider
 const supportedLanguages = ['en', 'ko', 'ja', 'zh', 'tw', 'fr', 'de', 'es', 'hi', 'th'];
 
+const adLimitNum = 30;
+
 Map<String, Map<String, String>> otherAppName = {
   'Find Four': {
     'en': 'Find Four',
@@ -426,6 +428,20 @@ const Map<String, String> countryAppBars = {
   'ES': 'Tráilers\n de\n películas',  // Spanish
   'HI': 'विश्व\nफिल्म\nट्रेलर',  // Hindi
   'TH': 'โลก\nภาพยนตร์\nตัวอย่าง',  // Thai
+};
+
+// Constants for app bar titles
+const Map<String, String> countryAppBarsForShare = {
+  'en': "World Movie Trailers",  // English
+  'ko': "월드 무비 트레일러",       // Korean
+  'ja': "ワールド ムービー トレーラー",  // Japanese
+  'ft': "World Movie Trailers",  // French
+  'zh': "世界 电影 预告片",         // Simplified Chinese
+  'tw': "世界 電影 預告片",         // Traditional Chinese
+  'de': "Welt Film Trailer",     // German
+  'es': "Tráilers de películas", // Spanish
+  'hi': "विश्व फिल्म ट्रेलर",      // Hindi
+  'th': "โลก ภาพยนตร์ ตัวอย่าง",  // Thai
 };
 
 Map<String, Map<String, String>> menuTranslations = {
@@ -976,6 +992,57 @@ const labelFilterAllHI = "सब";
 const labelFilterAllTH = "ทั้งหมด";
 const labelFilterRunningTH = "กำลังฉาย";
 const labelFilterUpcomingTH = "เร็วๆ นี้";
+
+const Map<String, Map<String, String>> sortFilters = {
+  'date_new': {
+    'en': 'Date (New)',
+    'ko': '최신 순서',
+    'ja': '最新の日付順',
+    'zh': '最新顺序',
+    'tw': '最新順序',
+    'fr': 'Date (nouvelle)',
+    'de': 'Datum (neu)',
+    'es': 'Fecha (Nueva)',
+    'hi': 'तिथि (नया)',
+    'th': 'วันที่ (ใหม่)',
+  },
+  'date_old': {
+    'en': 'Date (Old)',
+    'ko': '오래된 순서',
+    'ja': '古い日付順',
+    'zh': '旧顺序',
+    'tw': '舊順序',
+    'fr': 'Date (ancienne)',
+    'de': 'Datum (alt)',
+    'es': 'Fecha (antigua)',
+    'hi': 'तिथि (पुराने)',
+    'th': 'วันที่ (เก่า)',
+  },
+  'alphabet_asc': {
+    'en': 'Alphabet (A-Z)',
+    'ko': '가나다 순서',
+    'ja': 'ひらがな（昇順）',
+    'zh': '拼音顺序 (A-Z)',
+    'tw': '拼音順序 (A-Z)',
+    'fr': 'A - Z',
+    'de': 'A - Z',
+    'es': 'A - Z',
+    'hi': 'ए-जेड',
+    'th': 'เอ - ซี',
+  },
+  'alphabet_desc': {
+    'en': 'Alphabet (Z-A)',
+    'ko': '가나다 역순',
+    'ja': 'ひらがな（降順）',
+    'zh': '拼音顺序 (Z-A)',
+    'tw': '拼音順序 (Z-A)',
+    'fr': 'Z - A',
+    'de': 'Z - A',
+    'es': 'Z - A',
+    'hi': 'जेड-ए',
+    'th': 'ซี - เอ',
+  },
+};
 
 // poster
 const labelRelease = "Release";

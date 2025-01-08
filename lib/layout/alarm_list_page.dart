@@ -13,31 +13,73 @@ class AlarmListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
-
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          centerTitle: true,
-          title: Text(
-            getSettingsLabel(settingsProvider.language, "alarm"),
-            style: TextStyle(
-              fontSize: MediaQuery.of(context).size.height * 0.02,
-              fontWeight: FontWeight.bold,
-              color: settingsProvider.isDarkTheme ? Colors.white : Colors.black,
+    return Scaffold(
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.large(
+            expandedHeight: MediaQuery.of(context).size.height * 0.15,
+            pinned: true,
+            leading: GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10.0), // Adjust padding to move the arrow down
+                child: Icon(
+                  Icons.arrow_back, 
+                  size: MediaQuery.of(context).size.height * 0.03,
+                ),
+              ),
+            ),
+            flexibleSpace: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                var top = constraints.biggest.height;
+                return FlexibleSpaceBar(
+                  titlePadding: const EdgeInsets.only(bottom: 13),
+                  centerTitle: true,
+                  title: AnimatedOpacity(
+                    opacity: top < MediaQuery.of(context).size.height * 0.1 ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 500),
+                    child: Text(
+                      getSettingsLabel(settingsProvider.language, "alarm"),
+                      style: TextStyle(
+                        fontSize: MediaQuery.of(context).size.height * 0.02,
+                        fontWeight: FontWeight.bold,
+                        color: settingsProvider.isDarkTheme ? Colors.white : Colors.black
+                      ),
+                    ),
+                  ),
+                  background: Container(
+                    margin: const EdgeInsets.only(top: 50),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        const SizedBox(width: 15),
+                        Image.asset(
+                          settingsProvider.isDarkTheme
+                              ? 'assets/images/dark/icon_config_DT_xxhdpi.png'
+                              : 'assets/images/light/icon_config_LT_xxhdpi.png',
+                          height: MediaQuery.of(context).size.height * 0.03,
+                          width: MediaQuery.of(context).size.height * 0.03,
+                        ),
+                        const SizedBox(width: 20),
+                        Text(
+                          getSettingsLabel(settingsProvider.language, "alarm"),
+                          style: TextStyle(
+                            fontSize: MediaQuery.of(context).size.height * 0.03,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back), // Back arrow icon
-            onPressed: () {
-              Navigator.of(context).pop(); // Go back
-            },
-          ),
-        ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              // All Alarm
+          SliverList(
+            delegate: SliverChildListDelegate(
+              [
+                const Divider(),
+                              // All Alarm
               _buildAllAlarmOn(context, settingsProvider),
 
               // Bookmark & Memo Group
@@ -48,11 +90,12 @@ class AlarmListPage extends StatelessWidget {
 
               // Country List
               ..._buildCountryList(context, settingsProvider),
-            ],
+              ]
+            ),
           ),
-        ),
-        bottomNavigationBar: _buildBottomNavigationBar(context, settingsProvider),
+        ]
       ),
+      bottomNavigationBar: _buildBottomNavigationBar(context, settingsProvider),
     );
   }
 
@@ -191,23 +234,22 @@ class AlarmListPage extends StatelessWidget {
       height: MediaQuery.of(context).size.height * 0.12,
       color: settingsProvider.isDarkTheme ? const Color(0xff3c3c3c) : const Color(0xff435555),
       padding: EdgeInsets.only(
-        top: MediaQuery.of(context).size.height * 0.12 * 0.1,
-        bottom: MediaQuery.of(context).size.height * 0.12 * 0.1,
-      ),
+          top: MediaQuery.of(context).size.height * 0.12 * 0.1,
+          bottom: MediaQuery.of(context).size.height * 0.12 * 0.1),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           GestureDetector(
             onTap: () async {
               const url =
-                  'https://sunnyinnolab.notion.site/About-Sunny-Innovation-Lab-4a09c94d4b6d4a0f8113f16660b6add3';
+                  'https://marmalade-neptune-dbe.notion.site/Home-Page-7589a833b4f6482e90844b9fe49c8ae0';
               if (await canLaunchUrl(Uri.parse(url))) {
                 await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
               }
             },
             child: Image.asset(
-              'assets/images/dark/logo_sil_white_1024.png',
-              height: MediaQuery.of(context).size.height * 0.05,
+              'assets/images/SIL_logo_h_xxhdpi.png',
+              height: MediaQuery.of(context).size.height * 0.045, // Adjust size as needed
             ),
           ),
           SizedBox(height: MediaQuery.of(context).size.height * 0.12 * 0.1),
@@ -231,7 +273,7 @@ class AlarmListPage extends StatelessWidget {
                 ),
               ),
               const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                padding: EdgeInsets.symmetric(horizontal: 8.0), // Space around the separator
                 child: Text(
                   '|',
                   style: TextStyle(

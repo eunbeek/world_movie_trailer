@@ -68,7 +68,7 @@ class MovieService {
     List<Movie> movies = [];
     String? timestamp = result['timestamp'];
 
-    if (timestamp != null && !_isDataOutdated(DateTime.parse(timestamp),countryCode == special)) {
+    if (timestamp != null && !_isDataOutdated(DateTime.parse(timestamp), countryCode == special, country: countryName)) {
       return result['movies'];
     } else {
       // Fetch new data from Firebase Storage
@@ -226,15 +226,39 @@ class MovieService {
     }
   }
 
-  static bool _isDataOutdated(DateTime lastFetched, bool isSpecial) {
+  static bool _isDataOutdated(DateTime lastFetched, bool isSpecial, {String? country}) {
     final now = DateTime.now();
 
     if (isSpecial) {
       // For special sections, check if the year and month are the same
       return now.difference(lastFetched).inDays  > 30;
     } else {
-      // For regular data, consider it outdated if older than 7 days
-      return now.difference(lastFetched).inDays > 7;
+      if (country == null) return true;
+
+      int? updateDay;
+      countryByDay.forEach((day, countries) {
+        if (countries.contains(country)) {
+          updateDay = day;
+        }
+      });
+
+      if (updateDay == null) return true;
+
+      final nextUpdateDay = _nextUpdateDay(updateDay!, lastFetched);
+
+      return now.isAfter(nextUpdateDay);
     }
+  }
+
+  static DateTime _nextUpdateDay(int updateDay, DateTime lastFetched) {
+    // Get the day of the week for lastFetched (1 = Monday, 7 = Sunday)
+    final fetchedDay = lastFetched.weekday;
+
+    // Calculate the difference in days to the next update day
+    final daysToNextUpdate = (updateDay - fetchedDay + 7) % 7;
+    final nextUpdateDate =
+        lastFetched.add(Duration(days: daysToNextUpdate == 0 ? 7 : daysToNextUpdate));
+    
+    return DateTime(nextUpdateDate.year, nextUpdateDate.month, nextUpdateDate.day);
   }
 }

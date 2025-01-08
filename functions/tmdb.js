@@ -44,6 +44,15 @@ async function searchMovieInfoByTitle(countryCode, query) {
         return currentDistance < best.distance ? {movie, distance: currentDistance} : best;
       }, {movie: data.results[0], distance: Infinity});
 
+      // Check if the best match is within an acceptable threshold
+      const SOME_THRESHOLD = 10; // Define a threshold value based on your needs
+
+      if (bestMatch.distance > SOME_THRESHOLD) {
+        console.log("No close match found, defaulting to first result.");
+        bestMatch.movie = data.results[0]; // Default to the first result
+        bestMatch.distance = Infinity; // Reset the distance
+      }
+
       const fullMovieInfo = await fetchFullMovieInfo(bestMatch.movie.id, countryCode);
       return fullMovieInfo;
     } else {

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:world_movie_trailer/common/ad_manager/rewarded_ad_manager.dart';
+import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/common/error_page_by_user.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
 import 'package:world_movie_trailer/layout/movie_detail_youtube_page.dart';
@@ -163,7 +164,7 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
           return GestureDetector(
             onTap: () {
               HapticFeedback.mediumImpact();
-              if (settingsProvider.openCount > 10) {
+              if (settingsProvider.openCount > adLimitNum) {
                 if (_appAdManager.rewardedAd != null) {
                   _showAd(() {
                     Navigator.push(
