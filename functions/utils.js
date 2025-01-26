@@ -9,10 +9,10 @@ const {searchMovieInfoByTitle, searchSpecialMovieInfoByTid} = require("./tmdb");
  * @param {Array} moviesData - The list of movies to process.
  * @param {number} processedCount - The count of processed movies.
  * @param {number} startTime - The start time of the batch process.
- * @param {boolean} [isSpecial=false] - Whether the movies belong to a special section.
+ * @param {boolean} [isTMDBID=false] - Whether the movies belong to a
  * @return {Promise<Array>} The updated list of movies.
  */
-async function processBatch(country, moviesData, processedCount, startTime, isSpecial = false) {
+async function processBatch(country, moviesData, processedCount, startTime, isTMDBID = false) {
   const unprocessedMovies = moviesData.filter((movie) => !movie.batch);
   console.log(`unprocessMovies: ${unprocessedMovies.length}`);
   if (unprocessedMovies.length === 0) {
@@ -26,7 +26,7 @@ async function processBatch(country, moviesData, processedCount, startTime, isSp
     try {
       let fetchedMovie = [];
 
-      if (isSpecial) {
+      if (isTMDBID) {
         fetchedMovie = await searchSpecialMovieInfoByTid(movie);
       } else {
         fetchedMovie = await searchMovieInfoByTitle(country, movie.localTitle);
