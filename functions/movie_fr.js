@@ -41,7 +41,7 @@ async function fetchMovieListFromUga() {
 
       movieBoxes.each((i, movieBox) => {
         const aTag = $(movieBox).find("a");
-        if (movies.some((movie) => movie.localTitle === aTag.attr("title"))) return;
+        if (movies.some((movie) => movie.localTitle.trim() === aTag.attr("title").trim())) return;
 
         const movie = {
           localTitle: aTag.attr("title"),

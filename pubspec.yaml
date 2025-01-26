@@ -2,7 +2,7 @@ name: world_movie_trailer
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.1.0+40
+version: 1.2.0+46
 
 environment:
   sdk: '>=3.3.3 <4.0.0'
@@ -30,7 +30,7 @@ dependencies:
   cached_network_image: ^3.4.1
   flutter_local_notifications: ^18.0.1
   better_player: ^0.0.84
-
+  permission_handler: ^10.0.0
 
 dev_dependencies:
   flutter_test:
@@ -66,6 +66,13 @@ flutter:
     - assets/images/dark/icon_dislike_fill_DT_xxhdpi.png
     - assets/images/dark/icon_save_DT_xxhdpi.png
     - assets/images/dark/icon_delete_DT_xxhdpi.png
+    - assets/images/dark/icon_check_DT_xxhdpi.png
+    - assets/images/dark/icon_popcorn_DT_xxhdpi.png
+    - assets/images/dark/icon_sort_DT_xxhdpi.png
+    - assets/images/dark/icon_apps_DT_xxhdpi.png
+    - assets/images/dark/icon_credits_DT_xxhdpi.png
+    - assets/images/dark/icon_donation_DT_xxhdpi.png
+    - assets/images/dark/icon_store_DT_xxhdpi.png
     - assets/images/light/deco_world_map_LT_xxhdpi.png
     - assets/images/light/deco_film_reel_LT_xxhdpi.png
     - assets/images/light/icon_config_LT_xxhdpi.png
@@ -84,6 +91,13 @@ flutter:
     - assets/images/light/icon_dislike_fill_LT_xxhdpi.png
     - assets/images/light/icon_save_LT_xxhdpi.png
     - assets/images/light/icon_delete_LT_xxhdpi.png
+    - assets/images/light/icon_check_LT_xxhdpi.png
+    - assets/images/light/icon_popcorn_LT_xxhdpi.png
+    - assets/images/light/icon_sort_LT_xxhdpi.png
+    - assets/images/light/icon_apps_LT_xxhdpi.png
+    - assets/images/light/icon_credits_LT_xxhdpi.png
+    - assets/images/light/icon_donation_LT_xxhdpi.png
+    - assets/images/light/icon_store_LT_xxhdpi.png
     - assets/images/SIL_logo_h_xxhdpi.png
     - assets/images/deco_film_reel_02_DT_xxhdpi.png
     - assets/images/icon_list_delete_xxhdpi.png

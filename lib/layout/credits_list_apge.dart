@@ -52,8 +52,8 @@ class CreditsList extends StatelessWidget {
                         const SizedBox(width: 15),
                         Image.asset(
                           settingsProvider.isDarkTheme
-                              ? 'assets/images/dark/icon_config_DT_xxhdpi.png'
-                              : 'assets/images/light/icon_config_LT_xxhdpi.png',
+                              ? 'assets/images/dark/icon_credits_DT_xxhdpi.png'
+                              : 'assets/images/light/icon_credits_LT_xxhdpi.png',
                           height: MediaQuery.of(context).size.height * 0.03,
                           width: MediaQuery.of(context).size.height * 0.03,
                         ),

@@ -45,7 +45,7 @@ class AppListPage extends StatelessWidget {
                     opacity: top < MediaQuery.of(context).size.height * 0.1 ? 1.0 : 0.0,
                     duration: const Duration(milliseconds: 500),
                     child: Text(
-                       "Sunny's Apps & Games",
+                      getSettingsLabel(settingsProvider.language, "other"),
                       style: TextStyle(
                         fontSize: MediaQuery.of(context).size.height * 0.02,
                         fontWeight: FontWeight.bold,
@@ -61,14 +61,14 @@ class AppListPage extends StatelessWidget {
                         const SizedBox(width: 15),
                         Image.asset(
                           settingsProvider.isDarkTheme
-                              ? 'assets/images/dark/icon_config_DT_xxhdpi.png'
-                              : 'assets/images/light/icon_config_LT_xxhdpi.png',
+                              ? 'assets/images/dark/icon_apps_DT_xxhdpi.png'
+                              : 'assets/images/light/icon_apps_LT_xxhdpi.png',
                           height: MediaQuery.of(context).size.height * 0.03,
                           width: MediaQuery.of(context).size.height * 0.03,
                         ),
                         const SizedBox(width: 20),
                         Text(
-                          "Sunny's Apps & Games",
+                          getSettingsLabel(settingsProvider.language, "other"),
                           style: TextStyle(
                             fontSize: MediaQuery.of(context).size.height * 0.03,
                             fontWeight: FontWeight.bold,

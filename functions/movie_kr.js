@@ -79,7 +79,7 @@ async function fetchMovieListFromCgv(lotteMovies) {
         if (dateMatch) {
           releaseDate = dateMatch[0].replace(/\./g, "-"); // "2024-11-27"
         }
-        if (lotteMovies.some((movie) => movie.localTitle === processedTitle) || movies.some((movie) => movie.localTitle === processedTitle)) {
+        if (lotteMovies.some((movie) => movie.localTitle.trim() === processedTitle.trim()) || movies.some((movie) => movie.localTitle.trim() === processedTitle.trim())) {
           return;
         }
 
@@ -140,7 +140,7 @@ async function _processAdditionalMovies(movieList, movies, lotteMovies) {
         localTitle.replace(/^\[.*?\]/, "").trim() :
         localTitle;
 
-      if (lotteMovies.some((movie) => movie.localTitle === processedTitle) || movies.some((movie) => movie.localTitle === processedTitle)) {
+      if (lotteMovies.some((movie) => movie.localTitle.trim() === processedTitle.trim()) || movies.some((movie) => movie.localTitle.trim() === processedTitle.trim())) {
         return;
       }
 
@@ -198,7 +198,7 @@ async function fetchMovieListFromLotte() {
 
         const finalTitle = processedTitle.replace(/([가-힣a-zA-Z])(\d)/g, "$1 $2");
 
-        if (movies.some((movie) => movie.localTitle === processedTitle)) {
+        if (movies.some((movie) => movie.localTitle.trim() === processedTitle.trim())) {
           return;
         }
 

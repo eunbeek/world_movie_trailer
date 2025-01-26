@@ -146,6 +146,10 @@ String getSortFilterLabel(String languageCode, String field) {
   return sortFilters[field]?[languageCode.toLowerCase()] ?? '';
 }
 
+String getBoxOfficeLabel(String languageCode, String field) {
+  return boxOfficeKeyword[field]?[languageCode.toLowerCase()] ?? '';
+}
+
 // Movie list - poster release
 String getReleaseLabel(String languageCode) {
     switch (languageCode) {

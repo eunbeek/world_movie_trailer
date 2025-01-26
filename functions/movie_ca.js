@@ -40,7 +40,7 @@ async function fetchMovieListFromCineplex() {
       const data = response.data;
 
       data.items.forEach((item) => {
-        if (movies.some((movie) => movie.localTitle === item.names)) return;
+        if (movies.some((movie) => movie.localTitle.trim() === item.names.trim())) return;
 
         movies.push({
           localTitle: item.name,

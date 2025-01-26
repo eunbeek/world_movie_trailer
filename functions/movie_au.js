@@ -31,7 +31,7 @@ async function fetchMovieListFromTMDBByAU() {
       const addMovies = (response) => {
         if (response) {
           response.forEach((item) => {
-            if (movies.some((movie)=> movie.localTitle === item.title)) return;
+            if (movies.some((movie)=> movie.localTitle.trim() === item.title.trim())) return;
             movies.push({
               localTitle: item.title,
               source: "imdb",

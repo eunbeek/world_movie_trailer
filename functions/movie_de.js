@@ -1,57 +1,67 @@
 /* eslint-disable max-len */
-const axios = require("axios");
-const cheerio = require("cheerio");
-
-const traumpalastRunningUrl ="https://leonberg.traumpalast.de/index.php/PID/5796.html";
-const traumpalastUpcomingUrl = "https://leonberg.traumpalast.de/index.php/PID/5842.html";
-const traumpalastUpcoming2Url = "https://leonberg.traumpalast.de/index.php/PID/5842/seite/2.html";
-const traumpalastUpcoming3Url = "https://leonberg.traumpalast.de/index.php/PID/5842/seite/3.html";
+const {fetchRunningMovieByCountryCode, fetchUpcomingMovieByCountryCode} = require("./tmdb");
 
 /**
- * Fetches movie data from Traumpalast
+ * Fetches movie data from TMDB for the DE.
  * @return {Promise<Array>}
- * A promise that resolves to a list of movies from Traumpalast.
+ * A promise that resolves to a list of movies from TMDB.
  */
-async function fetchMovieListFromTraumpalast() {
-  const urls = [traumpalastRunningUrl, traumpalastUpcomingUrl, traumpalastUpcoming2Url, traumpalastUpcoming3Url];
+async function fetchMovieListFromTMDBByDE() {
   const movies = [];
 
-  for (const url of urls) {
+  /**
+   * Fetches running and upcoming movie data from TMDB for the DE.
+   * The function fetches data in two batches (two pages) for both running and upcoming movies.
+   * The fetched data includes the movie title, country, source, specification, release date, and TMDB ID.
+   * @param {String} page - page number
+   * @return {Promise<Array>} A promise that resolves to a list of movies from TMDB.
+   * Each movie object contains the following properties:
+   * - `localTitle` (string): The title of the movie.
+   * - `country` (string): The country code, which is "de" for this function.
+   * - `source` (string): The source of the data, which is "imdb" for this function.
+   * - `spec` (string): The overview or specification of the movie.
+   * - `releaseDate` (string): The release date of the movie in YYYY-MM-DD format.
+   * - `tid` (number): The TMDB ID of the movie.
+   */
+  async function fetchMovies(page) {
     try {
-      const response = await axios.get(url);
-      const $ = cheerio.load(response.data);
-      const movieBoxes = $("div.contentbox.movie");
+      const responseRun = await fetchRunningMovieByCountryCode("DE", "de-DE", page);
+      const responseUp = await fetchUpcomingMovieByCountryCode("DE", "de-DE", page);
 
-      movieBoxes.each((i, movieBox) => {
-        const aTag = $(movieBox).find("a.no-decoration");
-        const imgTag = $(aTag).find("img");
-        const titleTag = $(movieBox).find("h3.headline-blue a");
-        const descriptionTag = $(movieBox).find("p[itemprop='description']");
-        const releaseDateTag = $(movieBox).find("time[itemprop='datePublished']");
-        const runtimeTag = $(movieBox).find("span[itemprop='duration']");
+      const addMovies = (response) => {
+        if (response) {
+          response.forEach((item) => {
+            if (movies.some((movie)=> movie.localTitle.trim() === item.title.trim())) return;
+            movies.push({
+              localTitle: item.title,
+              source: "imdb",
+              spec: item.overview,
+              releaseDate: item.release_date,
+              tid: item.id,
+              batch: false,
+            });
+          });
+        } else {
+          console.error("Failed to fetch data:", response.status);
+        }
+      };
 
-        if (movies.some((movie) => movie.localTitle === titleTag.text().trim())) return;
-
-        const movie = {
-          localTitle: titleTag.text().trim(),
-          posterUrl: "https://leonberg.traumpalast.de" + imgTag.attr("data-srcset").split(" ")[0],
-          source: "traumpalast",
-          spec: descriptionTag.text().trim(),
-          releaseDate: releaseDateTag.attr("datetime"),
-          runtime: runtimeTag.text().replace(" Minuten", "").trim(),
-          batch: false,
-        };
-
-        movies.push(movie);
-      });
+      addMovies(responseRun);
+      addMovies(responseUp);
     } catch (err) {
-      console.error("Error fetching from Traumpalast:", err);
+      console.error("Error fetching from IMDB:", err);
     }
   }
+
+  // Fetch for pages 1 and 2
+  await fetchMovies("1");
+  await fetchMovies("2");
+  await fetchMovies("3");
+  await fetchMovies("4");
 
   return movies;
 }
 
 module.exports = {
-  fetchMovieListFromTraumpalast,
+  fetchMovieListFromTMDBByDE,
 };

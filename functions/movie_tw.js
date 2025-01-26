@@ -46,7 +46,7 @@ async function fetchMovieListFromShowTime() {
 
         spec = removeHtmlTags(spec);
 
-        const isDuplicate = movies.some((movie) => movie.localTitle === item.name);
+        const isDuplicate = movies.some((movie) => movie.localTitle.trim() === item.name.trim());
 
         if (!isDuplicate) {
           movies.push({

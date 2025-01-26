@@ -30,7 +30,9 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
   List<Movie> allMovies = [];
   bool fetchComplete = false;
   late RewardedAdManager _appAdManager;
-  String _selectedFilter = 'date_new'; 
+  String _selectedFilterAll = 'date_new';
+  String _selectedFilterRun = 'date_new';
+  String _selectedFilterUp = 'date_new';
 
   @override
   void initState() {
@@ -88,21 +90,21 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
     if (filter == listFilterAll) {
       filteredList = List.from(allMovies);
 
-      if (_selectedFilter == 'date_new'){
+      if (_selectedFilterAll == 'date_new'){
         filteredList.sort((a, b) {
           DateTime dateA = DateTime.parse(a.releaseDate);
           DateTime dateB = DateTime.parse(b.releaseDate);
           return dateB.compareTo(dateA);
         });
-      } else if (_selectedFilter == 'date_old') {
+      } else if (_selectedFilterAll == 'date_old') {
         filteredList.sort((a, b) {
           DateTime dateA = DateTime.parse(a.releaseDate);
           DateTime dateB = DateTime.parse(b.releaseDate);
           return dateA.compareTo(dateB); 
         });
-      } else if (_selectedFilter == 'alphabet_asc') {
+      } else if (_selectedFilterAll == 'alphabet_asc') {
         filteredList.sort((a, b) => a.localTitle.compareTo(b.localTitle));
-      } else if (_selectedFilter == 'alphabet_desc') {
+      } else if (_selectedFilterAll == 'alphabet_desc') {
         filteredList.sort((a, b) => b.localTitle.compareTo(a.localTitle));
       }
 
@@ -113,21 +115,21 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
         return releaseDate.isBefore(now);
       }).toList();
 
-      if (_selectedFilter == 'date_new'){
+      if (_selectedFilterRun == 'date_new'){
         filteredList.sort((a, b) {
           DateTime dateA = DateTime.parse(a.releaseDate);
           DateTime dateB = DateTime.parse(b.releaseDate);
           return dateB.compareTo(dateA); 
         });
-      } else if (_selectedFilter == 'date_old') {
+      } else if (_selectedFilterRun == 'date_old') {
         filteredList.sort((a, b) {
           DateTime dateA = DateTime.parse(a.releaseDate);
           DateTime dateB = DateTime.parse(b.releaseDate);
           return dateA.compareTo(dateB); 
         });
-      } else if (_selectedFilter == 'alphabet_asc') {
+      } else if (_selectedFilterRun == 'alphabet_asc') {
         filteredList.sort((a, b) => a.localTitle.compareTo(b.localTitle));
-      } else if (_selectedFilter == 'alphabet_desc') {
+      } else if (_selectedFilterRun == 'alphabet_desc') {
         filteredList.sort((a, b) => b.localTitle.compareTo(a.localTitle));
       }
     } else if (filter == listFilterUpcoming) {
@@ -136,21 +138,22 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
         final releaseDate = DateTime.parse(movie.releaseDate);
         return releaseDate.isAfter(now);
       }).toList();
-        filteredList.sort((a, b) {
-          DateTime dateA = DateTime.parse(a.releaseDate);
-          DateTime dateB = DateTime.parse(b.releaseDate);
-          return dateB.compareTo(dateA);
-        });
-      if (_selectedFilter == 'date_new'){
-      } else if (_selectedFilter == 'date_old') {
+
+      if (_selectedFilterUp == 'date_new'){
         filteredList.sort((a, b) {
           DateTime dateA = DateTime.parse(a.releaseDate);
           DateTime dateB = DateTime.parse(b.releaseDate);
           return dateA.compareTo(dateB);
         });
-      } else if (_selectedFilter == 'alphabet_asc') {
+      } else if (_selectedFilterUp == 'date_old') {
+        filteredList.sort((a, b) {
+          DateTime dateA = DateTime.parse(a.releaseDate);
+          DateTime dateB = DateTime.parse(b.releaseDate);
+          return dateB.compareTo(dateA);
+        });
+      } else if (_selectedFilterUp == 'alphabet_asc') {
         filteredList.sort((a, b) => a.localTitle.compareTo(b.localTitle));
-      } else if (_selectedFilter == 'alphabet_desc') {
+      } else if (_selectedFilterUp == 'alphabet_desc') {
         filteredList.sort((a, b) => b.localTitle.compareTo(a.localTitle));
       }
     } else {
@@ -204,7 +207,9 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                         ),
                         onSelected: (String value) {
                           setState(() {
-                            _selectedFilter = value;
+                            if(_tabController.index == 0) _selectedFilterAll = value;
+                            if(_tabController.index == 1) _selectedFilterRun = value;
+                            if(_tabController.index == 2) _selectedFilterUp = value;
                           });
                         },
                         position: PopupMenuPosition.under,
@@ -216,7 +221,23 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                                 constraints: BoxConstraints(minWidth: 150), // 최소 너비 설정
                                 child: Row(
                                   children: [
-                                    if (_selectedFilter == 'date_new')
+                                    if (_tabController.index == 0 && _selectedFilterAll == 'date_new')
+                                      Image.asset(
+                                        settingsProvider.isDarkTheme
+                                            ? 'assets/images/dark/icon_check_DT_xxhdpi.png'
+                                            : 'assets/images/light/icon_check_LT_xxhdpi.png',
+                                        width: 20,
+                                        height: 20,
+                                      ) 
+                                    else if (_tabController.index == 1 && _selectedFilterRun == 'date_new')
+                                      Image.asset(
+                                        settingsProvider.isDarkTheme
+                                            ? 'assets/images/dark/icon_check_DT_xxhdpi.png'
+                                            : 'assets/images/light/icon_check_LT_xxhdpi.png',
+                                        width: 20,
+                                        height: 20,
+                                      ) 
+                                    else if (_tabController.index == 2 && _selectedFilterUp == 'date_new')
                                       Image.asset(
                                         settingsProvider.isDarkTheme
                                             ? 'assets/images/dark/icon_check_DT_xxhdpi.png'
@@ -226,7 +247,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                                       ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      getSortFilterLabel(settingsProvider.language, 'date_new'),
+                                      _tabController.index == 2 ? getSortFilterLabel(settingsProvider.language, 'date_new_up') :  getSortFilterLabel(settingsProvider.language, 'date_new'),
                                       style: TextStyle(fontSize: 14),
                                     ),
                                   ],
@@ -239,7 +260,23 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                                 constraints: BoxConstraints(minWidth: 150), // 최소 너비 설정
                                 child: Row(
                                   children: [
-                                    if (_selectedFilter == 'date_old')
+                                    if (_tabController.index == 0 && _selectedFilterAll == 'date_old')
+                                      Image.asset(
+                                        settingsProvider.isDarkTheme
+                                            ? 'assets/images/dark/icon_check_DT_xxhdpi.png'
+                                            : 'assets/images/light/icon_check_LT_xxhdpi.png',
+                                        width: 20,
+                                        height: 20,
+                                      ) 
+                                    else if (_tabController.index == 1 && _selectedFilterRun == 'date_old')
+                                      Image.asset(
+                                        settingsProvider.isDarkTheme
+                                            ? 'assets/images/dark/icon_check_DT_xxhdpi.png'
+                                            : 'assets/images/light/icon_check_LT_xxhdpi.png',
+                                        width: 20,
+                                        height: 20,
+                                      ) 
+                                    else if (_tabController.index == 2 && _selectedFilterUp == 'date_old')
                                       Image.asset(
                                         settingsProvider.isDarkTheme
                                             ? 'assets/images/dark/icon_check_DT_xxhdpi.png'
@@ -249,7 +286,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                                       ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      getSortFilterLabel(settingsProvider.language, 'date_old'),
+                                      _tabController.index == 2 ? getSortFilterLabel(settingsProvider.language, 'date_old_up') : getSortFilterLabel(settingsProvider.language, 'date_old'),
                                       style: TextStyle(fontSize: 14),
                                     ),
                                   ],
@@ -262,7 +299,23 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                                 constraints: BoxConstraints(minWidth: 150), // 최소 너비 설정
                                 child: Row(
                                   children: [
-                                    if (_selectedFilter == 'alphabet_asc')
+                                    if (_tabController.index == 0 && _selectedFilterAll == 'alphabet_asc')
+                                      Image.asset(
+                                        settingsProvider.isDarkTheme
+                                            ? 'assets/images/dark/icon_check_DT_xxhdpi.png'
+                                            : 'assets/images/light/icon_check_LT_xxhdpi.png',
+                                        width: 20,
+                                        height: 20,
+                                      )
+                                   else if (_tabController.index == 1 && _selectedFilterRun == 'alphabet_asc')
+                                      Image.asset(
+                                        settingsProvider.isDarkTheme
+                                            ? 'assets/images/dark/icon_check_DT_xxhdpi.png'
+                                            : 'assets/images/light/icon_check_LT_xxhdpi.png',
+                                        width: 20,
+                                        height: 20,
+                                      ) 
+                                    else if (_tabController.index == 2 && _selectedFilterUp == 'alphabet_asc')
                                       Image.asset(
                                         settingsProvider.isDarkTheme
                                             ? 'assets/images/dark/icon_check_DT_xxhdpi.png'
@@ -285,7 +338,23 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                                 constraints: BoxConstraints(minWidth: 150), // 최소 너비 설정
                                 child: Row(
                                   children: [
-                                    if (_selectedFilter == 'alphabet_desc')
+                                    if (_tabController.index == 0 && _selectedFilterAll == 'alphabet_desc')
+                                      Image.asset(
+                                        settingsProvider.isDarkTheme
+                                            ? 'assets/images/dark/icon_check_DT_xxhdpi.png'
+                                            : 'assets/images/light/icon_check_LT_xxhdpi.png',
+                                        width: 20,
+                                        height: 20,
+                                      )
+                                    else if (_tabController.index == 1 && _selectedFilterRun == 'alphabet_desc')
+                                      Image.asset(
+                                        settingsProvider.isDarkTheme
+                                            ? 'assets/images/dark/icon_check_DT_xxhdpi.png'
+                                            : 'assets/images/light/icon_check_LT_xxhdpi.png',
+                                        width: 20,
+                                        height: 20,
+                                      )
+                                    else if (_tabController.index == 2 && _selectedFilterUp == 'alphabet_desc')
                                       Image.asset(
                                         settingsProvider.isDarkTheme
                                             ? 'assets/images/dark/icon_check_DT_xxhdpi.png'

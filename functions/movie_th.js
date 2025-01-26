@@ -1,74 +1,67 @@
 /* eslint-disable max-len */
-const axios = require("axios");
-const cheerio = require("cheerio");
-
-const sfcinemaUrl = "https://www.sfcinemacity.com";
+const {fetchRunningMovieByCountryCode, fetchUpcomingMovieByCountryCode} = require("./tmdb");
 
 /**
- * Fetches movie data from SFCinema
+ * Fetches movie data from TMDB for the TH.
  * @return {Promise<Array>}
- * A promise that resolves to a list of movies from SFCinema.
+ * A promise that resolves to a list of movies from TMDB.
  */
-async function fetchMovieListFromSf() {
+async function fetchMovieListFromTMDBByTH() {
   const movies = [];
 
-  try {
-    const response = await axios.get(sfcinemaUrl);
-    const $ = cheerio.load(response.data);
+  /**
+   * Fetches running and upcoming movie data from TMDB for the TH.
+   * The function fetches data in two batches (two pages) for both running and upcoming movies.
+   * The fetched data includes the movie title, country, source, specification, release date, and TMDB ID.
+   * @param {String} page - page number
+   * @return {Promise<Array>} A promise that resolves to a list of movies from TMDB.
+   * Each movie object contains the following properties:
+   * - `localTitle` (string): The title of the movie.
+   * - `country` (string): The country code, which is "us" for this function.
+   * - `source` (string): The source of the data, which is "imdb" for this function.
+   * - `spec` (string): The overview or specification of the movie.
+   * - `releaseDate` (string): The release date of the movie in YYYY-MM-DD format.
+   * - `tid` (number): The TMDB ID of the movie.
+   */
+  async function fetchMovies(page) {
+    try {
+      const responseRun = await fetchRunningMovieByCountryCode("TH", "th-TH", page);
+      const responseUp = await fetchUpcomingMovieByCountryCode("TH", "th-TH", page);
 
-    const scriptTag = $("script")
-        .filter((i, el) => $(el).html().includes("__INITIAL_STATE__"))
-        .html();
-
-    if (!scriptTag) {
-      return null;
-    }
-
-    // Extract the JSON object from the script content
-    const jsonString = scriptTag.match(/window\.__INITIAL_STATE__\s*=\s*(\{.*?\});/)[1];
-    const initialState = JSON.parse(jsonString);
-
-    // Access the coming_soon object
-    const months = initialState.coming_soon.months;
-    // Loop through each month and get the movies
-    for (const [, itemByMonth] of Object.entries(months)) {
-      const moviesByMonth = itemByMonth.movies;
-      // Process the movies (details.movies is an object, you may need to loop through if it's an array)
-      for (const [, details] of Object.entries(moviesByMonth)) {
-        const movie = {
-          localTitle: details.name["th"],
-          posterUrl: details.image_url["port"],
-          source: "sf",
-          releaseDate: details.opening_date,
-          batch: false,
-        };
-        movies.push(movie);
-      }
-    }
-
-    // Access the coming_soon object
-    const boxOffice = initialState.box_office;
-    // Loop through each month and get the movies
-    for (const [, itemByOffice] of Object.entries(boxOffice)) {
-      for (const [, details] of Object.entries(itemByOffice)) {
-        if (!movies.find((m) => m.localTitle == details.name["th"])) {
-          const movie = {
-            localTitle: details.name["th"],
-            posterUrl: details.image_url["port"],
-            source: "sf",
-            batch: false,
-          };
-          movies.push(movie);
+      const addMovies = (response) => {
+        if (response) {
+          response.forEach((item) => {
+            if (movies.some((movie)=> movie.localTitle.trim() === item.title.trim())) return;
+            movies.push({
+              localTitle: item.title,
+              source: "imdb",
+              spec: item.overview,
+              releaseDate: item.release_date,
+              tid: item.id,
+              batch: false,
+            });
+          });
+        } else {
+          console.error("Failed to fetch data:", response.status);
         }
-      }
+      };
+
+      addMovies(responseRun);
+      addMovies(responseUp);
+    } catch (err) {
+      console.error("Error fetching from IMDB:", err);
     }
-  } catch (err) {
-    console.error("Error fetching from SFCinema:", err);
   }
+
+  // Fetch for pages 1 and 2
+  await fetchMovies("1");
+  await fetchMovies("2");
+  await fetchMovies("3");
+  await fetchMovies("4");
 
   return movies;
 }
 
 module.exports = {
-  fetchMovieListFromSf,
+  fetchMovieListFromTMDBByTH,
 };
