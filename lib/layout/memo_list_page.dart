@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:world_movie_trailer/common/ad_manager/rewarded_ad_manager.dart';
+import 'package:world_movie_trailer/common/ad_manager/interstitial_ad_manager.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/common/error_page_by_user.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
@@ -26,12 +26,12 @@ class _MemoListPageState extends State<MemoListPage> {
   Map<int, TextEditingController> _memoControllers = {}; // Store controllers by index
   Map<int, ScrollController> _scrollController = {};
   bool fetchComplete = false;
-  late RewardedAdManager _appAdManager;
+  late InterstitialAdManager _appAdManager;
 
   @override
   void initState() {
     super.initState();
-    _appAdManager = RewardedAdManager();
+    _appAdManager = InterstitialAdManager();
     _loadAd();
     _fetchMovies();
   }
@@ -179,7 +179,7 @@ class _MemoListPageState extends State<MemoListPage> {
                     onTap: () {
                       HapticFeedback.mediumImpact();
                       if (settingsProvider.openCount > adLimitNum) {
-                        if (_appAdManager.rewardedAd != null) {
+                        if (_appAdManager.interstitialAd != null) {
                           _showAd(() {
                             Navigator.push(
                               context,

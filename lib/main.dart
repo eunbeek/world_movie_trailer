@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:world_movie_trailer/common/ad_manager/rewarded_ad_manager.dart';
+import 'package:world_movie_trailer/common/ad_manager/interstitial_ad_manager.dart';
 import 'package:world_movie_trailer/common/background.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/services/alarm_service.dart';
@@ -71,7 +71,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBindingObserver {
-  late RewardedAdManager _appAdManager;
+  late InterstitialAdManager _appAdManager;
   bool _isAdDismissed = false;
   late AnimationController _controller;
 
@@ -85,7 +85,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
       vsync: this,
     )..repeat();
 
-    _appAdManager = RewardedAdManager();
+    _appAdManager = InterstitialAdManager();
     if (widget.isInitialSetting) {
       LogHelper().logEvent('new_user_installed');
       _isAdDismissed = true;

@@ -2,24 +2,24 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:world_movie_trailer/common/ad_helper.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
 
-class RewardedAdManager {
-  RewardedAd? rewardedAd;
+class InterstitialAdManager {
+  InterstitialAd? interstitialAd;
   bool isShowingAd = false;
   
-  // Method to load the rewarded ad
+  // Method to load the interstitial Ad 
   void loadAd({required Function onAdLoaded, required Function onAdFailed}) {
-    RewardedAd.load(
-      adUnitId: AdHelper.rewardedUnitId,
+    InterstitialAd.load(
+      adUnitId: AdHelper.interstitialUnitId,
       request: const AdRequest(),
-      rewardedAdLoadCallback: RewardedAdLoadCallback(
-        onAdLoaded: (RewardedAd ad) {
-          print('Rewarded Ad loaded');
-          rewardedAd = ad;
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (InterstitialAd ad) {
+          print('interstitial Ad loaded');
+          interstitialAd = ad;
           onAdLoaded();
         },
         onAdFailedToLoad: (LoadAdError error) {
-          print('Failed to load Rewarded Ad: $error');
-          rewardedAd = null;
+          print('Failed to load interstitial Ad: $error');
+          interstitialAd = null;
           onAdFailed(); // 로드 실패 시 콜백 호출
         },
       ),
@@ -32,8 +32,8 @@ class RewardedAdManager {
       print('Ad is already being shown.');
       return;
     }
-    if (rewardedAd == null) {
-      print('Rewarded Ad is not loaded yet.');
+    if (interstitialAd == null) {
+      print('interstitial Ad is not loaded yet.');
       loadAd(
         onAdLoaded: () => showAdIfAvailable(onAdDismissed), 
         onAdFailed: onAdDismissed,
@@ -41,11 +41,11 @@ class RewardedAdManager {
       return;
     }
 
-    rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+    interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
       onAdShowedFullScreenContent: (ad) {
-        print('Rewarded Ad showed');
+        print('interstitial Ad showed');
         LogHelper().logEvent("ad_start", parameters: {
-          'ad_type': 'rewarded',
+          'ad_type': 'interstitial Ad',
           'timestamp': DateTime.now().toIso8601String(),
         });
         isShowingAd = true;
@@ -54,10 +54,10 @@ class RewardedAdManager {
         });
       },
       onAdDismissedFullScreenContent: (ad) {
-        print('Rewarded Ad dismissed');
+        print('interstitial Ad dismissed');
         isShowingAd = false;
         ad.dispose();
-        rewardedAd = null;
+        interstitialAd = null;
         loadAd(
           onAdLoaded: () => {}, 
           onAdFailed: ()=>{},
@@ -67,15 +67,11 @@ class RewardedAdManager {
         print('Rewarded Ad failed to show: $error');
         isShowingAd = false;
         ad.dispose();
-        rewardedAd = null;
+        interstitialAd = null;
         onAdDismissed();
       },
     );
 
-    rewardedAd!.show(
-      onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
-        print('User earned reward: ${reward.amount} ${reward.type}');
-      },
-    );
+    interstitialAd!.show();
   }
 }

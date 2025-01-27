@@ -85,9 +85,7 @@ class AppListPage extends StatelessWidget {
             delegate: SliverChildListDelegate(
               [
                 const Divider(),
-                Platform.isAndroid
-                  ? _buildAppListTile(context, settingsProvider, appFFName, appFFAndroidLink, 'assets/images/Find_Four_Icon.png')
-                  : _buildAppListTile(context, settingsProvider, appFFName, appFFIosLink, 'assets/images/Find_Four_Icon.png'),
+                _buildAppListTile(context, settingsProvider, appFFName, "https://findfour.onelink.me/vurA/0tfteiuf", 'assets/images/Find_Four_Icon.png'),
                 const Divider(),
                 _buildAppListTile(context, settingsProvider, appEWName, appTwoLink, 'assets/images/English_WangZa_Icon.png'),
               ]

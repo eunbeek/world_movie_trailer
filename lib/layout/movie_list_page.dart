@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:world_movie_trailer/common/ad_manager/rewarded_ad_manager.dart';
+import 'package:world_movie_trailer/common/ad_manager/interstitial_ad_manager.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/services/movie_service.dart';
 import 'package:world_movie_trailer/model/movie.dart';
@@ -29,7 +29,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
   late TabController _tabController;
   List<Movie> allMovies = [];
   bool fetchComplete = false;
-  late RewardedAdManager _appAdManager;
+  late InterstitialAdManager _appAdManager;
   String _selectedFilterAll = 'date_new';
   String _selectedFilterRun = 'date_new';
   String _selectedFilterUp = 'date_new';
@@ -37,7 +37,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
-    _appAdManager = RewardedAdManager();
+    _appAdManager = InterstitialAdManager();
     _loadAd();
     _tabController = TabController(length: 3, vsync: this, initialIndex: widget.country == special ? 0 : 1);
     _fetchMovies();
@@ -483,7 +483,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
               HapticFeedback.mediumImpact();
               LogHelper().logEvent('movie ${movie.localTitle} clicked in ${tabIndex == 0 ? 'All' : index == 1 ? 'Running' : 'Upcoming'} tab');
               if (settingsProvider.openCount > adLimitNum) {
-                if(_appAdManager.rewardedAd != null){
+                if(_appAdManager.interstitialAd != null){
                   _showAd(() {
                     Navigator.push(
                       context,

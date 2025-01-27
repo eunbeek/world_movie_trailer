@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:world_movie_trailer/common/ad_manager/rewarded_ad_manager.dart';
+import 'package:world_movie_trailer/common/ad_manager/interstitial_ad_manager.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/common/error_page_by_user.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
@@ -27,13 +27,13 @@ class MovieByUserListPage extends StatefulWidget {
 class _MovieByUserListPageState extends State<MovieByUserListPage> {
   List<MovieByUser> allMovies = [];
   bool fetchComplete = false;
-  late RewardedAdManager _appAdManager;
+  late InterstitialAdManager _appAdManager;
   int customizedFlag = 0;
   
   @override
   void initState() {
     super.initState();
-    _appAdManager = RewardedAdManager();
+    _appAdManager = InterstitialAdManager();
     _loadAd();
     _fetchMovies();  // Fetch movies
   }
@@ -165,7 +165,7 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
             onTap: () {
               HapticFeedback.mediumImpact();
               if (settingsProvider.openCount > adLimitNum) {
-                if (_appAdManager.rewardedAd != null) {
+                if (_appAdManager.interstitialAd != null) {
                   _showAd(() {
                     Navigator.push(
                       context,

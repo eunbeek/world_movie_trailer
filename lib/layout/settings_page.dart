@@ -273,13 +273,7 @@ class SettingsPage extends StatelessWidget {
                   onTap: () {
                     LogHelper().logEvent('appshare_clicked');
                     
-                    String url;
-
-                    if (Platform.isAndroid) {
-                      url = 'https://play.google.com/store/apps/details?id=com.sunnyinnolab.worldMovieTrailer&pcampaignid=web_share';
-                    } else {
-                      url = 'https://apps.apple.com/ca/app/world-movie-trailer/id6670228768';
-                    }
+                    String url = "https://wmt.onelink.me/YPN9/m428wgpq";
 
                     Share.share(
                       '${countryAppBarsForShare[settingsProvider.language]} : $url',
@@ -389,7 +383,7 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ),
                   trailing: Text(
-                    'v 1.2.0',
+                    'v 1.1.1',
                     style: TextStyle(
                       fontSize: MediaQuery.of(context).size.height * 0.02,
                     ),
