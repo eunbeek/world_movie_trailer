@@ -87,7 +87,7 @@ class _MemoListPageState extends State<MemoListPage> {
       child: Scaffold(
         body: Stack(
           children: [
-            const BackgroundWidget(isPausePage: false), // Background image
+            const BackgroundWidget(isPausePage: false, isTapeExist: true), // Background image
             Column(
               children: [
                 Padding(

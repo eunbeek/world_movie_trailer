@@ -121,6 +121,14 @@ class AlarmService {
     return tz.TZDateTime(tz.local, nextDate.year, nextDate.month, nextDate.day, 18, 00);
   }
 
+    /// 다음 알람 시간 계산
+  tz.TZDateTime nextBoxOfficeInstanceOfDay(int day) {
+    final now = tz.TZDateTime.now(tz.local);
+    final daysToNext = (day - now.weekday + 7) % 7;
+    final nextDate = now.add(Duration(days: daysToNext));
+    return tz.TZDateTime(tz.local, nextDate.year, nextDate.month, nextDate.day, 15, 00);
+  }
+
   /// register daily alarm for country update
   Future<void> registerDailyAlarms(SettingsProvider settingsProvider) async {
     const platformChannel = NotificationDetails(
@@ -149,9 +157,9 @@ class AlarmService {
         if (isOn) {
           // Cancel existing alarm before registering to avoid duplication
           await cancelAlarm(day, country);
-
+          
           // Register the new alarm
-          final nextNotificationTime = nextInstanceOfDay(day);
+          final nextNotificationTime = country == 'box' ? nextBoxOfficeInstanceOfDay(day) : nextInstanceOfDay(day);
           await flutterLocalNotificationsPlugin.zonedSchedule(
             getAlarmId(day, country),
             getAlarmsLabel(settingsProvider.language, 'title'),

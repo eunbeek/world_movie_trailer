@@ -169,6 +169,7 @@ async function fetchMovieListFromInox() {
           releaseDate: formattedReleaseDate,
           credits: {cast: formattedCast, crew: formattedCrew},
           isYoutube: true,
+          batch: false,
         });
       });
     } else {

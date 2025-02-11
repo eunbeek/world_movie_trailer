@@ -73,6 +73,30 @@ class Movie extends HiveObject {
   @HiveField(22)
   int? period;
 
+  @HiveField(23)
+  String? rank;
+
+  @HiveField(24)
+  String? lastRank;
+
+  @HiveField(25)
+  String? totalGross;
+
+  @HiveField(26)
+  String? weeks;
+
+  @HiveField(27)
+  String? distributor;
+
+  @HiveField(28)
+  bool? isNewThisWeek;
+
+  @HiveField(29)
+  String? weekStartDate;
+
+  @HiveField(30)
+  String? weekEndDate;
+
   Movie({
     required this.localTitle,
     required this.posterUrl,
@@ -84,19 +108,27 @@ class Movie extends HiveObject {
     this.runtime,
     this.credits,
     this.status,
-    this.special,
-    this.year,
-    this.nameKR,
-    this.nameJP,
-    this.nameCH,
-    this.nameTW,
-    this.nameFR,
-    this.nameDE,
-    this.nameES,
-    this.nameHI,
-    this.nameTH,
-    this.isYoutube,
-    this.period,
+    this.special, // special
+    this.year, // special
+    this.nameKR, // special
+    this.nameJP, // special
+    this.nameCH, // special
+    this.nameTW, // special
+    this.nameFR, // special
+    this.nameDE, // special
+    this.nameES, // special
+    this.nameHI, // special
+    this.nameTH, // special
+    this.isYoutube, // es
+    this.period, // special
+    this.rank, // box office
+    this.lastRank, // box office
+    this.totalGross, // box office
+    this.weeks, // box office
+    this.distributor, // box office
+    this.isNewThisWeek, // box office
+    this.weekStartDate, // box office
+    this.weekEndDate // box office
   });
 
   Map<String, dynamic> toJson() => {
@@ -123,6 +155,14 @@ class Movie extends HiveObject {
     'nameTH': nameTH,
     'isYoutube': isYoutube,
     'period': period,
+    'rank': rank,
+    'lastRank': lastRank,
+    'totalGross': totalGross,
+    'weeks': weeks,
+    'distributor': distributor,
+    'isNewThisWeek': isNewThisWeek,
+    'weekStartDate': weekStartDate,
+    'weekEndDate': weekEndDate
   };
 
   factory Movie.fromJson(Map<dynamic, dynamic> json) {
@@ -150,6 +190,14 @@ class Movie extends HiveObject {
       nameTH: json['NameTH'] ?? '', 
       isYoutube: json['isYoutube'] ??  true,
       period: int.tryParse(json['period']?.toString() ?? '0') ?? 0,
+      rank: json['rank'] ?? '',
+      lastRank: json['lastRank'] ?? '',
+      totalGross: json['totalGross'] ?? '',
+      weeks: json['weeks'] ?? '',
+      distributor: json['distributor'] ?? '',
+      isNewThisWeek: json['isNewThisWeek'] ?? false,
+      weekStartDate: json['weekStartDate'] ?? '',
+      weekEndDate: json['weekEndDate'] ?? ''
     );
   }
 }

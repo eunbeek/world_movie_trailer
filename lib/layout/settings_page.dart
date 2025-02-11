@@ -383,7 +383,7 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ),
                   trailing: Text(
-                    'v 1.1.1',
+                    'v 1.2.0',
                     style: TextStyle(
                       fontSize: MediaQuery.of(context).size.height * 0.02,
                     ),

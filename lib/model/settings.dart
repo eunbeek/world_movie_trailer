@@ -99,7 +99,7 @@ class Settings extends HiveObject {
     // 현재 요일을 기반으로 초기화
     int currentWeekday = DateTime.now().weekday - 1;
     Map<int, Map<String, bool>> defaultNewShown = {
-      0: {'korea': false},                // Monday
+      0: {'korea': false, 'box': false},                // Monday
       1: {'japan': false},                // Tuesday
       2: {'usa': false, 'canada': false}, // Wednesday
       3: {'india': false, 'spain': false, 'taiwan': false, 'china': false}, // Thursday

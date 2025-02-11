@@ -40,13 +40,21 @@ class MovieAdapter extends TypeAdapter<Movie> {
       nameTH: fields[20] as String?,
       isYoutube: fields[21] as bool?,
       period: fields[22] as int?,
+      rank: fields[23] as String?,
+      lastRank: fields[24] as String?,
+      totalGross: fields[25] as String?,
+      weeks: fields[26] as String?,
+      distributor: fields[27] as String?,
+      isNewThisWeek: fields[28] as bool?,
+      weekStartDate: fields[29] as String?,
+      weekEndDate: fields[30] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Movie obj) {
     writer
-      ..writeByte(23)
+      ..writeByte(31)
       ..writeByte(0)
       ..write(obj.localTitle)
       ..writeByte(1)
@@ -92,7 +100,23 @@ class MovieAdapter extends TypeAdapter<Movie> {
       ..writeByte(21)
       ..write(obj.isYoutube)
       ..writeByte(22)
-      ..write(obj.period);
+      ..write(obj.period)
+      ..writeByte(23)
+      ..write(obj.rank)
+      ..writeByte(24)
+      ..write(obj.lastRank)
+      ..writeByte(25)
+      ..write(obj.totalGross)
+      ..writeByte(26)
+      ..write(obj.weeks)
+      ..writeByte(27)
+      ..write(obj.distributor)
+      ..writeByte(28)
+      ..write(obj.isNewThisWeek)
+      ..writeByte(29)
+      ..write(obj.weekStartDate)
+      ..writeByte(30)
+      ..write(obj.weekEndDate);
   }
 
   @override

@@ -380,7 +380,7 @@ Map<String, Map<String, String>> settingLabel = {
 };
 
 final Map<int, List<String>> countryByDay = {
-  1: ['korea'],          // Monday
+  1: ['box', 'korea'],          // Monday
   2: ['japan'],          // Tuesday
   3: ['usa', 'canada'], // Wednesday
   4: ['india', 'spain', 'taiwan', 'china'], // Thursday
@@ -390,16 +390,16 @@ final Map<int, List<String>> countryByDay = {
 };
 
 final Map<String, List<String>> countryByLanguage = {
-  'ko': ['korea', 'usa'],  
-  'ja': ['japan', 'usa'],
-  'zh': ['china', 'taiwan', 'usa'], 
-  'tw': ['taiwan', 'china', 'usa'], 
-  'fr': ['france', 'usa'],   
-  'de': ['germany', 'usa'],     
-  'es': ['spain', 'usa'], 
-  'hi': ['india', 'usa'],
-  'th': ['thailand', 'usa'],
-  'en': ['usa', 'canada', 'autralia'],  
+  'ko': ['korea', 'usa', 'box'],  
+  'ja': ['japan', 'usa', 'box'],
+  'zh': ['china', 'taiwan', 'usa', 'box'], 
+  'tw': ['taiwan', 'china', 'usa', 'box'], 
+  'fr': ['france', 'usa', 'box'],   
+  'de': ['germany', 'usa', 'box'],     
+  'es': ['spain', 'usa', 'box'], 
+  'hi': ['india', 'usa', 'box'],
+  'th': ['thailand', 'usa', 'box'],
+  'en': ['usa', 'canada', 'autralia', 'box'],  
 };
 
 Map<String, Map<String, String>> countryNameByLan = {
@@ -660,8 +660,8 @@ const Map<String, Map<String, String>> boxOfficeKeyword = {
     'ja': '映画ランキング',
     'zh': '票房 - 电影排名',
     'tw': '票房 - 電影排名',
-    'fr': 'Box-office',
-    'de': 'Box Office',
+    'fr': 'Top Box Office',
+    'de': 'Top Box Office',
     'es': 'Taquilla',
     'hi': 'बॉक्स ऑफिस - फ़िल्म रैंकिंग',
     'th': 'บ็อกซ์ออฟฟิศ - อันดับภาพยนตร์',
@@ -669,10 +669,10 @@ const Map<String, Map<String, String>> boxOfficeKeyword = {
   'box_usa': {
     'en': 'Box Office - USA',
     'ko': '미국 박스오피스',
-    'ja': '米国ボックスオフィス',
+    'ja': '全米映画ランキング',
     'zh': '美国票房',
     'tw': '美國票房',
-    'fr': 'Box-office américain',
+    'fr': 'Box-Office américain',
     'de': 'US-Kinokasse',
     'es': 'Taquilla de Estados Unidos',
     'hi': 'अमेरिकी बॉक्स ऑफिस',
@@ -681,19 +681,68 @@ const Map<String, Map<String, String>> boxOfficeKeyword = {
   'this_week': {
     'en': "This Week's Rankings",
     'ko': '이번 주 순위',
-    'ja': '今週のランキング',
+    'ja': '今週の順位',
     'zh': '本周排名',
     'tw': '本週排名',
-    'fr': 'Classement de cette semaine',
+    'fr':  "This Week's Rankings",
     'de': 'Diese Woche Rangliste',
-    'es': 'Clasificación de esta semana',
+    'es':  "This Week's Rankings",
     'hi': 'इस सप्ताह की रैंकिंग',
     'th': 'อันดับประจำสัปดาห์นี้',
+  },
+  'last_week': {
+    'en': "Last Week’s Ranking",
+    'ko': '지난 주 순위',
+    'ja': '先週の順位',
+    'zh': '上周排名',
+    'tw': '上週排名',
+    'fr': 'Classement de la semaine dernière',
+    'de': 'Platzierung der letzten Woche',
+    'es': 'Clasificación de la semana pasada',
+    'hi': 'पिछले सप्ताह की रैंकिंग',
+    'th': 'อันดับสัปดาห์ที่แล้ว',
+  },
+  'total_gross': {
+    'en': "Total Gross",
+    'ko': '총 수익',
+    'ja': '総収益',
+    'zh': '总收益',
+    'tw': '總收益',
+    'fr': 'Recettes totales',
+    'de': 'Gesamteinnahmen',
+    'es': 'Ingresos totales',
+    'hi': 'कुल आय',
+    'th': 'รายได้รวม',
+  },
+  'screening_weeks': {
+    'en': "Screening Weeks",
+    'ko': '상영기간 (주)',
+    'ja': '上映期間 (週)',
+    'zh': '放映时间（周）',
+    'tw': '放映時間（周）',
+    'fr': 'Durée de projection (semaines)',
+    'de': 'Laufzeit (Wochen)',
+    'es': 'Duración en cartelera (semanas)',
+    'hi': 'प्रदर्शन अवधि (सप्ताह)',
+    'th': 'ระยะเวลาฉาย (สัปดาห์)',
+  },
+  'distributor': {
+    'en': "Distributor",
+    'ko': '배급사',
+    'ja': '配給会社',
+    'zh': '发行公司',
+    'tw': '發行公司',
+    'fr': 'Distributeur',
+    'de': 'Verleih',
+    'es': 'Distribuidora',
+    'hi': 'वितरक',
+    'th': 'ผู้จัดจำหน่าย',
   },
 };
 
 const Map<String, Map<String, String>> localizedCountries = {
   'en': {
+    'box': 'Top Box Office',
     'usa': 'United States',
     'korea': 'Korea',
     'japan': 'Japan',
@@ -708,6 +757,7 @@ const Map<String, Map<String, String>> localizedCountries = {
     'thailand': 'Thailand',
   },
   'ko': {
+    'box': '박스오피스 - 영화순위',
     'korea': '한국',
     'usa': '미국',
     'japan': '일본',
@@ -722,9 +772,10 @@ const Map<String, Map<String, String>> localizedCountries = {
     'thailand': '태국',
   },
   'ja': {
+    'box': '映画ランキング',
     'japan': '日本',
     'korea': '韓国',
-    'usa': 'アメリカ合衆国',
+    'usa': 'アメリカ',
     'taiwan': '台湾',
     'china': '中国',
     'france': 'フランス',
@@ -736,6 +787,7 @@ const Map<String, Map<String, String>> localizedCountries = {
     'thailand': 'タイ',
   },
   'tw': {
+    'box': '票房 - 電影排名',
     'taiwan': '臺灣',
     'china': '中國',
     'korea': '韓國',
@@ -750,6 +802,7 @@ const Map<String, Map<String, String>> localizedCountries = {
     'thailand': '泰國',
   },
   'zh': {
+    'box': '票房 - 电影排名',
     'china': '中国',
     'taiwan': '台湾',
     'korea': '韩国',
@@ -764,6 +817,7 @@ const Map<String, Map<String, String>> localizedCountries = {
     'thailand': '泰国',
   },
   'fr': {
+    'box': 'Box-office',
     'france': 'France',
     'usa': 'États-Unis',
     'china': 'Chine',
@@ -777,6 +831,7 @@ const Map<String, Map<String, String>> localizedCountries = {
     'thailand': 'Thaïlande',
   },
   'de': {
+    'box': 'Box-office',
     'germany': 'Deutschland',
     'france': 'Frankreich',
     'usa': 'Vereinigte Staaten',
@@ -790,6 +845,7 @@ const Map<String, Map<String, String>> localizedCountries = {
     'thailand': 'Thailand',
   },
   'es': {
+    'box': 'Taquilla',
     'spain': 'España',
     'germany': 'Alemania',
     'france': 'Francia',
@@ -803,6 +859,7 @@ const Map<String, Map<String, String>> localizedCountries = {
     'thailand': 'Tailandia',
   },
   'hi': {
+    'box': 'बॉक्स ऑफिस - फ़िल्म रैंकिंग',
     'india': 'भारत',
     'korea': 'कोरिया',
     'japan': 'जापान',
@@ -817,6 +874,7 @@ const Map<String, Map<String, String>> localizedCountries = {
     'china': 'चीन',
   },
   'th': {
+    'box': 'บ็อกซ์ออฟฟิศ - อันดับภาพยนตร์',
     'thailand': 'ประเทศไทย',
     'usa': 'สหรัฐอเมริกา',
     'korea': 'เกาหลีใต้',
@@ -845,6 +903,7 @@ const au = 'australia';
 const es = 'spain';
 const ind = 'india';
 const cn = 'china';
+const boxOffice = 'box';
 const special = 'special';
 
 // country list

@@ -6,6 +6,6 @@
     <item>
         <bitmap
             android:gravity="center"
-            android:src="@mipmap/launch_image" /> <!-- Your app logo image -->
+            android:src="@drawable/playstore" /> <!-- Your app logo image -->
     </item>
 </layer-list>

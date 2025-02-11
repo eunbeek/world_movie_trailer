@@ -170,7 +170,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
       child: Scaffold(
         body: Stack(
           children: [
-            const BackgroundWidget(isPausePage: false),
+            const BackgroundWidget(isPausePage: false, isTapeExist: true),
             Column(
               children: [
                 Padding(
@@ -529,10 +529,13 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
                               fit: BoxFit.cover,         // 기존 BoxFit 설정 그대로 유지
                               width: double.infinity,    // 기존 너비
                               height: double.infinity,   // 기존 높이
-                              errorWidget: (context, url, error) => Icon(
-                                Icons.error,                // 에러 발생 시 아이콘 표시
-                                size: 50,
-                                color: Colors.red,
+                              errorWidget: (context, url, error) => Image.asset(
+                                settingsProvider.isDarkTheme
+                                    ? 'assets/images/dark/blank_DT_xxhdpi.png'
+                                    : 'assets/images/light/blank_LT_xxhdpi.png',
+                                width: 80,
+                                height: 120,
+                                fit: BoxFit.cover,
                               ),
                             )
                           : Image.asset(

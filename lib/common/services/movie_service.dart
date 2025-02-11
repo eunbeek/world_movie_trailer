@@ -14,7 +14,7 @@ class MovieService {
     print('fetchMovie');
     Box box = await _openBox();
     String countryCode;
-    String? countryName = country == special ? special : localizedCountries[languageCode]?.entries
+    String? countryName = country == special ? special : country == boxOffice ? boxOffice : localizedCountries[languageCode]?.entries
     .firstWhere(
         (entry) => entry.value == country,
         orElse: () => MapEntry('', '')
@@ -55,6 +55,9 @@ class MovieService {
       case cn:
         countryCode = 'cn';
       break;
+      case boxOffice:
+        countryCode = 'box_office';
+        break;
       case special:
         countryCode = 'special';
         break;
@@ -62,7 +65,7 @@ class MovieService {
         countryCode = 'us';
         break;
     }
-
+  
     // Check if movies are stored in Hive
     Map<String, dynamic> result = await _getMoviesFromHive(box, countryCode);
     List<Movie> movies = [];
@@ -204,6 +207,14 @@ class MovieService {
             nameTH: json.nameTH as String? ?? '', 
             isYoutube: json.isYoutube as bool? ?? true, 
             period: json.period ?? 0,
+            rank: json.rank as String? ?? '',
+            lastRank: json.lastRank as String? ?? '',
+            totalGross: json.totalGross as String? ?? '',
+            weeks: json.weeks as String? ?? '',
+            distributor: json.distributor as String? ?? '',
+            isNewThisWeek: json.isNewThisWeek as bool? ?? false,
+            weekStartDate: json.weekStartDate as String? ?? '',
+            weekEndDate: json.weekEndDate as String? ?? '',
           );
         }).toList();
 

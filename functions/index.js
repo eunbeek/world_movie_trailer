@@ -2,19 +2,20 @@
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 const {fetchMovieListFromCgv, fetchMovieListFromLotte} = require("./movie_kr");
-const {fetchRunningFromEIGA, fetchUpcomingFromEIGA} = require("./movie_jp");
+const {fetchMovieListFromTMDBByJP} = require("./movie_jp_v2");
 const {fetchMovieListFromCineplex} = require("./movie_ca");
 const {fetchMovieListFromShowTime} = require("./movie_tw");
 const {fetchMovieListFromUga} = require("./movie_fr");
-const {fetchMovieListFromTraumpalast} = require("./movie_de");
+const {fetchMovieListFromTMDBByDE} = require("./movie_de");
 const {fetchMovieListFromTMDBByUS} = require("./movie_us");
-const {fetchMovieListFromSf} = require("./movie_th");
+const {fetchMovieListFromTMDBByTH} = require("./movie_th");
 const {fetchMovieListFromTMDBByAU} = require("./movie_au");
 const {fetchMovieListFromKinepolis} = require("./movie_es");
-const {fetchMovieListFromInox} = require("./movie_in");
+const {fetchMovieListFromTMDBByIN} = require("./movie_in_v2");
 const {fetchMovieListFromTMDBByCN} = require("./movie_cn");
 const {fetchMovieInSpecialSection} = require("./movie_special");
 const {fetchQuotesInSpecialSection} = require("./quote_special");
+const {fetchMovieListFromMojo} = require("./movie_box_office");
 const {processBatch, saveMoviesAsJson, saveQuotesAsJson, updateMovieTrailer, deleteMovieByManual} = require("./utils");
 
 admin.initializeApp();
@@ -31,7 +32,7 @@ const corsHandler = cors({origin: true});
 exports.fetchMovieListKR = functions
     .runWith({timeoutSeconds: 540})
     .pubsub
-    .schedule("0 9 * * 1")
+    .schedule("0 7 * * 1")
     .timeZone("America/Toronto") // Adjust if the timezone should be KST
     .onRun(async () => {
       const processedCount = 0;
@@ -66,11 +67,13 @@ exports.fetchMovieListJP = functions
       const processedCount = 0;
       const startTime = Date.now();
 
-      const runningMovies = await fetchRunningFromEIGA();
-      const upcomingMovies = await fetchUpcomingFromEIGA(runningMovies);
-      const allMovies = [...runningMovies, ...upcomingMovies];
+      // const runningMovies = await fetchRunningFromEIGA();
+      // const upcomingMovies = await fetchUpcomingFromEIGA(runningMovies);
+      // const allMovies = [...runningMovies, ...upcomingMovies];
+      const runningMovies = await fetchMovieListFromTMDBByJP();
+      const allMovies = [...runningMovies];
 
-      const moviesWithTrailer = await processBatch("ja-JP", allMovies, processedCount, startTime);
+      const moviesWithTrailer = await processBatch("ja-JP", allMovies, processedCount, startTime, true);
 
       await saveMoviesAsJson("jp", moviesWithTrailer);
 
@@ -171,7 +174,7 @@ exports.fetchMovieListDE = functions
       const processedCount = 0;
       const startTime = Date.now();
 
-      const allMovies = await fetchMovieListFromTraumpalast();
+      const allMovies = await fetchMovieListFromTMDBByDE();
 
       const moviesWithDetails = await processBatch("de-DE", allMovies, processedCount, startTime);
 
@@ -225,7 +228,7 @@ exports.fetchMovieListTH = functions
       const processedCount = 0;
       const startTime = Date.now();
 
-      const allMovies = await fetchMovieListFromSf();
+      const allMovies = await fetchMovieListFromTMDBByTH();
 
       const moviesWithDetails = await processBatch("th-TH", allMovies, processedCount, startTime, true);
 
@@ -298,12 +301,17 @@ exports.fetchMovieListIN = functions
     .schedule("0 3 * * 4")
     .timeZone("America/Toronto") // Adjust if the timezone should be CST
     .onRun(async () => {
-      const allMovies = await fetchMovieListFromInox();
+      const processedCount = 0;
+      const startTime = Date.now();
 
-      await saveMoviesAsJson("in", allMovies);
+      const allMovies = await fetchMovieListFromTMDBByIN();
+
+      const moviesWithDetails = await processBatch("hi-IN", allMovies, processedCount, startTime, true);
+
+      await saveMoviesAsJson("in", moviesWithDetails);
 
       const timestamp = new Date().toISOString();
-      console.log(`Success: [${timestamp}] Country: IN, Movie Count: ${allMovies.length}`);
+      console.log(`Success: [${timestamp}] Country: IN, Movie Count: ${moviesWithDetails.length}`);
 
       return null;
     });
@@ -385,6 +393,33 @@ exports.fetchQuoteListSpecial = functions
     });
 
 /**
+ * Fetches movies from Mojo, processes trailers, and saves the result.
+ * Scheduled to run every Monday at 07:00 AM CET.
+ *
+ * @returns {Promise<null>} Returns null when the function completes.
+ */
+exports.fetchMovieListBoxOffice = functions
+    .runWith({timeoutSeconds: 540})
+    .pubsub
+    .schedule("0 9 * * 1")
+    .timeZone("America/Toronto") // Adjust if the timezone should be CET
+    .onRun(async () => {
+      const processedCount = 0;
+      const startTime = Date.now();
+
+      const allMovies = await fetchMovieListFromMojo();
+
+      const moviesWithDetails = await processBatch("en-us", allMovies, processedCount, startTime);
+
+      await saveMoviesAsJson("box_office", moviesWithDetails);
+
+      const timestamp = new Date().toISOString();
+      console.log(`Success: [${timestamp}] Country: Box-Office, Movie Count: ${moviesWithDetails.length}`);
+
+      return null;
+    });
+
+/**
  * Test function for fetching and processing movie data from CGV and Lotte.
  * Can be triggered via an HTTP request.
  *
@@ -437,11 +472,13 @@ exports.testFetchMovieListJP = functions.runWith({timeoutSeconds: 540}).https.on
     const processedCount = 0;
     const startTime = Date.now();
 
-    const runningMovies = await fetchRunningFromEIGA();
-    const upcomingMovies = await fetchUpcomingFromEIGA(runningMovies);
-    const allMovies = [...runningMovies, ...upcomingMovies];
+    // const runningMovies = await fetchRunningFromEIGA();
+    // const upcomingMovies = await fetchUpcomingFromEIGA(runningMovies);
+    // const allMovies = [...runningMovies, ...upcomingMovies];
+    const runningMovies = await fetchMovieListFromTMDBByJP();
+    const allMovies = [...runningMovies];
 
-    const moviesWithTrailer = await processBatch("ja-JP", allMovies, processedCount, startTime);
+    const moviesWithTrailer = await processBatch("ja-JP", allMovies, processedCount, startTime, true);
 
     await saveMoviesAsJson("jp", moviesWithTrailer);
 
@@ -578,7 +615,7 @@ exports.testFetchMovieListDE = functions.runWith({timeoutSeconds: 540}).https.on
     const processedCount = 0;
     const startTime = Date.now();
 
-    const allMovies = await fetchMovieListFromTraumpalast();
+    const allMovies = await fetchMovieListFromTMDBByDE();
 
     console.log(`Traumpalast Movies: ${allMovies.length}`);
     const moviesWithTrailer = await processBatch("de-DE", allMovies, processedCount, startTime);
@@ -650,7 +687,7 @@ exports.testFetchMovieListTH = functions.runWith({timeoutSeconds: 540}).https.on
     const processedCount = 0;
     const startTime = Date.now();
 
-    const allMovies = await fetchMovieListFromSf();
+    const allMovies = await fetchMovieListFromTMDBByTH();
 
     console.log(`SFCinema Movies: ${allMovies.length}`);
     const moviesWithTrailer = await processBatch("th-TH", allMovies, processedCount, startTime, true);
@@ -749,9 +786,15 @@ exports.testFetchMovieListES = functions.runWith({timeoutSeconds: 540}).https.on
  */
 exports.testFetchMovieListIN = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
   try {
-    const allMovies = await fetchMovieListFromInox();
+    const processedCount = 0;
+    const startTime = Date.now();
 
-    await saveMoviesAsJson("in", allMovies);
+    const allMovies = await fetchMovieListFromTMDBByIN();
+
+    console.log(`TMDB IN Movies: ${allMovies.length}`);
+    const moviesWithTrailer = await processBatch("hi-IN", allMovies, processedCount, startTime, true);
+
+    await saveMoviesAsJson("in", moviesWithTrailer);
 
     const timestamp = new Date().toISOString();
     console.log(`Success: [${timestamp}] Country: IN, Movie Count: ${allMovies.length}`);
@@ -760,8 +803,8 @@ exports.testFetchMovieListIN = functions.runWith({timeoutSeconds: 540}).https.on
       success: true,
       timestamp,
       country: "IN",
-      movieCount: allMovies.length,
-      movies: allMovies,
+      movieCount: moviesWithTrailer.length,
+      movies: moviesWithTrailer,
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -866,6 +909,42 @@ exports.testFetchQuoteListSpecial = functions.runWith({timeoutSeconds: 540}).htt
     });
   } catch (error) {
     console.error("Error fetching quote list:", error);
+    res.status(500).json({success: false, error: error.message});
+  }
+});
+
+/**
+ * Test function for fetching and processing movie data from Mojo.
+ * Can be triggered via an HTTP request.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} Sends a JSON response when the function completes.
+ */
+exports.testFetchMovieListBoxOffice = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
+  try {
+    const processedCount = 0;
+    const startTime = Date.now();
+
+    const allMovies = await fetchMovieListFromMojo();
+
+    console.log(`UGA Movies: ${allMovies.length}`);
+    const moviesWithTrailer = await processBatch("en-US", allMovies, processedCount, startTime);
+
+    await saveMoviesAsJson("box_office", moviesWithTrailer);
+
+    const timestamp = new Date().toISOString();
+    console.log(`Success: [${timestamp}] Country: Box-Office, Movie Count: ${moviesWithTrailer.length}`);
+
+    res.status(200).json({
+      success: true,
+      timestamp,
+      country: "Box-Office",
+      movieCount: moviesWithTrailer.length,
+      movies: moviesWithTrailer,
+    });
+  } catch (error) {
+    console.error("Error fetching movie list:", error);
     res.status(500).json({success: false, error: error.message});
   }
 });

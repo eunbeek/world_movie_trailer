@@ -7,7 +7,8 @@ import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 
 class BackgroundWidget extends StatefulWidget {
   final bool isPausePage;
-  const BackgroundWidget({super.key, required  this.isPausePage});
+  final bool isTapeExist;
+  const BackgroundWidget({super.key, required this.isPausePage, required this.isTapeExist});
 
   @override
   _BackgroundWidgetState createState() => _BackgroundWidgetState();
@@ -24,6 +25,8 @@ class _BackgroundWidgetState extends State<BackgroundWidget> with SingleTickerPr
  @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
+    bool shouldApplyColorFilter = !widget.isTapeExist && settingsProvider.isDarkTheme;
+
     return Container(
       color: settingsProvider.isDarkTheme ? Color(0x00232323) : Color(0xFFF2F3EC),
       child: Stack(
@@ -48,6 +51,12 @@ class _BackgroundWidgetState extends State<BackgroundWidget> with SingleTickerPr
                                     ? "assets/images/dark/deco_world_map_DT_xxhdpi.png"
                                     : "assets/images/light/deco_world_map_LT_xxhdpi.png",
                                 ),
+                                colorFilter: shouldApplyColorFilter
+                                  ? ColorFilter.mode(
+                                      Colors.black.withOpacity(0.3),
+                                      BlendMode.dstATop,
+                                    )
+                                  : null, 
                               ),
                             ),
                           ),
@@ -71,6 +80,12 @@ class _BackgroundWidgetState extends State<BackgroundWidget> with SingleTickerPr
                                     ? "assets/images/dark/deco_world_map_DT_xxhdpi.png"
                                     : "assets/images/light/deco_world_map_LT_xxhdpi.png",
                                 ),
+                                colorFilter: shouldApplyColorFilter
+                                  ? ColorFilter.mode(
+                                      Colors.black.withOpacity(0.3),
+                                      BlendMode.dstATop,
+                                    )
+                                  : null, 
                               ),
                             ),
                           ),
@@ -84,17 +99,18 @@ class _BackgroundWidgetState extends State<BackgroundWidget> with SingleTickerPr
           ),
 
           // Film reel background on the left
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: MediaQuery.of(context).size.width / 3, // Occupy half the screen width
-            child: Image.asset(
-              settingsProvider.isDarkTheme
-                  ? 'assets/images/dark/deco_film_reel_DT_xxhdpi.png'
-                  : 'assets/images/light/deco_film_reel_LT_xxhdpi.png',
-              fit: BoxFit.contain, // Maintain aspect ratio and fit within half the screen width
+          if(widget.isTapeExist)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: MediaQuery.of(context).size.width / 3, // Occupy half the screen width
+              child: Image.asset(
+                settingsProvider.isDarkTheme
+                    ? 'assets/images/dark/deco_film_reel_DT_xxhdpi.png'
+                    : 'assets/images/light/deco_film_reel_LT_xxhdpi.png',
+                fit: BoxFit.contain, // Maintain aspect ratio and fit within half the screen width
+              ),
             ),
-          ),
         ],
       ),
     );

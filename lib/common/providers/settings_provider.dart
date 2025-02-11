@@ -174,6 +174,21 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> addAlarmForBoxOffice() async {
+    print('addAlarmForBoxOffice');
+
+    _settings.isAlarmOn ??= _initializeAlarms();
+
+    _settings.isAlarmOn![1] ??= {};
+    
+    _settings.isAlarmOn![1]!['box'] = true;
+
+    await alarmService.registerDailyAlarms(this);
+
+    _saveSettings();
+    notifyListeners();
+  }
+  
   Future<void> updateAlarmForCountryByDay(int day, String country, bool isOn) async {
     print('updateAlarmForCountryByDay: $country : $isOn');
 

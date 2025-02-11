@@ -1,3 +1,3 @@
 <resources>
-    <color name="splash_background">#000000</color> <!-- Black background for dark theme -->
+    <color name="splash_background">#FFFFFF</color> <!-- Black background for dark theme -->
 </resources>

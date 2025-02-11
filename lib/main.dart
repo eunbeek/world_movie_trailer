@@ -16,6 +16,7 @@ import 'package:world_movie_trailer/model/quote.dart';
 import 'package:world_movie_trailer/model/settings.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 void main() async {
@@ -42,12 +43,23 @@ void main() async {
   var settingsBox = await Hive.openBox<Settings>('settings');
   Settings initSettings = settingsBox.get('app_settings') ?? Settings.defaultSettings();
   bool isInitialSetting = settingsBox.get('app_settings') == null;
+  bool hasBox =  initSettings.countryOrder.contains('box');
+
+  if (!hasBox) {
+    // Add 'box' to day 1
+    initSettings.countryOrder.insert(0, 'box');
+
+    // Save the updated settings
+    settingsBox.put('app_settings', initSettings);
+  }
 
   LogHelper();
 
   final alarmService = AlarmService();
   await alarmService.initialize();
   await alarmService.requestPermission();
+
+  await initializeDateFormatting();
 
   runApp(
     MultiProvider(
@@ -179,7 +191,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
             : Scaffold(
                 body: Stack(
                   children: [
-                    BackgroundWidget(isPausePage: false),
+                    BackgroundWidget(isPausePage: false, isTapeExist: true),
                     Center(
                       child: RotationTransition(
                         turns: _controller,
@@ -209,12 +221,16 @@ Future<void> initializeAlarms(SettingsProvider settingsProvider, bool isInitialS
 
   // Reset or verify existing alarm states
   final currentAlarms = settingsProvider.isAlarmOn;
-
+  bool hasBox = currentAlarms.values.any((alarmMap) => alarmMap.containsKey('box'));
+  print(currentAlarms);
   // existing user(only 1 time run)
   if(currentAlarms.isEmpty){
     settingsProvider.resetAlarms();
     await AlarmService().registerDailyAlarms(settingsProvider);
     await AlarmService().registerReleaseAlarmsFromList(settingsProvider, true);
     await AlarmService().registerReleaseAlarmsFromList(settingsProvider, false);
+  } else if (!hasBox) {
+    // Save the updated settings
+    settingsProvider.addAlarmForBoxOffice();
   }
 }

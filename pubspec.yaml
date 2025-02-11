@@ -2,7 +2,7 @@ name: world_movie_trailer
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.1.1+48
+version: 1.2.0+51
 
 environment:
   sdk: '>=3.3.3 <4.0.0'
@@ -44,7 +44,8 @@ flutter_icons:
   ios: true
   image_path_android: "icons/playstore.png"
   image_path_ios: "icons/appstore.png"
-
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "icons/playstore.png"
 flutter:
   uses-material-design: true
   assets:

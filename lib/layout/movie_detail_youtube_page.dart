@@ -176,7 +176,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
           children: [
             // Background Image
             if (!_isFullScreen)
-              const BackgroundWidget(isPausePage: true,),
+              const BackgroundWidget(isPausePage: true, isTapeExist: true,),
             // Custom AppBar
             Column(
               children: [

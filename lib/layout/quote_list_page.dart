@@ -65,7 +65,7 @@ class _QuoteListPageState extends State<QuoteListPage> {
         body: Stack(
           children: [
             // Background Image
-            const BackgroundWidget(isPausePage: false),
+            const BackgroundWidget(isPausePage: false, isTapeExist: true),
 
             // Main Content
             Column(

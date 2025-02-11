@@ -172,7 +172,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
         resizeToAvoidBottomInset: false,
         body: Stack(
           children: [
-            if (!_isFullScreen) const BackgroundWidget(isPausePage: true),
+            if (!_isFullScreen) const BackgroundWidget(isPausePage: false, isTapeExist: true),
             Column(
               children: [
                 if (!_isFullScreen)

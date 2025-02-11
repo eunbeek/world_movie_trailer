@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
+import 'package:world_movie_trailer/layout/box_office_list_page.dart';
 import 'package:world_movie_trailer/layout/memo_list_page.dart';
 import 'package:world_movie_trailer/layout/movie_by_user_list_page.dart';
 import 'package:world_movie_trailer/layout/movie_list_page.dart';
@@ -133,6 +134,7 @@ class _CountryListPageState extends State<CountryListPage> with WidgetsBindingOb
 
   @override
   Widget build(BuildContext context) {
+    double titleHeight = MediaQuery.of(context).size.height * 0.2;
     double boxHeight = MediaQuery.of(context).size.height * 0.070;
     double specialHeight = MediaQuery.of(context).size.height * 0.09;
     double specialWidth =  MediaQuery.of(context).size.width * 0.95;
@@ -141,156 +143,194 @@ class _CountryListPageState extends State<CountryListPage> with WidgetsBindingOb
     final settingsProvider = Provider.of<SettingsProvider>(context);
     final languageCode = settingsProvider.language;
     final countries = settingsProvider.countryOrder;
-    
+
     return Scaffold(
       body: SafeArea(
         child: Stack(
           children: [
-            const BackgroundWidget(isPausePage: false,),
+            const BackgroundWidget(isPausePage: false, isTapeExist: true,),
             Column(
               children: [
                 Container(
-                  padding: const EdgeInsets.only(top: 20.0, left: 24.0, right: 16.0, bottom: 8.0),
+                  padding: const EdgeInsets.only(top: 20.0, left: 24.0, right: 16.0,),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start, 
                     children: [
-                      Text(
-                        getAppBarTitle(languageCode),
-                        style: TextStyle(
-                          fontSize:  MediaQuery.of(context).size.height * 0.05,
-                          fontWeight: FontWeight.bold,
-                          height: 1.2,
+                      Container(
+                        padding: EdgeInsets.only(top:10),
+                        height: titleHeight,
+                        child: Text(
+                          getAppBarTitle(languageCode),
+                          style: TextStyle(
+                            fontSize:  titleHeight * 0.24,
+                            fontWeight: FontWeight.bold,
+                            height: 1.2,
+                          ),
                         ),
                       ),
-                      const Spacer(),
-                      if (isEditMode) ...[
-                        IconButton(
-                          icon: Icon(Icons.check, size: iconSize),
-                          onPressed: () {
-                            setState(() {
-                              settingsProvider.updateCountryOrder(countries);
-                              oldCountryOrder = null;
-                              isEditMode = false;
-                            });
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.close, size: iconSize),
-                          onPressed: () {
-                            setState(() {
-                              if(oldCountryOrder != null) settingsProvider.updateCountryOrder(oldCountryOrder!);
-                              oldCountryOrder = null;
-                              isEditMode = false;
-                            });
-                          },
-                        ),
-                      ] else ...[
-                        PopupMenuButton<String>(
-                          icon: Image.asset(
-                            settingsProvider.isDarkTheme
-                                ? 'assets/images/dark/icon_menu_DT_xxhdpi.png'
-                                : 'assets/images/light/icon_menu_LT_xxhdpi.png',
-                            height: iconSize,
-                            width: iconSize,
-                          ),
-                          onSelected: (String newValue) {
-                            switch (newValue){
-                              case 'Rearrange':
-                                isEditMode = !isEditMode;
-                                oldCountryOrder = countries;
-                              case 'Bookmark':
-                                _unmarkNewOnExit();
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => MovieByUserListPage(flag: 'Bookmark',),
+                      Container(
+                        height: titleHeight,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Row(
+                              children: [
+                                if (isEditMode) ...[
+                                  IconButton(
+                                    icon: Icon(Icons.check, size: iconSize),
+                                    onPressed: () {
+                                      setState(() {
+                                        settingsProvider.updateCountryOrder(countries);
+                                        oldCountryOrder = null;
+                                        isEditMode = false;
+                                      });
+                                    },
                                   ),
-                                );
-                              case 'Memo':
-                                _unmarkNewOnExit();
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => MemoListPage(),
+                                  IconButton(
+                                    icon: Icon(Icons.close, size: iconSize),
+                                    onPressed: () {
+                                      setState(() {
+                                        if(oldCountryOrder != null) settingsProvider.updateCountryOrder(oldCountryOrder!);
+                                        oldCountryOrder = null;
+                                        isEditMode = false;
+                                      });
+                                    },
                                   ),
-                                );
-                            }
-                            print('Selected: $newValue');
-                            LogHelper().logEvent('pchange_clicked');
-                            setState(() {
-                              isDropdownVisible = false;
-                            });
-                          },
-                          itemBuilder: (BuildContext context) => [
-                            PopupMenuItem<String>(
-                              value: 'Rearrange',
-                              child: Row(
-                                children: [
-                                  Image.asset(
-                                    settingsProvider.isDarkTheme
-                                        ? 'assets/images/dark/icon_reorder_DT_xxhdpi.png'
-                                        : 'assets/images/light/icon_reorder_LT_xxhdpi.png',
-                                    height: iconSize,
-                                    width: iconSize,
+                                ] else ...[
+                                  PopupMenuButton<String>(
+                                    icon: Image.asset(
+                                      settingsProvider.isDarkTheme
+                                          ? 'assets/images/dark/icon_menu_DT_xxhdpi.png'
+                                          : 'assets/images/light/icon_menu_LT_xxhdpi.png',
+                                      height: iconSize,
+                                      width: iconSize,
+                                    ),
+                                    onSelected: (String newValue) {
+                                      switch (newValue){
+                                        case 'Rearrange':
+                                          isEditMode = !isEditMode;
+                                          oldCountryOrder = countries;
+                                        case 'Bookmark':
+                                          _unmarkNewOnExit();
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => MovieByUserListPage(flag: 'Bookmark',),
+                                            ),
+                                          );
+                                        case 'Memo':
+                                          _unmarkNewOnExit();
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => MemoListPage(),
+                                            ),
+                                          );
+                                      }
+                                      print('Selected: $newValue');
+                                      LogHelper().logEvent('pchange_clicked');
+                                      setState(() {
+                                        isDropdownVisible = false;
+                                      });
+                                    },
+                                    itemBuilder: (BuildContext context) => [
+                                      PopupMenuItem<String>(
+                                        value: 'Rearrange',
+                                        child: Row(
+                                          children: [
+                                            Image.asset(
+                                              settingsProvider.isDarkTheme
+                                                  ? 'assets/images/dark/icon_reorder_DT_xxhdpi.png'
+                                                  : 'assets/images/light/icon_reorder_LT_xxhdpi.png',
+                                              height: iconSize,
+                                              width: iconSize,
+                                            ),
+                                            SizedBox(width: 8,),
+                                            Text(getMenuItemTitle(settingsProvider.language, 'Country Order')),
+                                          ],
+                                        ),
+                                      ),
+                                      PopupMenuItem<String>(
+                                        value: 'Bookmark',
+                                        child: Row(
+                                          children: [
+                                            Image.asset(
+                                              settingsProvider.isDarkTheme
+                                                  ? 'assets/images/dark/icon_bookmark_DT_xxhdpi.png'
+                                                  : 'assets/images/light/icon_bookmark_LT_xxhdpi.png',
+                                              height: iconSize,
+                                              width: iconSize,
+                                            ),
+                                            SizedBox(width: 8,),
+                                            Text(getMenuItemTitle(settingsProvider.language, 'Bookmark')),
+                                          ],
+                                        ),
+                                      ),
+                                      PopupMenuItem<String>(
+                                        value: 'Memo',
+                                        child: Row(
+                                          children: [
+                                            Image.asset(
+                                              settingsProvider.isDarkTheme
+                                                  ? 'assets/images/dark/icon_memo_DT_xxhdpi.png'
+                                                  : 'assets/images/light/icon_memo_LT_xxhdpi.png',
+                                              height: iconSize,
+                                              width: iconSize,
+                                            ),
+                                            SizedBox(width: 8,),
+                                            Text(getMenuItemTitle(settingsProvider.language, 'Memo')),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  SizedBox(width: 8,),
-                                  Text(getMenuItemTitle(settingsProvider.language, 'Country Order')),
+                                  // IconButton(
+                                  //   icon: Image.asset(
+                                  //     settingsProvider.isDarkTheme ? 'assets/images/dark/icon_store_DT_xxhdpi.png' : 'assets/images/light/icon_store_LT_xxhdpi.png',
+                                  //     height: iconSize,
+                                  //     width: iconSize,
+                                  //   ),
+                                  //   onPressed: () {
+                                  //     _unmarkNewOnExit();
+                                  //   },
+                                  // ),
+                                  IconButton(
+                                    icon: Image.asset(
+                                      settingsProvider.isDarkTheme ? 'assets/images/dark/icon_config_DT_xxhdpi.png' : 'assets/images/light/icon_config_LT_xxhdpi.png',
+                                      height: iconSize,
+                                      width: iconSize,
+                                    ),
+                                    onPressed: () {
+                                      _unmarkNewOnExit();
+                                      LogHelper().logEvent('setting_clicked');
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => SettingsPage(),
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ],
-                              ),
+                              ],
                             ),
-                            PopupMenuItem<String>(
-                              value: 'Bookmark',
-                              child: Row(
-                                children: [
-                                  Image.asset(
-                                    settingsProvider.isDarkTheme
-                                        ? 'assets/images/dark/icon_bookmark_DT_xxhdpi.png'
-                                        : 'assets/images/light/icon_bookmark_LT_xxhdpi.png',
-                                    height: iconSize,
-                                    width: iconSize,
-                                  ),
-                                  SizedBox(width: 8,),
-                                  Text(getMenuItemTitle(settingsProvider.language, 'Bookmark')),
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem<String>(
-                              value: 'Memo',
-                              child: Row(
-                                children: [
-                                  Image.asset(
-                                    settingsProvider.isDarkTheme
-                                        ? 'assets/images/dark/icon_memo_DT_xxhdpi.png'
-                                        : 'assets/images/light/icon_memo_LT_xxhdpi.png',
-                                    height: iconSize,
-                                    width: iconSize,
-                                  ),
-                                  SizedBox(width: 8,),
-                                  Text(getMenuItemTitle(settingsProvider.language, 'Memo')),
-                                ],
-                              ),
-                            ),
+                            // IconButton(
+                            //   onPressed: (){
+                            //     _unmarkNewOnExit();
+                            //   }, 
+                            //   icon: Image.asset(
+                            //     settingsProvider.isDarkTheme
+                            //         ? 'assets/images/dark/icon_popcorn_DT_xxhdpi.png'
+                            //         : 'assets/images/light/icon_popcorn_LT_xxhdpi.png',
+                            //     height:  MediaQuery.of(context).size.height * 0.06 ,
+                            //     width:  MediaQuery.of(context).size.height * 0.06,
+                            //   ),
+                            // ),           
                           ],
                         ),
-                        IconButton(
-                          icon: Image.asset(
-                            settingsProvider.isDarkTheme ? 'assets/images/dark/icon_config_DT_xxhdpi.png' : 'assets/images/light/icon_config_LT_xxhdpi.png',
-                            height: iconSize,
-                            width: iconSize,
-                          ),
-                          onPressed: () {
-                            _unmarkNewOnExit();
-                            LogHelper().logEvent('setting_clicked');
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SettingsPage(),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
+                      ),
                     ],
                   ),
                 ),
@@ -303,6 +343,11 @@ class _CountryListPageState extends State<CountryListPage> with WidgetsBindingOb
                     padding: const EdgeInsets.only(top:8.0, bottom: 8.0, left: 24.0, right: 24.0),
                     onReorder: (int oldIndex, int newIndex) {
                       setState(() {
+                        // 'box'는 항상 첫 번째 위치에 고정
+                        const boxIndex = 0;
+                        if (oldIndex == boxIndex) return; // 'box'는 이동 금지
+                        if (newIndex <= boxIndex) newIndex = boxIndex + 1; // 'box' 앞으로 이동 금지
+
                         if (newIndex > oldIndex) {
                           newIndex -= 1;
                         }
@@ -326,84 +371,93 @@ class _CountryListPageState extends State<CountryListPage> with WidgetsBindingOb
                                 if (settingsProvider.isVibrate) HapticFeedback.mediumImpact();
 
                                 _unmarkNewOnExit();
+                                if(index == 0) LogHelper().logEvent('box_office_clicked');
                                 LogHelper().logEvent('country_clicked', parameters: {'country_name': countries[index]});
-
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => MovieListPage(
-                                      country: countries[index],
+                                if (index == 0) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => BoxOfficeListPage(),
+                                    ),
+                                  );
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => MovieListPage(
+                                        country: countries[index],
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                              child: Stack(
+                                children: [
+                                  CustomPaint(
+                                    painter: GradientBorderPainter(isDark: settingsProvider.isDarkTheme),
+                                    child: Container(
+                                      height: boxHeight,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
                                     ),
                                   ),
-                                );
-                              },
-                            child: Stack(
-                              children: [
-                                CustomPaint(
-                                  painter: GradientBorderPainter(isDark: settingsProvider.isDarkTheme),
-                                  child: Container(
+                                  Container(
                                     height: boxHeight,
                                     decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(30),
+                                      borderRadius: BorderRadius.circular(28),
+                                      color: Colors.transparent,
                                     ),
-                                  ),
-                                ),
-                                Container(
-                                  height: boxHeight,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(28),
-                                    color: Colors.transparent,
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Stack(
-                                    children: [
-                                      Align(
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          countries[index],
-                                          style:  TextStyle(
-                                            fontSize: boxHeight * 0.3,
-                                            fontWeight: FontWeight.w900,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                      if (
-                                        !isEditMode &&
-                                        localizedCountries[languageCode] != null && 
-                                        settingsProvider.getCountryStatus(localizedCountries[languageCode]!.entries
-                                            .firstWhere((entry) => entry.value == countries[index], orElse: () => MapEntry('', '')).key)
-                                      ) 
-                                        Positioned(
-                                          top: boxHeight * 0.35,
-                                          right: 24,
+                                    alignment: Alignment.center,
+                                    child: Stack(
+                                      children: [
+                                        Align(
+                                          alignment: Alignment.center,
                                           child: Text(
-                                            "NEW", 
-                                            style: TextStyle(
-                                              color: settingsProvider.isDarkTheme ? Colors.yellow : Colors.red, 
-                                              fontSize: boxHeight * 0.2,
-                                              fontWeight: FontWeight.bold,
+                                            countries[index],
+                                            style:  TextStyle(
+                                              fontSize: boxHeight * 0.3,
+                                              fontWeight: FontWeight.w900,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                        if (
+                                          !isEditMode &&
+                                          localizedCountries[languageCode] != null && 
+                                          settingsProvider.getCountryStatus(localizedCountries[languageCode]!.entries
+                                              .firstWhere((entry) => entry.value == countries[index], orElse: () => MapEntry('', '')).key)
+                                        ) 
+                                          Positioned(
+                                            top: boxHeight * 0.35,
+                                            right: 24,
+                                            child: Text(
+                                              "NEW", 
+                                              style: TextStyle(
+                                                color: settingsProvider.isDarkTheme ? Colors.yellow : Colors.red, 
+                                                fontSize: boxHeight * 0.2,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      if (isEditMode)
-                                        Positioned(
-                                          top: boxHeight * 0.25,
-                                          right: 24,
-                                          child: Image.asset(
-                                            settingsProvider.isDarkTheme ? 'assets/images/dark/icon_drag_handle_DT_xxhdpi.png' : 'assets/images/light/icon_drag_handle_LT_xxhdpi.png',
-                                            height: iconSize,
-                                            width: iconSize,
+                                        if (isEditMode && countries[index] != 'box')
+                                          Positioned(
+                                            top: boxHeight * 0.25,
+                                            right: 24,
+                                            child: Image.asset(
+                                              settingsProvider.isDarkTheme ? 'assets/images/dark/icon_drag_handle_DT_xxhdpi.png' : 'assets/images/light/icon_drag_handle_LT_xxhdpi.png',
+                                              height: iconSize,
+                                              width: iconSize,
+                                            ),
                                           ),
-                                        ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ),
