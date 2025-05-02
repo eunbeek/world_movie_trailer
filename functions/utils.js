@@ -10,9 +10,10 @@ const {searchMovieInfoByTitle, searchSpecialMovieInfoByTid} = require("./tmdb");
  * @param {number} processedCount - The count of processed movies.
  * @param {number} startTime - The start time of the batch process.
  * @param {boolean} [isTMDBID=false] - Whether the movies belong to a
+ * @param {boolean} [isSpecial=false] - Whether the movies belong to a
  * @return {Promise<Array>} The updated list of movies.
  */
-async function processBatch(country, moviesData, processedCount, startTime, isTMDBID = false) {
+async function processBatch(country, moviesData, processedCount, startTime, isTMDBID = false, isSpecial = false) {
   const unprocessedMovies = moviesData.filter((movie) => !movie.batch);
   console.log(`unprocessMovies: ${unprocessedMovies.length}`);
   if (unprocessedMovies.length === 0) {
@@ -33,13 +34,21 @@ async function processBatch(country, moviesData, processedCount, startTime, isTM
       }
 
       if (fetchedMovie) {
-        movie.posterUrl = fetchedMovie.poster_path ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${fetchedMovie.poster_path}` : movie.posterUrl;
-        movie.trailerUrl = fetchedMovie.trailerLink || "";
-        movie.country = movie.country ? movie.country : fetchedMovie.origin_country ? fetchedMovie.origin_country[0]: "";
-        movie.spec = fetchedMovie.overview ? fetchedMovie.overview : movie.spec ? movie.spec: "";
-        movie.releaseDate = movie.releaseDate? movie.releaseDate : fetchedMovie.release_date ? fetchedMovie.release_date : "";
-        movie.runtime = fetchedMovie.runtime ? fetchedMovie.runtime : movie.runtime ? movie.runtime : "";
-        movie.credits = fetchedMovie.credits ? fetchedMovie.credits : movie.credits ? movie.credits : {};
+        if (isSpecial) {
+          movie.posterUrl = `https://image.tmdb.org/t/p/w600_and_h900_bestv2${fetchedMovie.poster_path}`;
+          movie.spec = fetchedMovie.overview ? fetchedMovie.overview : "";
+          movie.releaseDate = fetchedMovie.release_date ? fetchedMovie.release_date : "";
+          movie.runtime = fetchedMovie.runtime ? fetchedMovie.runtime : "";
+          movie.credits = fetchedMovie.credits ? fetchedMovie.credits : {};
+        } else {
+          movie.posterUrl = fetchedMovie.poster_path ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${fetchedMovie.poster_path}` : movie.posterUrl;
+          movie.trailerUrl = fetchedMovie.trailerLink || "";
+          movie.country = movie.country ? movie.country : fetchedMovie.origin_country ? fetchedMovie.origin_country[0]: "";
+          movie.spec = fetchedMovie.overview ? fetchedMovie.overview : movie.spec ? movie.spec: "";
+          movie.releaseDate = movie.releaseDate? movie.releaseDate : fetchedMovie.release_date ? fetchedMovie.release_date : "";
+          movie.runtime = fetchedMovie.runtime ? fetchedMovie.runtime : movie.runtime ? movie.runtime : "";
+          movie.credits = fetchedMovie.credits ? fetchedMovie.credits : movie.credits ? movie.credits : {};
+        }
       }
 
       movie.batch = true;
@@ -226,10 +235,34 @@ async function deleteMovieByManual(country, title) {
   return {success: true, message: `Movie titled "${title}" deleted successfully.`};
 }
 
+/**
+   * Saves the list of quotes as a JSON file in Firebase Storage.
+   *
+   * @param {string} newUrl - new promotion url
+   * @return {Promise<void>} Saves the quote list in Firebase Storage.
+   */
+async function updatePromotionUrl(newUrl) {
+  const bucket = admin.storage().bucket();
+  const fileName = `promotion_url.json`;
+
+  try {
+    const file = bucket.file(fileName);
+
+    await file.save(JSON.stringify({url: newUrl}));
+
+    console.log(`Promotion Url updated for "${newUrl}" in promotion_url.json.`);
+    return {success: true, message: `Promotion Url updated for "${newUrl}".`};
+  } catch (error) {
+    console.error("Error updating Promotion Url:", error);
+    return {success: false, error: error.message};
+  }
+}
+
 module.exports = {
   processBatch,
   saveMoviesAsJson,
   saveQuotesAsJson,
   updateMovieTrailer,
   deleteMovieByManual,
+  updatePromotionUrl,
 };

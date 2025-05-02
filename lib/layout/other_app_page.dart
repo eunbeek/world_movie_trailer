@@ -9,10 +9,15 @@ import 'package:world_movie_trailer/common/translate.dart';
 class AppListPage extends StatelessWidget {
   final String appFFName = "Find Four";
   final String appEWName = "English Wangza";
+  final String appDFName = "Dual Flashlight";
+  final String appSPName = "Sky Peacemaker";
 
   final String appFFAndroidLink = "https://play.google.com/store/apps/details?id=com.mwm.findfour.gg&pcampaignid=web_share";
   final String appFFIosLink = "https://apps.apple.com/ca/app/find-four-find-4-differences/id6478101361";
+  final String appDFLink = "https://dualflashlig.onelink.me/Wccx/qnv6yh8s";
+  final String appFFLink = "https://findfour.onelink.me/vurA/0tfteiuf";
   final String appTwoLink = "https://jaemitree.com/game/wangza";
+  final String appSPLink = "https://skypeacemaker.onelink.me/YQxG/8s9sx66i";
 
   const AppListPage({super.key}); // 앱 링크
 
@@ -47,7 +52,7 @@ class AppListPage extends StatelessWidget {
                     child: Text(
                       getSettingsLabel(settingsProvider.language, "other"),
                       style: TextStyle(
-                        fontSize: MediaQuery.of(context).size.height * 0.02,
+                        fontSize: MediaQuery.of(context).size.height * 0.010,
                         fontWeight: FontWeight.bold,
                         color: settingsProvider.isDarkTheme ? Colors.white : Colors.black
                       ),
@@ -70,7 +75,7 @@ class AppListPage extends StatelessWidget {
                         Text(
                           getSettingsLabel(settingsProvider.language, "other"),
                           style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.height * 0.03,
+                            fontSize: MediaQuery.of(context).size.height * 0.025,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -85,7 +90,11 @@ class AppListPage extends StatelessWidget {
             delegate: SliverChildListDelegate(
               [
                 const Divider(),
-                _buildAppListTile(context, settingsProvider, appFFName, "https://findfour.onelink.me/vurA/0tfteiuf", 'assets/images/Find_Four_Icon.png'),
+                _buildAppListTile(context, settingsProvider, appSPName, appSPLink, 'assets/images/Sky_Peacemaker.png'),
+                const Divider(),
+                _buildAppListTile(context, settingsProvider, appDFName, appDFLink, 'assets/images/Dual Flashlight_icon_1024.png'),
+                const Divider(),
+                _buildAppListTile(context, settingsProvider, appFFName, appFFLink, 'assets/images/Find_Four_Icon.png'),
                 const Divider(),
                 _buildAppListTile(context, settingsProvider, appEWName, appTwoLink, 'assets/images/English_WangZa_Icon.png'),
               ]

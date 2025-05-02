@@ -3,19 +3,27 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 
 const currentDate = new Date();
-const currentYear = currentDate.getFullYear();
-const currentMonth = currentDate.getMonth() + 2;
 
-// 2개월 후의 날짜를 계산
-const futureDate = new Date(currentDate.setMonth(currentDate.getMonth() + 2));
-const futureYear = futureDate.getFullYear();
-const futureMonth = futureDate.getMonth() + 1; // 월은 0부터 시작하므로 1을 더해줌
+// 1개월 후
+const futureDateStart = new Date(currentDate.getTime());
+futureDateStart.setMonth(currentDate.getMonth() + 1);
 
-const eigaAllRelease = `https://eiga.com/release/q/?year=${currentYear}&month=${currentMonth}&year_to=${futureYear}&month_to=${futureMonth}&sort=old`;
+// 3개월 후
+const futureDateEnd = new Date(currentDate.getTime());
+futureDateEnd.setMonth(currentDate.getMonth() + 3);
+
+// 연도 및 월 계산
+const futureYearStart = futureDateStart.getFullYear();
+const futureMonthStart = futureDateStart.getMonth() + 1;
+
+const futureYearEnd = futureDateEnd.getFullYear();
+const futureMonthEnd = futureDateEnd.getMonth() + 1;
+
+// URL 생성
+const eigaAllRelease = `https://eiga.com/release/q/?year=${futureYearStart}&month=${futureMonthStart}&year_to=${futureYearEnd}&month_to=${futureMonthEnd}&sort=old`;
+
 const eigaRunning = "https://eiga.com/now/";
-const eigaUpcoming = "https://eiga.com/movie/video/upcoming";
 const eigaMore = "https://eiga.com/now/all/release/2/";
-const eigaMoreUpcoming = "https://eiga.com/movie/video/coming/";
 
 /**
  * Fetches all running movies from EIGA (both current and more).
@@ -37,7 +45,7 @@ async function fetchRunningFromEIGA() {
       const $ = cheerio.load(response.data);
       const movieBoxes = $("section div.list-block");
 
-      const promises = movieBoxes.slice(0, 50).map(async (i, movieBox) => {
+      const promises = movieBoxes.map(async (i, movieBox) => {
         const aTag = $(movieBox).find("div.img-box a");
         if (aTag) {
           const title = $(aTag).find("img").attr("alt").trim();
@@ -53,8 +61,14 @@ async function fetchRunningFromEIGA() {
           const year = currentDate.getFullYear();
 
           // Extract month and day from the release date
-          const [_, month, day] = releaseDate.match(/(\d{1,2})月(\d{1,2})日/) || [];
-          console.log(_);
+          const match = releaseDate.match(/(\d{1,2})月(\d{1,2})日/);
+          if (!match) {
+            console.warn(`🚨 Skipping movie due to invalid release date format: ${title} | releaseDate: ${releaseDate}`);
+            return; // Skip movies with invalid release dates
+          }
+
+          const [, month, day] = match;
+
           // Create a tentative release date using the current year
           const tentativeReleaseDate = new Date(year, month - 1, day);
 
@@ -105,75 +119,6 @@ async function fetchRunningFromEIGA() {
   return movies;
 }
 
-/**
- * Fetches all upcoming movies from EIGA (both current and more upcoming).
- * @param {Array} [moviesJP] - List of movies to avoid duplicates.
- * @return {Promise<Array>} - A promise that resolves to a list of upcoming movies.
- */
-async function fetchUpcomingFromEIGA(moviesJP = []) {
-  const urls = [eigaUpcoming, eigaMoreUpcoming];
-  const movies = [];
-
-  for (const url of urls) {
-    try {
-      const response = await axios.get(url);
-
-      if (response.status !== 200) {
-        throw new Error("Failed to load EIGA movies");
-      }
-
-      const $ = cheerio.load(response.data);
-      const movieBoxes = $("li.col-s-4");
-
-      const promises = movieBoxes.map(async (i, movieBox) => {
-        const aTag = $(movieBox).find("a");
-        if (aTag) {
-          const title = $(movieBox).find("div.img-thumb img").attr("alt").trim();
-
-          // Skip if movie exists in moviesJP or movies array
-          if (moviesJP.some((movieJP) => movieJP.localTitle === title) || movies.some((movie) => movie.localTitle === title)) {
-            return; // Skip this movie if it's already in either list
-          }
-
-          const posterUrl = $(movieBox).find("div.img-thumb img").attr("src");
-          const releaseDate = $(movieBox).find("p.published").text().trim().replace("劇場公開日：", "");
-
-          if (posterUrl && posterUrl.startsWith("https://eiga.k-img.com/images/movie/noimg")) {
-            return; // Skip this movie and move to the next one
-          }
-
-          // Convert Japanese date format (e.g., 2024年8月31日) to YYYY-MM-DD
-          const formattedDate = releaseDate.replace(/(\d{4})年(\d{1,2})月(\d{1,2})日/, (match, year, month, day) => {
-            // Ensure month and day are two digits
-            month = month.padStart(2, "0");
-            day = day.padStart(2, "0");
-            return `${year}-${month}-${day}`;
-          });
-
-          movies.push({
-            localTitle: title,
-            posterUrl: posterUrl,
-            source: "eiga",
-            releaseDate: formattedDate,
-            credits: {
-              crew: [],
-              cast: [],
-            },
-            batch: false,
-          });
-        }
-      }).get();
-
-      await Promise.all(promises);
-    } catch (error) {
-      console.error("Error fetching from EIGA:", error);
-    }
-  }
-
-  return movies;
-}
-
 module.exports = {
   fetchRunningFromEIGA,
-  fetchUpcomingFromEIGA,
 };

@@ -2,7 +2,7 @@
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 const {fetchMovieListFromCgv, fetchMovieListFromLotte} = require("./movie_kr");
-const {fetchMovieListFromTMDBByJP} = require("./movie_jp_v2");
+const {fetchRunningFromEIGA} = require("./movie_jp");
 const {fetchMovieListFromCineplex} = require("./movie_ca");
 const {fetchMovieListFromShowTime} = require("./movie_tw");
 const {fetchMovieListFromUga} = require("./movie_fr");
@@ -10,13 +10,13 @@ const {fetchMovieListFromTMDBByDE} = require("./movie_de");
 const {fetchMovieListFromTMDBByUS} = require("./movie_us");
 const {fetchMovieListFromTMDBByTH} = require("./movie_th");
 const {fetchMovieListFromTMDBByAU} = require("./movie_au");
-const {fetchMovieListFromKinepolis} = require("./movie_es");
-const {fetchMovieListFromTMDBByIN} = require("./movie_in_v2");
-const {fetchMovieListFromTMDBByCN} = require("./movie_cn");
+const {fetchMovieListFromTMDBByES} = require("./movie_es_tmdb");
+const {fetchMovieListFromTMDBByIN} = require("./movie_in_tmdb");
+const {fetchRunningFromDouban, fetchUpcomingFromDouban} = require("./movie_cn");
 const {fetchMovieInSpecialSection} = require("./movie_special");
 const {fetchQuotesInSpecialSection} = require("./quote_special");
 const {fetchMovieListFromMojo} = require("./movie_box_office");
-const {processBatch, saveMoviesAsJson, saveQuotesAsJson, updateMovieTrailer, deleteMovieByManual} = require("./utils");
+const {processBatch, saveMoviesAsJson, saveQuotesAsJson, updateMovieTrailer, deleteMovieByManual, updatePromotionUrl} = require("./utils");
 
 admin.initializeApp();
 
@@ -67,10 +67,7 @@ exports.fetchMovieListJP = functions
       const processedCount = 0;
       const startTime = Date.now();
 
-      // const runningMovies = await fetchRunningFromEIGA();
-      // const upcomingMovies = await fetchUpcomingFromEIGA(runningMovies);
-      // const allMovies = [...runningMovies, ...upcomingMovies];
-      const runningMovies = await fetchMovieListFromTMDBByJP();
+      const runningMovies = await fetchRunningFromEIGA();
       const allMovies = [...runningMovies];
 
       const moviesWithTrailer = await processBatch("ja-JP", allMovies, processedCount, startTime, true);
@@ -279,9 +276,14 @@ exports.fetchMovieListES = functions
     .schedule("0 5 * * 4")
     .timeZone("America/Toronto") // Adjust if the timezone should be CST
     .onRun(async () => {
-      const allMovies = await fetchMovieListFromKinepolis();
+      const processedCount = 0;
+      const startTime = Date.now();
 
-      await saveMoviesAsJson("es", allMovies);
+      const allMovies = await fetchMovieListFromTMDBByES();
+
+      const moviesWithDetails = await processBatch("es-ES", allMovies, processedCount, startTime, true);
+
+      await saveMoviesAsJson("es", moviesWithDetails);
 
       const timestamp = new Date().toISOString();
       console.log(`Success: [${timestamp}] Country: ES, Movie Count: ${allMovies.length}`);
@@ -318,22 +320,24 @@ exports.fetchMovieListIN = functions
 
 /**
  * Fetches movies from Wanda, processes trailers, and saves the result.
- * Scheduled to run every Tuesday at 11:00 AM JST.
+ * Scheduled to run every Friday at 11:00 AM JST.
  *
  * @returns {Promise<null>} Returns null when the function completes.
  */
 exports.fetchMovieListCN = functions
     .runWith({timeoutSeconds: 540})
     .pubsub
-    .schedule("0 11 * * 4")
+    .schedule("0 7 * * 5")
     .timeZone("America/Toronto") // Adjust if the timezone should be JST
     .onRun(async () => {
       const processedCount = 0;
       const startTime = Date.now();
 
-      const allMovies = await fetchMovieListFromTMDBByCN();
+      const runningMovies = await fetchRunningFromDouban();
+      const upcomingMovies = await fetchUpcomingFromDouban();
+      const allMovies = [...runningMovies, ...upcomingMovies];
 
-      const moviesWithDetails = await processBatch("zh-CN", allMovies, processedCount, startTime, true);
+      const moviesWithDetails = await processBatch("zh-CN", allMovies, processedCount, startTime);
 
       await saveMoviesAsJson("cn", moviesWithDetails);
 
@@ -360,7 +364,7 @@ exports.fetchMovieListSpecial = functions
 
       const specialMovies = await fetchMovieInSpecialSection();
 
-      const moviesWithTrailer = await processBatch("en-US", specialMovies, processedCount, startTime, true);
+      const moviesWithTrailer = await processBatch("en-US", specialMovies, processedCount, startTime, true, true);
 
       await saveMoviesAsJson("special", moviesWithTrailer);
 
@@ -472,10 +476,7 @@ exports.testFetchMovieListJP = functions.runWith({timeoutSeconds: 540}).https.on
     const processedCount = 0;
     const startTime = Date.now();
 
-    // const runningMovies = await fetchRunningFromEIGA();
-    // const upcomingMovies = await fetchUpcomingFromEIGA(runningMovies);
-    // const allMovies = [...runningMovies, ...upcomingMovies];
-    const runningMovies = await fetchMovieListFromTMDBByJP();
+    const runningMovies = await fetchRunningFromEIGA();
     const allMovies = [...runningMovies];
 
     const moviesWithTrailer = await processBatch("ja-JP", allMovies, processedCount, startTime, true);
@@ -756,9 +757,15 @@ exports.testFetchMovieListAU = functions.runWith({timeoutSeconds: 540}).https.on
  */
 exports.testFetchMovieListES = functions.runWith({timeoutSeconds: 540}).https.onRequest(async (req, res) => {
   try {
-    const allMovies = await fetchMovieListFromKinepolis();
+    const processedCount = 0;
+    const startTime = Date.now();
 
-    await saveMoviesAsJson("es", allMovies);
+    const allMovies = await fetchMovieListFromTMDBByES();
+
+    console.log(`TMDB ES Movies: ${allMovies.length}`);
+    const moviesWithTrailer = await processBatch("es-ES", allMovies, processedCount, startTime, true);
+
+    await saveMoviesAsJson("es", moviesWithTrailer);
 
     const timestamp = new Date().toISOString();
     console.log(`Success: [${timestamp}] Country: ES, Movie Count: ${allMovies.length}`);
@@ -825,10 +832,12 @@ exports.testFetchMovieListCN = functions.runWith({timeoutSeconds: 540}).https.on
     const processedCount = 0;
     const startTime = Date.now();
 
-    const allMovies = await fetchMovieListFromTMDBByCN();
+    const runningMovies = await fetchRunningFromDouban();
+    const upcomingMovies = await fetchUpcomingFromDouban();
+    const allMovies = [...runningMovies, ...upcomingMovies];
 
     console.log(`TMDB CN Movies: ${allMovies.length}`);
-    const moviesWithTrailer = await processBatch("zh-CN", allMovies, processedCount, startTime, true);
+    const moviesWithTrailer = await processBatch("zh-CN", allMovies, processedCount, startTime);
 
     await saveMoviesAsJson("cn", moviesWithTrailer);
 
@@ -863,7 +872,7 @@ exports.testFetchMovieListSpecial = functions.runWith({timeoutSeconds: 540}).htt
 
     const specialMovies = await fetchMovieInSpecialSection();
 
-    const moviesWithTrailer = await processBatch("en-US", specialMovies, processedCount, startTime, true);
+    const moviesWithTrailer = await processBatch("en-US", specialMovies, processedCount, startTime, true, true);
 
     await saveMoviesAsJson("special", moviesWithTrailer);
 
@@ -1038,6 +1047,60 @@ exports.deleteMovieByManual = functions.https.onRequest((req, res) => {
     } catch (error) {
       console.error("Error deleting movie:", error);
       res.status(500).json({success: false, message: error.message});
+    }
+  });
+});
+
+/**
+   * Saves new promotion url as a JSON file in Firebase Storage.
+   *
+   * @param {string} newUrl - new trailer url
+   * @return {Promise<void>} Saves the quote list in Firebase Storage.
+   */
+exports.updatePromotionUrl = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    const {newUrl} = req.body;
+
+    if (!newUrl) {
+      return res.status(400).json({success: false, message: "Missing required parameters."});
+    }
+
+    try {
+      const result = await updatePromotionUrl(newUrl);
+      res.status(200).json(result);
+    } catch (error) {
+      console.error("Error in updateMovieTrailer function:", error);
+      res.status(500).json({success: false, error: error.message});
+    }
+  });
+});
+
+/**
+ * Reads a promotion url JSON file from Firebase Storage based on the provided country code.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} Sends a JSON response with the promotion ul when the function completes.
+ */
+exports.readPromotionUrl = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    try {
+      const bucket = admin.storage().bucket();
+      const fileName = `promotion_url.json`;
+      const file = bucket.file(fileName);
+
+      const exists = await file.exists();
+      if (!exists[0]) {
+        return res.status(404).json({success: false, message: "File not found."});
+      }
+
+      const fileContents = await file.download();
+      const url = JSON.parse(fileContents.toString());
+
+      res.status(200).json(url);
+    } catch (error) {
+      console.error("Error reading url:", error);
+      res.status(500).json({success: false, error: error.message});
     }
   });
 });

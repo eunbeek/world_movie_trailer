@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/layout/box_office_list_page.dart';
 import 'package:world_movie_trailer/layout/memo_list_page.dart';
@@ -30,10 +31,12 @@ class _CountryListPageState extends State<CountryListPage> with WidgetsBindingOb
   bool isDropdownVisible = false; 
   List<String>? oldCountryOrder;
   List<Movie>? specialMovieList;
+  String? promotionUrl;
 
   @override
   void initState() {
     super.initState();
+    _fetchPromotionUrl();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchSpecialMovies();
@@ -58,6 +61,21 @@ class _CountryListPageState extends State<CountryListPage> with WidgetsBindingOb
     final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
     settingsProvider.unmarkAllIsNewShown();
     print("All 'NEW' flags unmarked due to app exit or navigation.");
+  }
+
+
+  Future<void> _fetchPromotionUrl() async {
+    try {
+      final url = await MovieService.fetchPromotionUrl();
+      setState(() {
+        promotionUrl = url;  // Update the state with the fetched URL
+      });
+    } catch (e) {
+      print('Error fetching promotion URL: $e');
+      setState(() {
+        promotionUrl = '';  // In case of an error, reset the URL
+      });
+    }
   }
 
   Future<void> _fetchSpecialMovies() async {
@@ -134,7 +152,7 @@ class _CountryListPageState extends State<CountryListPage> with WidgetsBindingOb
 
   @override
   Widget build(BuildContext context) {
-    double titleHeight = MediaQuery.of(context).size.height * 0.2;
+    double titleHeight = MediaQuery.of(context).size.height * 0.21;
     double boxHeight = MediaQuery.of(context).size.height * 0.070;
     double specialHeight = MediaQuery.of(context).size.height * 0.09;
     double specialWidth =  MediaQuery.of(context).size.width * 0.95;
@@ -157,20 +175,19 @@ class _CountryListPageState extends State<CountryListPage> with WidgetsBindingOb
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start, 
                     children: [
-                      Container(
-                        padding: EdgeInsets.only(top:10),
-                        height: titleHeight,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
                         child: Text(
                           getAppBarTitle(languageCode),
                           style: TextStyle(
-                            fontSize:  titleHeight * 0.24,
+                            fontSize: titleHeight * 0.25,
                             fontWeight: FontWeight.bold,
                             height: 1.2,
                           ),
                         ),
                       ),
                       Container(
-                        height: titleHeight,
+                        height: titleHeight * 0.95,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.end,
@@ -316,18 +333,22 @@ class _CountryListPageState extends State<CountryListPage> with WidgetsBindingOb
                                 ],
                               ],
                             ),
-                            // IconButton(
-                            //   onPressed: (){
-                            //     _unmarkNewOnExit();
-                            //   }, 
-                            //   icon: Image.asset(
-                            //     settingsProvider.isDarkTheme
-                            //         ? 'assets/images/dark/icon_popcorn_DT_xxhdpi.png'
-                            //         : 'assets/images/light/icon_popcorn_LT_xxhdpi.png',
-                            //     height:  MediaQuery.of(context).size.height * 0.06 ,
-                            //     width:  MediaQuery.of(context).size.height * 0.06,
-                            //   ),
-                            // ),           
+                            IconButton(
+                              onPressed: () async {
+                                LogHelper().logEvent('promotion_url clicked');
+                                _unmarkNewOnExit();
+                                if (await canLaunchUrl(Uri.parse(promotionUrl!))) {
+                                  await launchUrl(Uri.parse(promotionUrl!), mode: LaunchMode.externalApplication);
+                                }
+                              }, 
+                              icon: Image.asset(
+                                settingsProvider.isDarkTheme
+                                    ? 'assets/images/dark/icon_popcorn_DT_xxhdpi.png'
+                                    : 'assets/images/light/icon_popcorn_LT_xxhdpi.png',
+                                height:  MediaQuery.of(context).size.height * 0.06 ,
+                                width:  MediaQuery.of(context).size.height * 0.06,
+                              ),
+                            ),           
                           ],
                         ),
                       ),

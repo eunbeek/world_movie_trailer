@@ -26,35 +26,71 @@ const trailerQuery = {
 };
 
 /**
- * Fetches the first movie info from TMDb based on the title.
- * @param {String} countryCode - Country Code
- * @param {String} query - The search query.
- * @return {Promise<Object|null>} - A promise that resolves to the first Movie with trailerLink.
+ * Fetches movie info including trailer link by title.
+ * - First attempts TMDb search using the provided countryCode.
+ * - If countryCode is 'zh-CN' and no trailer is found, retries with 'en-US'.
+ * - If still no trailer is found, searches YouTube using a localized search query.
+ *
+ * @param {string} countryCode - Language code (e.g., 'zh-CN', 'en-US') to use in TMDb and YouTube search.
+ * @param {string} query - The movie title to search for.
+ * @return {Promise<Object|null>} - A movie object containing at least `trailerLink`, or `null` if no results found.
  */
 async function searchMovieInfoByTitle(countryCode, query) {
   try {
-    const response = await fetch(`https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(query)}&include_adult=false&language=${countryCode}&page=1`, options);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
+    // 1. 첫 번째 TMDb 검색 (사용자 언어)
+    const data = await searchTmdb(query, countryCode);
+    if (data.trailerLink) return data;
 
-    if (data.results && data.results.length > 0) {
-      const searchId = data.results[0].id;
-      const fullMovieInfo = await fetchFullMovieInfo(searchId, countryCode);
-      return fullMovieInfo;
-    } else {
-      const trailerSearchTerm = trailerQuery[countryCode] || trailerQuery["en-US"];
-      const trailerLink = await fetchFirstYouTubeVideoId(query + trailerSearchTerm, countryCode.slice(-2));
-
-      if (trailerLink) return {trailerLink: trailerLink};
-      console.log("No results found");
-      return null;
+    // 2. zh-CN인 경우 en-US로 한 번 더 검색
+    if (countryCode === "zh-CN") {
+      const fallbackData = await searchTmdb(query, "en-US");
+      if (fallbackData.trailerLink) return fallbackData;
     }
+
+    // 3. YouTube로 검색 (국가 코드 뒷 2자리만 사용)
+    const trailerSearchTerm = trailerQuery[countryCode] || trailerQuery["en-US"];
+    const trailerLink = await fetchFirstYouTubeVideoId(query + trailerSearchTerm, countryCode.slice(-2));
+
+    if (trailerLink) return {trailerLink};
+    console.log("No trailer found for:", query);
+    return null;
   } catch (err) {
     console.error("Error fetching movie information:", err);
     return null;
   }
+}
+
+/**
+ * Searches for a movie by title using The Movie Database (TMDb) API.
+ *
+ * @param {string} query - The movie title to search.
+ * @param {string} langCode - The language code to use in the TMDb search (e.g., 'en-US').
+ * @return {Promise<Object|null>} - A movie object with detailed info (including trailerLink if available),
+ *                                   or `null` if no results found or error occurs.
+ */
+async function searchTmdb(query, langCode) {
+  try {
+    const response = await fetch(
+        `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(query)}&include_adult=false&language=${langCode}&page=1`,
+        options,
+    );
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+    const data = await response.json();
+    if (data.results && data.results.length > 0) {
+      data.results.sort((a, b) => {
+        const dateA = new Date(a.release_date || "1900-01-01");
+        const dateB = new Date(b.release_date || "1900-01-01");
+        return dateB - dateA;
+      });
+      const searchId = data.results[0].id;
+      const fullMovieInfo = await fetchFullMovieInfo(searchId, langCode);
+      return fullMovieInfo;
+    }
+  } catch (err) {
+    console.error(`Error searching TMDb for ${langCode}:`, err);
+  }
+  return null;
 }
 
 /**

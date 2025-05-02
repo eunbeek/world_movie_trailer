@@ -102,8 +102,8 @@ class Settings extends HiveObject {
       0: {'korea': false, 'box': false},                // Monday
       1: {'japan': false},                // Tuesday
       2: {'usa': false, 'canada': false}, // Wednesday
-      3: {'india': false, 'spain': false, 'taiwan': false, 'china': false}, // Thursday
-      4: {'france': false},               // Friday
+      3: {'india': false, 'spain': false, 'taiwan': false}, // Thursday
+      4: {'france': false, 'china': false},               // Friday
       5: {'germany': false},              // Saturday
       6: {'australia': false, 'thailand': false}, // Sunday
     };

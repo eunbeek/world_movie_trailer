@@ -239,7 +239,7 @@ class MovieService {
 
   static bool _isDataOutdated(DateTime lastFetched, bool isSpecial, {String? country}) {
     final now = DateTime.now();
-
+    print('_isDataOutdated');
     if (isSpecial) {
       // For special sections, check if the year and month are the same
       return now.difference(lastFetched).inDays  > 30;
@@ -271,5 +271,24 @@ class MovieService {
         lastFetched.add(Duration(days: daysToNextUpdate == 0 ? 7 : daysToNextUpdate));
     
     return DateTime(nextUpdateDate.year, nextUpdateDate.month, nextUpdateDate.day);
+  }
+
+
+  static Future<String> fetchPromotionUrl() async {
+    try {
+      print('readMoviesFromStorage');
+      final ref = FirebaseStorage.instance.ref().child('promotion_url.json');
+      final data = await ref.getData();
+      final jsonString = utf8.decode(data!);
+
+      final Map<String, dynamic> jsonData = json.decode(jsonString);
+      final String url = jsonData['url'];
+
+      // Return a Map containing the timestamp and the processed movies
+      return url;
+    } catch (e) {
+      print('Error reading movies: $e');
+      return '';
+    }
   }
 }

@@ -246,6 +246,31 @@ class SettingsPage extends StatelessWidget {
                 const Divider(),
                 ListTile(
                   title: Text(
+                    getSettingsLabel(settingsProvider.language, "instagram"),
+                    style: TextStyle(
+                      fontSize: MediaQuery.of(context).size.height * 0.02,
+                    ),
+                  ),
+                  trailing: TextButton(
+                    onPressed: () async {
+                      const url = 'https://www.instagram.com/sunnyinnolab/';
+                      if (await canLaunchUrl(Uri.parse(url))) {
+                        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                      } else {
+                        throw 'Could not launch $url';
+                      }
+                    },
+                    child: Text(
+                      "Link",
+                      style: TextStyle(
+                        fontSize: MediaQuery.of(context).size.height * 0.02,
+                      ),
+                    ),
+                  ),
+                ),
+                const Divider(),
+                ListTile(
+                  title: Text(
                     getSettingsLabel(settingsProvider.language, "sns"),
                     style: TextStyle(
                       fontSize: MediaQuery.of(context).size.height * 0.02,
@@ -383,7 +408,7 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ),
                   trailing: Text(
-                    'v 1.2.0',
+                    'v 1.2.2',
                     style: TextStyle(
                       fontSize: MediaQuery.of(context).size.height * 0.02,
                     ),

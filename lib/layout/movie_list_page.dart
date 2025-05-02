@@ -55,6 +55,7 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
         final language = settingsProvider.language;
         
         final movies = await MovieService.fetchMovie(widget.country, language);
+
         setState(() {
           allMovies = movies;
           fetchComplete = true;
@@ -82,85 +83,148 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
     });
   }
 
+List<Movie> _getFilteredMovies(String filter) {
+  List<Movie> filteredList = [];
+  final now = DateTime.now();
 
-  List<Movie> _getFilteredMovies(String filter) {
-    List<Movie> filteredList = [];
-
-    final now = DateTime.now();
+  try {
     if (filter == listFilterAll) {
       filteredList = List.from(allMovies);
 
-      if (_selectedFilterAll == 'date_new'){
-        filteredList.sort((a, b) {
-          DateTime dateA = DateTime.parse(a.releaseDate);
-          DateTime dateB = DateTime.parse(b.releaseDate);
-          return dateB.compareTo(dateA);
-        });
-      } else if (_selectedFilterAll == 'date_old') {
-        filteredList.sort((a, b) {
-          DateTime dateA = DateTime.parse(a.releaseDate);
-          DateTime dateB = DateTime.parse(b.releaseDate);
-          return dateA.compareTo(dateB); 
-        });
-      } else if (_selectedFilterAll == 'alphabet_asc') {
-        filteredList.sort((a, b) => a.localTitle.compareTo(b.localTitle));
-      } else if (_selectedFilterAll == 'alphabet_desc') {
-        filteredList.sort((a, b) => b.localTitle.compareTo(a.localTitle));
+      try {
+        if (_selectedFilterAll == 'date_new') {
+          filteredList.sort((a, b) {
+            try {
+              DateTime dateA = DateTime.parse(a.releaseDate);
+              DateTime dateB = DateTime.parse(b.releaseDate);
+              return dateB.compareTo(dateA);
+            } catch (e, stack) {
+              print("🚨 Error parsing dates in date_new (All) - Movie: ${a.localTitle} | releaseDate: ${a.releaseDate}\n$e\n$stack");
+              return 0;
+            }
+          });
+        } else if (_selectedFilterAll == 'date_old') {
+          filteredList.sort((a, b) {
+            try {
+              DateTime dateA = DateTime.parse(a.releaseDate);
+              DateTime dateB = DateTime.parse(b.releaseDate);
+              return dateA.compareTo(dateB);
+            } catch (e, stack) {
+              print("🚨 Error parsing dates in date_old (All) - Movie: ${a.localTitle} | releaseDate: ${a.releaseDate}\n$e\n$stack");
+              return 0;
+            }
+          });
+        } else if (_selectedFilterAll == 'alphabet_asc') {
+          filteredList.sort((a, b) => a.localTitle.compareTo(b.localTitle));
+        } else if (_selectedFilterAll == 'alphabet_desc') {
+          filteredList.sort((a, b) => b.localTitle.compareTo(a.localTitle));
+        }
+      } catch (e, stack) {
+        print("🚨 Error sorting movies in listFilterAll: $e\n$stack");
       }
+    } 
+    
+    else if (filter == listFilterRunning) {
+      try {
+        filteredList = allMovies.where((movie) {
+          try {
+            if (movie.releaseDate.isEmpty) return false;
+            final releaseDate = DateTime.parse(movie.releaseDate);
+            return releaseDate.isBefore(now);
+          } catch (e, stack) {
+            print("🚨 Error filtering Running movies - Movie: ${movie.localTitle} | releaseDate: ${movie.releaseDate}\n$e\n$stack");
+            return false;
+          }
+        }).toList();
 
-    } else if (filter == listFilterRunning) {
-      filteredList = allMovies.where((movie) {
-        if (movie.releaseDate.isEmpty) return false;
-        final releaseDate = DateTime.parse(movie.releaseDate);
-        return releaseDate.isBefore(now);
-      }).toList();
-
-      if (_selectedFilterRun == 'date_new'){
-        filteredList.sort((a, b) {
-          DateTime dateA = DateTime.parse(a.releaseDate);
-          DateTime dateB = DateTime.parse(b.releaseDate);
-          return dateB.compareTo(dateA); 
-        });
-      } else if (_selectedFilterRun == 'date_old') {
-        filteredList.sort((a, b) {
-          DateTime dateA = DateTime.parse(a.releaseDate);
-          DateTime dateB = DateTime.parse(b.releaseDate);
-          return dateA.compareTo(dateB); 
-        });
-      } else if (_selectedFilterRun == 'alphabet_asc') {
-        filteredList.sort((a, b) => a.localTitle.compareTo(b.localTitle));
-      } else if (_selectedFilterRun == 'alphabet_desc') {
-        filteredList.sort((a, b) => b.localTitle.compareTo(a.localTitle));
+        if (_selectedFilterRun == 'date_new') {
+          filteredList.sort((a, b) {
+            try {
+              DateTime dateA = DateTime.parse(a.releaseDate);
+              DateTime dateB = DateTime.parse(b.releaseDate);
+              return dateB.compareTo(dateA);
+            } catch (e, stack) {
+              print("🚨 Error parsing dates in date_new (Running) - Movie: ${a.localTitle} | releaseDate: ${a.releaseDate}\n$e\n$stack");
+              return 0;
+            }
+          });
+        } else if (_selectedFilterRun == 'date_old') {
+          filteredList.sort((a, b) {
+            try {
+              DateTime dateA = DateTime.parse(a.releaseDate);
+              DateTime dateB = DateTime.parse(b.releaseDate);
+              return dateA.compareTo(dateB);
+            } catch (e, stack) {
+              print("🚨 Error parsing dates in date_old (Running) - Movie: ${a.localTitle} | releaseDate: ${a.releaseDate}\n$e\n$stack");
+              return 0;
+            }
+          });
+        } else if (_selectedFilterRun == 'alphabet_asc') {
+          filteredList.sort((a, b) => a.localTitle.compareTo(b.localTitle));
+        } else if (_selectedFilterRun == 'alphabet_desc') {
+          filteredList.sort((a, b) => b.localTitle.compareTo(a.localTitle));
+        }
+      } catch (e, stack) {
+        print("🚨 Error sorting movies in listFilterRunning: $e\n$stack");
       }
-    } else if (filter == listFilterUpcoming) {
-      filteredList = allMovies.where((movie) {
-        if (movie.releaseDate.isEmpty) return false;
-        final releaseDate = DateTime.parse(movie.releaseDate);
-        return releaseDate.isAfter(now);
-      }).toList();
+    } 
+    
+    else if (filter == listFilterUpcoming) {
+      try {
+        filteredList = allMovies.where((movie) {
+          try {
+            if (movie.releaseDate.isEmpty) return false;
+            final releaseDate = DateTime.parse(movie.releaseDate);
+            return releaseDate.isAfter(now);
+          } catch (e, stack) {
+            print("🚨 Error filtering Upcoming movies - Movie: ${movie.localTitle} | releaseDate: ${movie.releaseDate}\n$e\n$stack");
+            return false;
+          }
+        }).toList();
 
-      if (_selectedFilterUp == 'date_new'){
-        filteredList.sort((a, b) {
-          DateTime dateA = DateTime.parse(a.releaseDate);
-          DateTime dateB = DateTime.parse(b.releaseDate);
-          return dateA.compareTo(dateB);
-        });
-      } else if (_selectedFilterUp == 'date_old') {
-        filteredList.sort((a, b) {
-          DateTime dateA = DateTime.parse(a.releaseDate);
-          DateTime dateB = DateTime.parse(b.releaseDate);
-          return dateB.compareTo(dateA);
-        });
-      } else if (_selectedFilterUp == 'alphabet_asc') {
-        filteredList.sort((a, b) => a.localTitle.compareTo(b.localTitle));
-      } else if (_selectedFilterUp == 'alphabet_desc') {
-        filteredList.sort((a, b) => b.localTitle.compareTo(a.localTitle));
+        if (_selectedFilterUp == 'date_new') {
+          filteredList.sort((a, b) {
+            try {
+              DateTime dateA = DateTime.parse(a.releaseDate);
+              DateTime dateB = DateTime.parse(b.releaseDate);
+              return dateA.compareTo(dateB);
+            } catch (e, stack) {
+              print("🚨 Error parsing dates in date_new (Upcoming) - Movie: ${a.localTitle} | releaseDate: ${a.releaseDate}\n$e\n$stack");
+              return 0;
+            }
+          });
+        } else if (_selectedFilterUp == 'date_old') {
+          filteredList.sort((a, b) {
+            try {
+              DateTime dateA = DateTime.parse(a.releaseDate);
+              DateTime dateB = DateTime.parse(b.releaseDate);
+              return dateB.compareTo(dateA);
+            } catch (e, stack) {
+              print("🚨 Error parsing dates in date_old (Upcoming) - Movie: ${a.localTitle} | releaseDate: ${a.releaseDate}\n$e\n$stack");
+              return 0;
+            }
+          });
+        } else if (_selectedFilterUp == 'alphabet_asc') {
+          filteredList.sort((a, b) => a.localTitle.compareTo(b.localTitle));
+        } else if (_selectedFilterUp == 'alphabet_desc') {
+          filteredList.sort((a, b) => b.localTitle.compareTo(a.localTitle));
+        }
+      } catch (e, stack) {
+        print("🚨 Error sorting movies in listFilterUpcoming: $e\n$stack");
       }
-    } else {
+    } 
+    
+    else {
       return [];
     }
-    return filteredList;
+  } catch (e, stack) {
+    print("🚨 Unexpected error in _getFilteredMovies: $e\n$stack");
+    return [];
   }
+
+  return filteredList;
+}
+
 
   @override
   Widget build(BuildContext context) {

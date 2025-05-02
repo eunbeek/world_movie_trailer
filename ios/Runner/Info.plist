@@ -17,11 +17,11 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.2.0</string>
+    <string>1.2.2</string>
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleVersion</key>
-    <string>51</string>
+    <string>62</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>UILaunchStoryboardName</key>
@@ -63,8 +63,6 @@
         <string>fetch</string>
         <string>remote-notification</string>
     </array>
-    <key>GADApplicationIdentifier</key>
-    <string>ca-app-pub-3506417530430977~1467662431</string>
     <key>SKAdNetworkItems</key>
     <array>
         <dict>
@@ -108,6 +106,7 @@
     <string>alert</string>
     <key>UIRequiresFullScreen</key>
     <true/>
-
+    <key>GADApplicationIdentifier</key>
+    <string>ca-app-pub-3940256099942544~1458002511</string>
 </dict>
 </plist>

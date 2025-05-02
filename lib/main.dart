@@ -45,12 +45,27 @@ void main() async {
   bool isInitialSetting = settingsBox.get('app_settings') == null;
   bool hasBox =  initSettings.countryOrder.contains('box');
 
+  //temporary for box
   if (!hasBox) {
     // Add 'box' to day 1
     initSettings.countryOrder.insert(0, 'box');
 
     // Save the updated settings
     settingsBox.put('app_settings', initSettings);
+  }
+
+  // Move 'china' from Thursday (3) to Friday (4) if present
+  if (initSettings.isNewShown[3]?.containsKey('china') == true) {
+    final thursday = initSettings.isNewShown[3]!;
+    final friday = initSettings.isNewShown[4] ?? {};
+
+    // 복사 후 삭제
+    friday['china'] = thursday['china']!;
+    thursday.remove('china');
+
+    // 변경사항 반영
+    initSettings.isNewShown[3] = thursday;
+    initSettings.isNewShown[4] = friday;
   }
 
   LogHelper();
@@ -222,7 +237,8 @@ Future<void> initializeAlarms(SettingsProvider settingsProvider, bool isInitialS
   // Reset or verify existing alarm states
   final currentAlarms = settingsProvider.isAlarmOn;
   bool hasBox = currentAlarms.values.any((alarmMap) => alarmMap.containsKey('box'));
-  print(currentAlarms);
+  bool hasChinaOnThurs = currentAlarms[4]?.containsKey('china') == true;
+
   // existing user(only 1 time run)
   if(currentAlarms.isEmpty){
     settingsProvider.resetAlarms();
@@ -232,5 +248,21 @@ Future<void> initializeAlarms(SettingsProvider settingsProvider, bool isInitialS
   } else if (!hasBox) {
     // Save the updated settings
     settingsProvider.addAlarmForBoxOffice();
+  }
+
+  if(hasChinaOnThurs) {
+    final wednesday = currentAlarms[4]!;
+    final thursday = currentAlarms[5] ?? {};
+
+    thursday['china'] = wednesday['china']!;
+    wednesday.remove('china');
+
+    currentAlarms[4] = wednesday;
+    currentAlarms[5] = thursday;
+
+    settingsProvider.resetAlarms();
+    await AlarmService().registerDailyAlarms(settingsProvider);
+    await AlarmService().registerReleaseAlarmsFromList(settingsProvider, true);
+    await AlarmService().registerReleaseAlarmsFromList(settingsProvider, false);
   }
 }
