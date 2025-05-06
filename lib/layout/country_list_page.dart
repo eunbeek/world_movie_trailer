@@ -303,16 +303,16 @@ class _CountryListPageState extends State<CountryListPage> with WidgetsBindingOb
                                       ),
                                     ],
                                   ),
-                                  // IconButton(
-                                  //   icon: Image.asset(
-                                  //     settingsProvider.isDarkTheme ? 'assets/images/dark/icon_store_DT_xxhdpi.png' : 'assets/images/light/icon_store_LT_xxhdpi.png',
-                                  //     height: iconSize,
-                                  //     width: iconSize,
-                                  //   ),
-                                  //   onPressed: () {
-                                  //     _unmarkNewOnExit();
-                                  //   },
-                                  // ),
+                                  IconButton(
+                                    icon: Image.asset(
+                                      settingsProvider.isDarkTheme ? 'assets/images/dark/icon_store_DT_xxhdpi.png' : 'assets/images/light/icon_store_LT_xxhdpi.png',
+                                      height: iconSize,
+                                      width: iconSize,
+                                    ),
+                                    onPressed: () {
+                                      _unmarkNewOnExit();
+                                    },
+                                  ),
                                   IconButton(
                                     icon: Image.asset(
                                       settingsProvider.isDarkTheme ? 'assets/images/dark/icon_config_DT_xxhdpi.png' : 'assets/images/light/icon_config_LT_xxhdpi.png',
