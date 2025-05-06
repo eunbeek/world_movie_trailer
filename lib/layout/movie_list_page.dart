@@ -70,6 +70,11 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
   }
 
   void _loadAd() {
+      
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    
+    if (settingsProvider.isAdsFree) return;
+
     _appAdManager.loadAd(
       onAdLoaded: () {},
       onAdFailed: () {}
@@ -77,7 +82,14 @@ class _MovieListPageState extends State<MovieListPage> with SingleTickerProvider
   }
 
   void _showAd(Function onAdDismiss) {
-    print('showAd');
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+
+    if (settingsProvider.isAdsFree) {
+      print('adsFree');
+      onAdDismiss();
+      return;
+    }
+
     _appAdManager.showAdIfAvailable(() {
       onAdDismiss();
     });

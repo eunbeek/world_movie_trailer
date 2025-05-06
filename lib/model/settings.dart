@@ -61,6 +61,9 @@ class Settings extends HiveObject {
   @HiveField(17)
   bool? isMemoAlarmOn;
 
+  @HiveField(18)
+  bool? isAdsFree;
+
   Settings({
     required this.language,
     required this.theme,
@@ -80,6 +83,7 @@ class Settings extends HiveObject {
     this.isDailyAlarmOn,
     this.isBookmarkAlarmOn,
     this.isMemoAlarmOn,
+    this.isAdsFree,
   });
 
   // Factory constructor to create default settings
@@ -139,6 +143,7 @@ class Settings extends HiveObject {
       isDailyAlarmOn: true,
       isBookmarkAlarmOn: true,
       isMemoAlarmOn: true,
+      isAdsFree: false,
     );
   }
 }

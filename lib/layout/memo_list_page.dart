@@ -66,6 +66,9 @@ class _MemoListPageState extends State<MemoListPage> {
   }
 
   void _loadAd() {
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    
+    if (settingsProvider.isAdsFree) return;
     _appAdManager.loadAd(
       onAdLoaded: () {},
       onAdFailed: () {}
@@ -73,7 +76,14 @@ class _MemoListPageState extends State<MemoListPage> {
   }
 
   void _showAd(Function onAdDismiss) {
-    print('showAd');
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+
+    if (settingsProvider.isAdsFree) {
+      print('adsFree');
+      onAdDismiss();
+      return;
+    }
+
     _appAdManager.showAdIfAvailable(() {
       onAdDismiss();
     });
@@ -335,7 +345,7 @@ class _MemoListPageState extends State<MemoListPage> {
                                 onPressed: () async {
                                   // Update the memo in the movie object
                                   var  newMemo = _memoControllers[index]!.text;
-                                  if(newMemo.length >= 300){
+                                  if(!settingsProvider.isAdsFree && newMemo.length >= 300){
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(getMessage(settingsProvider.language, 'maxMemosReached')),

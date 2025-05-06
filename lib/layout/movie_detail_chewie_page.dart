@@ -281,7 +281,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                       showMovieSnackbar('movieDeleted');
                     }
                   }
-                  bool isCount = await MovieByUserService.getIsAvailable(3);
+                  bool isCount = await MovieByUserService.getIsAvailable(3, _settingsProvider);
                   if (!isCount) {
                     showMovieSnackbar('maxMoviesReached');
                     return;
@@ -384,7 +384,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                                       : () async {
                                           String memo = memoController.text;
 
-                                          if (memo.length >= 300) {
+                                          if (!_settingsProvider.isAdsFree && memo.length >= 300) {
                                             showMovieSnackbar('maxMemosReached');
                                           } else {
                                             if (existingMovie != null) {
@@ -394,7 +394,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                                                 showMovieSnackbar('addToMemo');
                                               });
                                             } else {
-                                              if (memo.isNotEmpty && await MovieByUserService.getIsAvailable(4)) {
+                                              if (memo.isNotEmpty && await MovieByUserService.getIsAvailable(4, _settingsProvider)) {
                                                 MovieByUser addMovie = MovieByUser(
                                                   flag: 4,
                                                   movie: widget.movie,

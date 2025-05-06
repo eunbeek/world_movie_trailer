@@ -49,6 +49,8 @@ class SettingsProvider with ChangeNotifier {
 
   bool get isMemoAlarmOn => _settings.isMemoAlarmOn ?? true;
 
+  bool get isAdsFree => _settings.isAdsFree ?? false;
+
   // update & setter
   set language(String newLanguage) {
     print('updateLanguage');
@@ -256,6 +258,13 @@ class SettingsProvider with ChangeNotifier {
       await alarmService.cancelReleaseAlarmsByFlag(false);
     }
 
+    notifyListeners();
+  }
+
+  void updateIsAdsFree(bool adsFree) {
+    print('updateAdsFree');
+    _settings.isAdsFree = adsFree;
+    _saveSettings();
     notifyListeners();
   }
 

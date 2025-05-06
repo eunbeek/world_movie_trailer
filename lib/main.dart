@@ -8,6 +8,7 @@ import 'package:world_movie_trailer/common/ad_manager/interstitial_ad_manager.da
 import 'package:world_movie_trailer/common/background.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/services/alarm_service.dart';
+import 'package:world_movie_trailer/common/services/in_app_purchase_service.dart';
 import 'package:world_movie_trailer/firebase_options.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/layout/country_list_page.dart';
@@ -76,22 +77,27 @@ void main() async {
 
   await initializeDateFormatting();
 
+  final settingsProviderInstance = SettingsProvider(initSettings, isInitialSetting);
+  bool isAdsFree = settingsProviderInstance.isAdsFree;
+
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => SettingsProvider(initSettings, isInitialSetting),
-        ),
+        ChangeNotifierProvider(create: (_) => settingsProviderInstance),
       ],
-      child: MyApp(isInitialSetting: isInitialSetting),
+      child: MyApp(
+        isInitialSetting: isInitialSetting,
+        isAdsFree: isAdsFree,
+      ),
     ),
   );
 }
 
 class MyApp extends StatefulWidget {
   final bool isInitialSetting;
+  final bool isAdsFree;
 
-  const MyApp({super.key, required this.isInitialSetting});
+  const MyApp({super.key, required this.isInitialSetting, required this.isAdsFree});
 
   @override
   _MyAppState createState() => _MyAppState();
@@ -122,6 +128,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+      IapHelper.listenToPurchases(context);
+
       await initializeAlarms(settingsProvider, widget.isInitialSetting);
       settingsProvider.resetOpenCount();
       settingsProvider.updateIsQuotes(!settingsProvider.isQuotes);
@@ -130,6 +138,15 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
   }
 
   void _loadAd() async {
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    
+    if (settingsProvider.isAdsFree) {
+      setState(() {
+        _isAdDismissed = true;
+      });
+      return;
+    }
+
     _appAdManager.loadAd(
       onAdLoaded: () {
         _showAd();
