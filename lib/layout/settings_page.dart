@@ -28,11 +28,11 @@ class SettingsPage extends StatelessWidget {
         settingsProvider.updateBackground(theme);
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor: isSelected ?const Color.fromARGB(255, 110, 14, 127): Colors.transparent,
+        backgroundColor: isSelected ? Color(0xff6750a4): Colors.transparent,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.zero,
           side: BorderSide(
-            color: Color.fromARGB(255, 110, 14, 127),
+            color: Color(0xff6750a4),
             width: 1.0,
           ),
         ),

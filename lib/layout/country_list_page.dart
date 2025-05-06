@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/layout/box_office_list_page.dart';
+import 'package:world_movie_trailer/layout/donation_page.dart';
 import 'package:world_movie_trailer/layout/memo_list_page.dart';
 import 'package:world_movie_trailer/layout/movie_by_user_list_page.dart';
 import 'package:world_movie_trailer/layout/movie_list_page.dart';
@@ -311,6 +312,13 @@ class _CountryListPageState extends State<CountryListPage> with WidgetsBindingOb
                                     ),
                                     onPressed: () {
                                       _unmarkNewOnExit();
+                                      LogHelper().logEvent('shop_clicked');
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => DonationPage(),
+                                        ),
+                                      );
                                     },
                                   ),
                                   IconButton(

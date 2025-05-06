@@ -413,6 +413,99 @@ Map<String, Map<String, String>> settingLabel = {
   },
 };
 
+Map<String, Map<String, String>> donateLabels = {
+  'ko': {
+    'donate': '기부하기',
+    'donateRemoveAds': '기부하고 광고 제거',
+    'donateDesc':
+        '작은 기부는 개발팀에 큰 힘이 됩니다. 기부 해 주시면 광고를 완전히 제거 해 드리겠습니다. 항상 감사합니다.',
+    'trailerAdNotice':
+        '* 예고편 동영상 내의 영화사가 넣은 광고는 저희들에게 책임이 없고 컨트롤 할 수 없음을 미리 말씀 드립니다.',
+    'restorePurchase': '이전 구매 복원',
+  },
+  'en': {
+    'donate': 'Donate',
+    'donateRemoveAds': 'Donate and Remove Ads',
+    'donateDesc':
+        'A small donation gives great support to our development team. If you donate, all ads will be completely removed. Thank you always.',
+    'trailerAdNotice':
+        '* Please note that we are not responsible for and cannot control the ads inserted by film distributors within trailer videos.',
+    'restorePurchase': 'Restore the Previous Purchase',
+  },
+  'ja': {
+    'donate': '寄付する',
+    'donateRemoveAds': '寄付して広告を削除',
+    'donateDesc':
+        '小さなご支援でも開発チームにとって大きな力になります。ご寄付いただければ、広告を完全に削除いたします。いつもありがとうございます。',
+    'trailerAdNotice':
+        '* 予告編動画内の映画会社による広告については、当方では責任を負えず、制御もできないことをあらかじめご了承ください。',
+    'restorePurchase': '過去の購入を復元',
+  },
+  'zh': {
+    'donate': '捐赠',
+    'donateRemoveAds': '捐赠并移除广告',
+    'donateDesc':
+        '您的小额捐赠对我们的开发团队来说是巨大的支持。捐赠后，我们将完全移除所有广告。一直以来感谢您的支持！',
+    'trailerAdNotice':
+        '* 请注意，预告片视频中的广告由电影公司插入，我们无法控制，也不对此负责。',
+    'restorePurchase': '恢复之前的购买',
+  },
+  'tw': {
+    'donate': '捐贈',
+    'donateRemoveAds': '捐贈並移除廣告',
+    'donateDesc':
+        '您的小額捐贈對我們的開發團隊來說是莫大的支持。捐贈後，我們將完全移除所有廣告。一直以來感謝您的支持！',
+    'trailerAdNotice':
+        '* 請注意，預告片影片中的廣告由電影公司加入，我們無法控制，亦不負責。',
+    'restorePurchase': '恢復之前的購買',
+  },
+  'fr': {
+    'donate': 'Faire un don',
+    'donateRemoveAds': 'Faire un don et supprimer les publicités',
+    'donateDesc':
+        'Un petit don représente un grand soutien pour notre équipe de développement. Si vous faites un don, toutes les publicités seront entièrement supprimées. Merci infiniment pour votre soutien constant.',
+    'trailerAdNotice':
+        '* Veuillez noter que nous ne sommes pas responsables des publicités insérées par les distributeurs dans les bandes-annonces, et nous ne pouvons pas les contrôler.',
+    'restorePurchase': 'Restaurer les achats précédents',
+  },
+  'de': {
+    'donate': 'Spende',
+    'donateRemoveAds': 'Spenden und Werbung entfernen',
+    'donateDesc':
+        'Eine kleine Spende ist eine große Unterstützung für unser Entwicklungsteam. Wenn Sie spenden, werden alle Werbeanzeigen vollständig entfernt. Vielen Dank für Ihre anhaltende Unterstützung.',
+    'trailerAdNotice':
+        '* Bitte beachten Sie, dass wir keine Verantwortung für Werbung übernehmen können, die von Filmverleihern in Trailer-Videos eingefügt wird, und wir haben darauf keinen Einfluss.',
+    'restorePurchase': 'Frühere Käufe wiederherstellen',
+  },
+  'es': {
+    'donate': 'Donar',
+    'donateRemoveAds': 'Donar y eliminar anuncios',
+    'donateDesc':
+        'Una pequeña donación es un gran apoyo para nuestro equipo de desarrollo. Si realizas una donación, eliminaremos por completo todos los anuncios. Muchas gracias por tu apoyo constante.',
+    'trailerAdNotice':
+        '* Tenga en cuenta que no somos responsables de los anuncios insertados por las distribuidoras en los videos de tráileres y no tenemos control sobre ellos.',
+    'restorePurchase': 'Restaurar compras anteriores',
+  },
+  'hi': {
+    'donate': 'दान करें',
+    'donateRemoveAds': 'दान करें और विज्ञापन हटाएँ',
+    'donateDesc':
+        'आपका छोटा सा दान हमारी डेवलपमेंट टीम के लिए बहुत बड़ी मदद है। यदि आप दान करते हैं, तो हम सभी विज्ञापनों को पूरी तरह से हटा देंगे। हमेशा समर्थन करने के लिए धन्यवाद।',
+    'trailerAdNotice':
+        '* कृपया ध्यान दें कि ट्रेलर वीडियो में फ़िल्म कंपनियों द्वारा डाले गए विज्ञापनों के लिए हम ज़िम्मेदार नहीं हैं और न ही हम उन्हें नियंत्रित कर सकते हैं।',
+    'restorePurchase': 'पिछली खरीदारी पुनर्स्थापित करें',
+  },
+  'th': {
+    'donate': 'บริจาค',
+    'donateRemoveAds': 'บริจาคและลบโฆษณา',
+    'donateDesc':
+        'การบริจาคเล็กน้อยคือกำลังใจที่ยิ่งใหญ่สำหรับทีมพัฒนาของเรา หากคุณบริจาค เราจะลบโฆษณาทั้งหมดออกอย่างถาวร ขอบคุณสำหรับการสนับสนุนเสมอมาค่ะ/ครับ',
+    'trailerAdNotice':
+        '* โปรดทราบว่าเราจะไม่รับผิดชอบและไม่สามารถควบคุมโฆษณาที่แทรกโดยบริษัทภาพยนตร์ในวิดีโอตัวอย่างได้',
+    'restorePurchase': 'กู้คืนการซื้อก่อนหน้านี้',
+  },
+};
+
 final Map<int, List<String>> countryByDay = {
   1: ['box', 'korea'],          // Monday
   2: ['japan'],          // Tuesday
