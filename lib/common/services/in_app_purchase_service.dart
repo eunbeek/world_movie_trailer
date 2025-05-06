@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:provider/provider.dart';
@@ -5,7 +6,11 @@ import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 
 class IapHelper {
   static final _iap = InAppPurchase.instance;
-  static const _productId = 'com.sunnyinnolab.worldMovieTrailer.ads_free';
+
+  static String get _productId =>
+      Platform.isIOS
+          ? 'com.sunnyinnolab.worldMovieTrailer.ads_free'
+          : 'com.sunnyinnolab.worldmovietrailer.ads_free';
 
   static Future<void> buyProduct(BuildContext context) async {
     final response = await _iap.queryProductDetails({_productId});
@@ -29,7 +34,8 @@ class IapHelper {
 
       for (var purchase in purchases) {
         if (purchase.productID == _productId &&
-            (purchase.status == PurchaseStatus.purchased || purchase.status == PurchaseStatus.restored)) {
+            (purchase.status == PurchaseStatus.purchased ||
+             purchase.status == PurchaseStatus.restored)) {
           settingsProvider.updateIsAdsFree(true);
           break;
         }

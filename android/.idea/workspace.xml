@@ -6,21 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="eacff591-ea90-4d37-8fb1-bec3ae33478c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/app/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../functions/tmdb.js" beforeDir="false" afterPath="$PROJECT_DIR$/../functions/tmdb.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ios/Podfile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../ios/Podfile.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ios/Runner.xcodeproj/project.pbxproj" beforeDir="false" afterPath="$PROJECT_DIR$/../ios/Runner.xcodeproj/project.pbxproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../ios/Runner/Info.plist" beforeDir="false" afterPath="$PROJECT_DIR$/../ios/Runner/Info.plist" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/common/ad_helper.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/common/ad_helper.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/common/ad_manager/rewarded_ad_manager.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/common/ad_manager/rewarded_ad_manager.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/common/constants.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/common/constants.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/common/translate.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/common/translate.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/layout/country_list_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/layout/country_list_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/layout/credits_list_apge.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/layout/credits_list_apge.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/layout/memo_list_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/layout/memo_list_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/layout/movie_by_user_list_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/layout/movie_by_user_list_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/layout/movie_detail_chewie_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/layout/movie_detail_chewie_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/layout/movie_detail_page.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/layout/movie_detail_youtube_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/layout/movie_detail_youtube_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/layout/movie_list_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/layout/movie_list_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/main.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/../pubspec.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -28,7 +18,7 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[/Users/ekim/.android/avd/Galaxy_S_23_API_34.avd]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[/Users/ekim/.android/avd/Nexus_S_API_35.avd]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
