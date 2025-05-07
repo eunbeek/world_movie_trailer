@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive/hive.dart';
 import 'package:world_movie_trailer/common/services/alarm_service.dart';
 import 'package:world_movie_trailer/model/settings.dart';

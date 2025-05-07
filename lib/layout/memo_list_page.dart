@@ -23,8 +23,8 @@ class MemoListPage extends StatefulWidget {
 
 class _MemoListPageState extends State<MemoListPage> {
   List<MovieByUser> allMovies = [];
-  Map<int, TextEditingController> _memoControllers = {}; // Store controllers by index
-  Map<int, ScrollController> _scrollController = {};
+  final Map<int, TextEditingController> _memoControllers = {}; // Store controllers by index
+  final Map<int, ScrollController> _scrollController = {};
   bool fetchComplete = false;
   late InterstitialAdManager _appAdManager;
 
@@ -159,7 +159,6 @@ class _MemoListPageState extends State<MemoListPage> {
         final movie = movies[index];
          
          _memoControllers[index] = TextEditingController(text: '${movie.memo}\r\n');
-;
         if (!_scrollController.containsKey(index)) {
           _scrollController[index] = ScrollController();
         }

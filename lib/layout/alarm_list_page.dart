@@ -189,7 +189,7 @@ class AlarmListPage extends StatelessWidget {
   /// Builds a single country list tile with alarm toggle.
   Widget _buildCountryListTile(BuildContext context, SettingsProvider settingsProvider, String countryKey) {
     final localizedCountryName = localizedCountries[settingsProvider.language]?[countryKey] ?? countryKey;
-    bool isSwitchValue = settingsProvider.isAlarmOn?.values.any((countryMap) => countryMap[countryKey] == true) ??
+    bool isSwitchValue = settingsProvider.isAlarmOn.values.any((countryMap) => countryMap[countryKey] == true) ??
     false; // 초기 값을 설정
     return ListTile(
       title: Text(
@@ -221,7 +221,7 @@ class AlarmListPage extends StatelessWidget {
 
   /// Toggles the alarm for the specified country across all days.
   void _toggleCountryAlarms(SettingsProvider settingsProvider, String countryKey, bool isOn) {
-    settingsProvider.isAlarmOn?.forEach((day, countryMap) {
+    settingsProvider.isAlarmOn.forEach((day, countryMap) {
       if (countryMap.containsKey(countryKey)) {
         settingsProvider.updateAlarmForCountryByDay(day, countryKey, isOn);
       }

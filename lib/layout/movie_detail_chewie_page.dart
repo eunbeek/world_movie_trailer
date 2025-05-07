@@ -441,7 +441,7 @@ class _MovieDetailPageChewieState extends State<MovieDetailPageChewie> {
                 iconSize: iconSize,
                 onPressed: () => {
                   Share.share(
-                    '${widget.movie.trailerUrl}',
+                    widget.movie.trailerUrl,
                     subject: 'Share ${widget.movie.localTitle} Movie Trailer',
                     sharePositionOrigin: Rect.fromLTWH(0, 0, MediaQuery.of(context).size.width, MediaQuery.of(context).size.height / 2),
                   )

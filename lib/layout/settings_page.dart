@@ -7,7 +7,6 @@ import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
-import 'package:intl/intl.dart';
 import 'package:world_movie_trailer/layout/alarm_list_page.dart';
 import 'package:world_movie_trailer/layout/credits_list_apge.dart';
 import 'package:world_movie_trailer/layout/open_source_list_page.dart';
