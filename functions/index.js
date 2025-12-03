@@ -16,7 +16,7 @@ const {fetchRunningFromDouban, fetchUpcomingFromDouban} = require("./movie_cn");
 const {fetchMovieInSpecialSection} = require("./movie_special");
 const {fetchQuotesInSpecialSection} = require("./quote_special");
 const {fetchMovieListFromMojo} = require("./movie_box_office");
-const {processBatch, saveMoviesAsJson, saveQuotesAsJson, updateMovieTrailer, deleteMovieByManual, updatePromotionUrl} = require("./utils");
+const {processBatch, saveMoviesAsJson, saveQuotesAsJson, updateMovieTrailer, deleteMovieByManual, updatePromotionUrl, processBatchForSpecial} = require("./utils");
 
 admin.initializeApp();
 
@@ -70,7 +70,7 @@ exports.fetchMovieListJP = functions
       const runningMovies = await fetchRunningFromEIGA();
       const allMovies = [...runningMovies];
 
-      const moviesWithTrailer = await processBatch("ja-JP", allMovies, processedCount, startTime, true);
+      const moviesWithTrailer = await processBatch("ja-JP", allMovies, processedCount, startTime);
 
       await saveMoviesAsJson("jp", moviesWithTrailer);
 
@@ -173,7 +173,7 @@ exports.fetchMovieListDE = functions
 
       const allMovies = await fetchMovieListFromTMDBByDE();
 
-      const moviesWithDetails = await processBatch("de-DE", allMovies, processedCount, startTime);
+      const moviesWithDetails = await processBatch("de-DE", allMovies, processedCount, startTime, true);
 
       await saveMoviesAsJson("de", moviesWithDetails);
 
@@ -364,7 +364,7 @@ exports.fetchMovieListSpecial = functions
 
       const specialMovies = await fetchMovieInSpecialSection();
 
-      const moviesWithTrailer = await processBatch("en-US", specialMovies, processedCount, startTime, true, true);
+      const moviesWithTrailer = await processBatchForSpecial("en-US", specialMovies, processedCount, startTime);
 
       await saveMoviesAsJson("special", moviesWithTrailer);
 
@@ -437,10 +437,8 @@ exports.testFetchMovieListKR = functions.runWith({timeoutSeconds: 540}).https.on
     const startTime = Date.now();
 
     const lotteMovies = await fetchMovieListFromLotte();
-    // const lotteMovies = [];
     const cgvMovies = await fetchMovieListFromCgv(lotteMovies);
     const allMovies = [...lotteMovies, ...cgvMovies];
-    // const allMovies = cgvMovies.slice(0, 1);
 
     console.log(`lotte : ${lotteMovies.length} cgv: ${cgvMovies.length}`);
     const moviesWithTrailer = await processBatch("ko-KR", allMovies, processedCount, startTime);
@@ -454,8 +452,8 @@ exports.testFetchMovieListKR = functions.runWith({timeoutSeconds: 540}).https.on
       success: true,
       timestamp,
       country: "KR",
-      movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movieCount: allMovies.length,
+      movies: allMovies,
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -479,7 +477,7 @@ exports.testFetchMovieListJP = functions.runWith({timeoutSeconds: 540}).https.on
     const runningMovies = await fetchRunningFromEIGA();
     const allMovies = [...runningMovies];
 
-    const moviesWithTrailer = await processBatch("ja-JP", allMovies, processedCount, startTime, true);
+    const moviesWithTrailer = await processBatch("ja-JP", allMovies, processedCount, startTime);
 
     await saveMoviesAsJson("jp", moviesWithTrailer);
 
@@ -490,8 +488,8 @@ exports.testFetchMovieListJP = functions.runWith({timeoutSeconds: 540}).https.on
       success: true,
       timestamp,
       country: "JP",
-      movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movieCount: allMovies.length,
+      movies: allMovies,
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -526,8 +524,8 @@ exports.testFetchMovieListCA = functions.runWith({timeoutSeconds: 540}).https.on
       success: true,
       timestamp,
       country: "CA",
-      movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movieCount: allMovies.length,
+      movies: allMovies,
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -594,8 +592,8 @@ exports.testFetchMovieListFR = functions.runWith({timeoutSeconds: 540}).https.on
       success: true,
       timestamp,
       country: "FR",
-      movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movieCount: allMovies.length,
+      movies: allMovies,
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -619,7 +617,7 @@ exports.testFetchMovieListDE = functions.runWith({timeoutSeconds: 540}).https.on
     const allMovies = await fetchMovieListFromTMDBByDE();
 
     console.log(`Traumpalast Movies: ${allMovies.length}`);
-    const moviesWithTrailer = await processBatch("de-DE", allMovies, processedCount, startTime);
+    const moviesWithTrailer = await processBatch("de-DE", allMovies, processedCount, startTime, true);
 
     await saveMoviesAsJson("de", moviesWithTrailer);
 
@@ -630,8 +628,8 @@ exports.testFetchMovieListDE = functions.runWith({timeoutSeconds: 540}).https.on
       success: true,
       timestamp,
       country: "DE",
-      movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movieCount: allMovies.length,
+      movies: allMovies,
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -666,8 +664,8 @@ exports.testFetchMovieListUS = functions.runWith({timeoutSeconds: 540}).https.on
       success: true,
       timestamp,
       country: "US",
-      movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movieCount: allMovies.length,
+      movies: allMovies,
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -702,8 +700,8 @@ exports.testFetchMovieListTH = functions.runWith({timeoutSeconds: 540}).https.on
       success: true,
       timestamp,
       country: "TH",
-      movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movieCount: allMovies.length,
+      movies: allMovies,
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -738,8 +736,8 @@ exports.testFetchMovieListAU = functions.runWith({timeoutSeconds: 540}).https.on
       success: true,
       timestamp,
       country: "AU",
-      movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movieCount: allMovies.length,
+      movies: allMovies,
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -810,8 +808,8 @@ exports.testFetchMovieListIN = functions.runWith({timeoutSeconds: 540}).https.on
       success: true,
       timestamp,
       country: "IN",
-      movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movieCount: allMovies.length,
+      movies: allMovies,
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -848,8 +846,8 @@ exports.testFetchMovieListCN = functions.runWith({timeoutSeconds: 540}).https.on
       success: true,
       timestamp,
       country: "CN",
-      movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movieCount: allMovies.length,
+      movies: allMovies,
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -872,7 +870,7 @@ exports.testFetchMovieListSpecial = functions.runWith({timeoutSeconds: 540}).htt
 
     const specialMovies = await fetchMovieInSpecialSection();
 
-    const moviesWithTrailer = await processBatch("en-US", specialMovies, processedCount, startTime, true, true);
+    const moviesWithTrailer = await processBatchForSpecial("en-US", specialMovies, processedCount, startTime);
 
     await saveMoviesAsJson("special", moviesWithTrailer);
 
@@ -949,8 +947,8 @@ exports.testFetchMovieListBoxOffice = functions.runWith({timeoutSeconds: 540}).h
       success: true,
       timestamp,
       country: "Box-Office",
-      movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movieCount: allMovies.length,
+      movies: allMovies,
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -1100,6 +1098,65 @@ exports.readPromotionUrl = functions.https.onRequest((req, res) => {
       res.status(200).json(url);
     } catch (error) {
       console.error("Error reading url:", error);
+      res.status(500).json({success: false, error: error.message});
+    }
+  });
+});
+
+exports.updateHotFixMode = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    const {hotFixMode} = req.body;
+
+    if (typeof hotFixMode !== "boolean") {
+      return res.status(400).json({success: false, message: "Missing or invalid hotFixMode (must be boolean)."});
+    }
+
+    try {
+      const bucket = admin.storage().bucket();
+      const file = bucket.file("hotFixMode.json");
+
+      const exists = await file.exists();
+      if (!exists[0]) {
+        return res.status(404).json({success: false, message: "File not found."});
+      }
+
+      const contentBuffer = await file.download();
+      const jsonData = JSON.parse(contentBuffer.toString());
+
+      // Update hotFixMode only
+      jsonData.hotFixMode = hotFixMode;
+
+      await file.save(JSON.stringify(jsonData), {
+        contentType: "application/json",
+      });
+
+      res.status(200).json({success: true, message: "hotFixMode updated.", hotFixMode});
+    } catch (error) {
+      console.error("Error updating hotFixMode:", error);
+      res.status(500).json({success: false, error: error.message});
+    }
+  });
+});
+
+exports.readHotFixMode = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    try {
+      const bucket = admin.storage().bucket();
+      const file = bucket.file("hotFixMode.json");
+
+      const exists = await file.exists();
+      if (!exists[0]) {
+        return res.status(404).json({success: false, message: "File not found."});
+      }
+
+      const contentBuffer = await file.download();
+      const jsonData = JSON.parse(contentBuffer.toString());
+
+      const hotFixMode = jsonData.hotFixMode;
+
+      res.status(200).json({success: true, hotFixMode});
+    } catch (error) {
+      console.error("Error reading hotFixMode:", error);
       res.status(500).json({success: false, error: error.message});
     }
   });

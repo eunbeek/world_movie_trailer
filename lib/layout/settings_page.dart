@@ -7,7 +7,6 @@ import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
-import 'package:intl/intl.dart';
 import 'package:world_movie_trailer/layout/alarm_list_page.dart';
 import 'package:world_movie_trailer/layout/credits_list_apge.dart';
 import 'package:world_movie_trailer/layout/open_source_list_page.dart';
@@ -28,11 +27,11 @@ class SettingsPage extends StatelessWidget {
         settingsProvider.updateBackground(theme);
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor: isSelected ?const Color.fromARGB(255, 110, 14, 127): Colors.transparent,
+        backgroundColor: isSelected ? Color(0xff6750a4): Colors.transparent,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.zero,
           side: BorderSide(
-            color: Color.fromARGB(255, 110, 14, 127),
+            color: Color(0xff6750a4),
             width: 1.0,
           ),
         ),
@@ -408,7 +407,7 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ),
                   trailing: Text(
-                    'v 1.2.2',
+                    appVersion,
                     style: TextStyle(
                       fontSize: MediaQuery.of(context).size.height * 0.02,
                     ),

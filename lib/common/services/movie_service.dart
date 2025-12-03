@@ -291,4 +291,21 @@ class MovieService {
       return '';
     }
   }
+
+  static Future<bool> fetchHotFixMode() async {
+    try {
+      print('Fetching hotFixMode from Firebase Storage...');
+      final ref = FirebaseStorage.instance.ref().child('hotFixMode.json');
+      final data = await ref.getData();
+      final jsonString = utf8.decode(data!);
+
+      final Map<String, dynamic> jsonData = json.decode(jsonString);
+      final bool hotFixMode = jsonData['hotFixMode'] ?? false;
+
+      return hotFixMode;
+    } catch (e) {
+      print('Error reading hotFixMode: $e');
+      return false;
+    }
+  }
 }

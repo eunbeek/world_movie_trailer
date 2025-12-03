@@ -4,10 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:uuid/uuid.dart';
 import 'package:world_movie_trailer/common/ad_manager/interstitial_ad_manager.dart';
 import 'package:world_movie_trailer/common/background.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/services/alarm_service.dart';
+import 'package:world_movie_trailer/common/services/in_app_purchase_service.dart';
 import 'package:world_movie_trailer/firebase_options.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/layout/country_list_page.dart';
@@ -68,30 +70,43 @@ void main() async {
     initSettings.isNewShown[4] = friday;
   }
 
+  if (!isInitialSetting) {
+    updateUserIdIfNeeded();  // 기존 사용자라면 userId를 새로 생성하여 저장
+  }
+
   LogHelper();
 
   final alarmService = AlarmService();
   await alarmService.initialize();
-  await alarmService.requestPermission();
-
+  
   await initializeDateFormatting();
+
+  final settingsProviderInstance = SettingsProvider(initSettings, isInitialSetting);
+  // 신규 유저일 경우 notification permission request
+  if(isInitialSetting){
+    await alarmService.requestPermission(settingsProviderInstance);
+  }
+
+  bool isAdsFree = settingsProviderInstance.isAdsFree;
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => SettingsProvider(initSettings, isInitialSetting),
-        ),
+        ChangeNotifierProvider(create: (_) => settingsProviderInstance),
       ],
-      child: MyApp(isInitialSetting: isInitialSetting),
+      child: MyApp(
+        isInitialSetting: isInitialSetting,
+        isAdsFree: isAdsFree,
+      ),
     ),
   );
 }
 
 class MyApp extends StatefulWidget {
   final bool isInitialSetting;
+  final bool isAdsFree;
 
-  const MyApp({super.key, required this.isInitialSetting});
+  const MyApp({super.key, required this.isInitialSetting, required this.isAdsFree});
 
   @override
   _MyAppState createState() => _MyAppState();
@@ -122,6 +137,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+      IapHelper.listenToPurchases(context);
+
       await initializeAlarms(settingsProvider, widget.isInitialSetting);
       settingsProvider.resetOpenCount();
       settingsProvider.updateIsQuotes(!settingsProvider.isQuotes);
@@ -130,6 +147,15 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
   }
 
   void _loadAd() async {
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    
+    if (settingsProvider.isAdsFree) {
+      setState(() {
+        _isAdDismissed = true;
+      });
+      return;
+    }
+
     _appAdManager.loadAd(
       onAdLoaded: () {
         _showAd();
@@ -264,5 +290,21 @@ Future<void> initializeAlarms(SettingsProvider settingsProvider, bool isInitialS
     await AlarmService().registerDailyAlarms(settingsProvider);
     await AlarmService().registerReleaseAlarmsFromList(settingsProvider, true);
     await AlarmService().registerReleaseAlarmsFromList(settingsProvider, false);
+  }
+}
+
+void updateUserIdIfNeeded() async {
+  var settingsBox = await Hive.openBox<Settings>('settings');
+  Settings? currentSettings = settingsBox.get('app_settings');
+  
+  // If userId is empty, generate a new one
+  if (currentSettings != null && (currentSettings.userId == null || currentSettings.userId!.isEmpty)) {
+    var uuid = Uuid();
+    String newUserId = uuid.v4(); // 새 UUID 생성
+
+    currentSettings.userId = newUserId; // userId 업데이트
+    settingsBox.put('app_settings', currentSettings); // 변경된 설정을 Hive에 저장
+
+    print("Generated new userId: $newUserId");
   }
 }

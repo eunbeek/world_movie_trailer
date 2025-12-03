@@ -1,5 +1,6 @@
 // main
 const appTitle = "World Movie Trailer";
+const appVersion = "v 1.3.3";
 
 // settings_provider
 const supportedLanguages = ['en', 'ko', 'ja', 'zh', 'tw', 'fr', 'de', 'es', 'hi', 'th'];
@@ -411,6 +412,118 @@ Map<String, Map<String, String>> settingLabel = {
     'credits': 'ทีมงานสร้างแอป',
     'opensource': 'ข้อมูลโอเพ่นซอร์ส'
   },
+};
+Map<String, Map<String, String>> donateLabels = {
+  "ko": {
+    "donate": "업그레이드",
+    "donateRemoveAds": "프리미엄으로 업그레이드",
+    "donateDesc": "광고를 제거하고 더 많은 기능을 사용하세요. 앱 내 광고를 모두 제거하고, 메모와 북마크를 무제한으로 이용할 수 있습니다.",
+    "trailerAdNotice": "예고편 동영상 내의 영화사가 넣은 광고는 저희들에게 책임이 없고 컨트롤 할 수 없음을 미리 말씀 드립니다.",
+    "restorePurchase": "이전 구매 복원",
+    "donateComplete": "구매완료",
+    "cancelDonation": "결제가 취소 되었습니다.",
+    "pending": "결제가 처리 중입니다. 잠시 후 다시 시도해주세요.",
+    "retry": "결제 중 오류가 발생했습니다. 다시 시도해주세요."
+  },
+  "en": {
+    "donate": "Upgrade",
+    "donateRemoveAds": "Upgrade to Premium",
+    "donateDesc": "Remove Ads and Unlock More. Upgrade to remove all in-app ads and enjoy unlimited memos and bookmarks.",
+    "trailerAdNotice": "Please note that we are not responsible for and cannot control the ads inserted by film distributors within trailer videos.",
+    "restorePurchase": "Restore the Previous Purchase",
+    "donateComplete": "Purchase Completed",
+    "cancelDonation": "The payment has been canceled.",
+    "pending": "The payment is being processed. Please try again shortly.",
+    "retry": "An error occurred during the purchase. Please try again."
+  },
+  "ja": {
+    "donate": "アップグレード",
+    "donateRemoveAds": "プレミアムにアップグレード",
+    "donateDesc": "広告を削除して、より多くの機能を利用しましょう。アプリ内広告をすべて削除し、メモとブックマークを無制限にご利用いただけます。",
+    "trailerAdNotice": "予告編動画内の映画会社による広告については、当方では責任を負えず、制御もできないことをあらかじめご了承ください。",
+    "restorePurchase": "過去の購入を復元",
+    "donateComplete": "購入完了",
+    "cancelDonation": "支払いがキャンセルされました。",
+    "pending": "お支払いを処理中です。しばらくしてから再度お試しください。",
+    "retry": "購入中にエラーが発生しました。もう一度お試しください。"
+  },
+  "zh": {
+    "donate": "升级",
+    "donateRemoveAds": "升级到高级版",
+    "donateDesc": "移除广告，解锁更多功能。升级以移除所有应用内广告，畅享无限备忘录和书签功能。",
+    "trailerAdNotice": "请注意，预告片视频中的广告由电影公司插入，我们无法控制，也不对此负责。",
+    "restorePurchase": "恢复之前的购买",
+    "donateComplete": "购买完成",
+    "cancelDonation": "付款已取消。",
+    "pending": "付款正在处理中。请稍后再试。",
+    "retry": "付款时发生错误。请再试一次。"
+  },
+  "tw": {
+    "donate": "升級",
+    "donateRemoveAds": "升級到高級版",
+    "donateDesc": "移除廣告，解鎖更多功能。升級即可移除所有應用內廣告，盡情使用無限備忘錄與書籤功能。",
+    "trailerAdNotice": "請注意，預告片影片中的廣告由電影公司加入，我們無法控制，亦不負責。",
+    "restorePurchase": "恢復之前的購買",
+    "donateComplete": "購買完成",
+    "cancelDonation": "付款已取消。",
+    "pending": "付款處理中。請稍後再試。",
+    "retry": "付款時發生錯誤。請再試一次。"
+  },
+  "fr": {
+    "donate": "Mettre à niveau",
+    "donateRemoveAds": "Passez à la version Premium",
+    "donateDesc": "Supprimez les publicités et débloquez plus de fonctionnalités. Passez à la version Premium pour supprimer toutes les publicités intégrées et profiter de mémos et de favoris illimités.",
+    "trailerAdNotice": "Veuillez noter que nous ne sommes pas responsables des publicités insérées par les distributeurs dans les bandes-annonces, et nous ne pouvons pas les contrôler.",
+    "restorePurchase": "Restaurer les achats précédents",
+    "donateComplete": "Achat terminé",
+    "cancelDonation": "Le paiement a été annulé.",
+    "pending": "Le paiement est en cours de traitement. Veuillez réessayer dans un instant.",
+    "retry": "Une erreur s'est produite lors du paiement. Veuillez réessayer."
+  },
+  "de": {
+    "donate": "Upgrade durchführen",
+    "donateRemoveAds": "Auf Premium upgraden",
+    "donateDesc": "Werbung entfernen und mehr Funktionen freischalten. Führen Sie ein Upgrade durch, um alle In-App-Werbeanzeigen zu entfernen und unbegrenzte Memos und Lesezeichen zu nutzen.",
+    "trailerAdNotice": "Bitte beachten Sie, dass wir keine Verantwortung für Werbung übernehmen können, die von Filmverleihern in Trailer-Videos eingefügt wird, und wir haben darauf keinen Einfluss.",
+    "restorePurchase": "Frühere Käufe wiederherstellen",
+    "donateComplete": "Kauf abgeschlossen",
+    "cancelDonation": "Die Zahlung wurde storniert.",
+    "pending": "Die Zahlung wird verarbeitet. Bitte versuchen Sie es in Kürze erneut.",
+    "retry": "Beim Kauf ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
+  },
+  "es": {
+    "donate": "Actualizar",
+    "donateRemoveAds": "Actualizar a Premium",
+    "donateDesc": "Elimina los anuncios y desbloquea más funciones. Actualiza para eliminar todos los anuncios integrados en la app y disfruta de notas y marcadores ilimitados.",
+    "trailerAdNotice": "Tenga en cuenta que no somos responsables de los anuncios insertados por las distribuidoras en los videos de tráileres y no tenemos control sobre ellos.",
+    "restorePurchase": "Restaurar compras anteriores",
+    "donateComplete": "Compra completada",
+    "cancelDonation": "El pago ha sido cancelado.",
+    "pending": "El pago está siendo procesado. Intenta nuevamente en unos momentos.",
+    "retry": "Ocurrió un error durante la compra. Inténtalo de nuevo."
+  },
+  "hi": {
+    "donate": "अपग्रेड करें",
+    "donateRemoveAds": "प्रीमियम में अपग्रेड करें",
+    "donateDesc": "विज्ञापन हटाएं और अधिक सुविधाएं अनलॉक करें। सभी इन-ऐप विज्ञापनों को हटाने और असीमित मेमो और बुकमार्क का आनंद लेने के लिए अपग्रेड करें।",
+    "trailerAdNotice": "कृपया ध्यान दें कि ट्रेलर वीडियो में फ़िल्म कंपनियों द्वारा डाले गए विज्ञापनों के लिए हम ज़िम्मेदार नहीं हैं और न ही हम उन्हें नियंत्रित कर सकते हैं।",
+    "restorePurchase": "पिछली खरीदारी पुनर्स्थापित करें",
+    "donateComplete": "खरीदारी पूर्ण हुई",
+    "cancelDonation": "भुगतान रद्द कर दिया गया है।",
+    "pending": "भुगतान प्रक्रिया में है। कृपया थोड़ी देर बाद पुनः प्रयास करें।",
+    "retry": "खरीद के दौरान एक त्रुटि हुई। कृपया पुनः प्रयास करें।"
+  },
+  "th": {
+    "donate": "อัปเกรด",
+    "donateRemoveAds": "อัปเกรดเป็นพรีเมียม",
+    "donateDesc": "ลบโฆษณาและปลดล็อกฟีเจอร์เพิ่มเติม อัปเกรดเพื่อลบโฆษณาทั้งหมดในแอป และเพลิดเพลินกับการใช้บันทึกและที่คั่นหน้าได้ไม่จำกัด",
+    "trailerAdNotice": "โปรดทราบว่าเราจะไม่รับผิดชอบและไม่สามารถควบคุมโฆษณาที่แทรกโดยบริษัทภาพยนตร์ในวิดีโอตัวอย่างได้",
+    "restorePurchase": "กู้คืนการซื้อก่อนหน้านี้",
+    "donateComplete": "การซื้อเสร็จสมบูรณ์แล้ว",
+    "cancelDonation": "การชำระเงินถูกยกเลิกแล้ว",
+    "pending": "กำลังดำเนินการชำระเงิน กรุณาลองใหม่อีกครั้งในภายหลัง",
+    "retry": "เกิดข้อผิดพลาดระหว่างการซื้อ กรุณาลองใหม่อีกครั้ง"
+  }
 };
 
 final Map<int, List<String>> countryByDay = {
@@ -1310,4 +1423,68 @@ const Map<String, Map<String, String>> movieDetailTranslations = {
     'th': 'นาที',
     'en': 'minutes',
   },
+};
+
+const Map<String, Map<String, String>> permissionLabels = {
+  'permissionRequired': {
+    'ko': '알림 권한 필요',
+    'en': 'Notification permission required',
+    'ja': '通知の許可が必要です。',
+    'zh': '需要通知权限',
+    'tw': '需要通知權限',
+    'fr': 'Autorisation de notification requise',
+    'de': 'Benachrichtigungsberechtigung erforderlich',
+    'es': 'Se requiere permiso de notificación',
+    'hi': 'अधिसूचना की अनुमति आवश्यक है',
+    'th': 'ต้องการสิทธิ์การแจ้งเตือน',
+  },
+  'permissionDesc': {
+    'ko': '알림 기능을 사용하려면 알림 권한을 허용해 주세요. 설정으로 이동하시겠습니까?',
+    'en': 'To use notifications, please allow notification permission. Would you like to go to Settings?',
+    'ja': '通知機能を使用するには、通知の許可が必要です。 設定に移動しますか？',
+    'zh': '要使用通知功能，请允许通知权限。 要前往设置吗？',
+    'tw': '要使用通知功能，請允許通知權限。 要前往設定嗎？',
+    'fr': 'Pour activer les notifications, veuillez autoriser les notifications. Voulez-vous ouvrir les paramètres ?',
+    'de': 'Um Benachrichtigungen zu verwenden, erlauben Sie bitte die Berechtigung. Möchten Sie zu den Einstellungen gehen?',
+    'es': 'Para usar las notificaciones, permita el permiso. ¿Desea ir a la configuración?',
+    'hi': 'नोटिफिकेशन का उपयोग करने के लिए कृपया अनुमति दें। क्या आप सेटिंग्स में जाना चाहेंगे?',
+    'th': 'หากต้องการใช้การแจ้งเตือน กรุณาอนุญาตสิทธิ์การแจ้งเตือน คุณต้องการไปที่การตั้งค่าหรือไม่?',
+  },
+  'cancel': {
+    'ko': '취소',
+    'en': 'Cancel',
+    'ja': 'キャンセル',
+    'zh': '取消',
+    'tw': '取消',
+    'fr': 'Annuler',
+    'de': 'Abbrechen',
+    'es': 'Cancelar',
+    'hi': 'रद्द करें',
+    'th': 'ยกเลิก',
+  },
+  'openSettings': {
+    'ko': '설정 열기',
+    'en': 'Open Settings',
+    'ja': '設定を開く',
+    'zh': '打开设置',
+    'tw': '開啟設定',
+    'fr': 'Ouvrir les paramètres',
+    'de': 'Einstellungen öffnen',
+    'es': 'Abrir configuración',
+    'hi': 'सेटिंग खोलें',
+    'th': 'เปิดการตั้งค่า',
+  },
+};
+
+const Map<String, String> hotFixMessageByLanguage = {
+  'ko': '서비스 점검 중. 기능 중 일부가 동작하지 않을 수 있습니다.',
+  'en': 'The service is under maintenance. Some features may not work properly.',
+  'ja': 'サービスメンテナンス中です。一部の機能が正常に動作しない可能性があります。',
+  'zh': '服务维护中。部分功能可能无法正常运行。',
+  'tw': '服務維護中。部分功能可能無法正常運行。',
+  'fr': 'Le service est en maintenance. Certaines fonctionnalités peuvent ne pas fonctionner correctement.',
+  'de': 'Der Dienst wird gewartet. Einige Funktionen funktionieren möglicherweise nicht ordnungsgemäß.',
+  'es': 'El servicio está en mantenimiento. Es posible que algunas funciones no funcionen correctamente.',
+  'hi': 'सेवा रखरखाव में है। कुछ फ़ंक्शन सही से काम नहीं कर सकते हैं।',
+  'th': 'ขณะนี้ระบบอยู่ระหว่างการบำรุงรักษา บางฟีเจอร์อาจไม่สามารถใช้งานได้ตามปกติ',
 };

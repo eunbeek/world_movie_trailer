@@ -76,9 +76,9 @@ class MovieByUserService {
   }
 
   // Get the length of movies in each box
-  static Future<bool> getIsAvailable(int flag) async {
+  static Future<bool> getIsAvailable(int flag, SettingsProvider settingsProvider) async {
     final box = await _openBox(flag);
-    return box.length < 30;
+    return settingsProvider.isAdsFree || box.length < 30;
   }
 
   // Get the unique in flag

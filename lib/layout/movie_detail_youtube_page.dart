@@ -242,7 +242,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                             showMovieSnackbar('movieDeleted');
                                           }
                                         }
-                                        bool isCount = await MovieByUserService.getIsAvailable(3);
+                                        bool isCount = await MovieByUserService.getIsAvailable(3, _settingsProvider);
                                         if (!isCount) {
                                           showMovieSnackbar('maxMoviesReached');
                                           return;
@@ -345,7 +345,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                                             : () async {
                                                                 String memo = memoController.text;
 
-                                                                if (memo.length >= 300) {
+                                                                if (!_settingsProvider.isAdsFree && memo.length >= 300) {
                                                                   showMovieSnackbar('maxMemosReached');
                                                                 } else {
                                                                   if (existingMovie != null) {
@@ -355,7 +355,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                                                       showMovieSnackbar('addToMemo');
                                                                     });
                                                                   } else {
-                                                                    if (memo.isNotEmpty && await MovieByUserService.getIsAvailable(4)) {
+                                                                    if (memo.isNotEmpty && await MovieByUserService.getIsAvailable(4, _settingsProvider)) {
                                                                       MovieByUser addMovie = MovieByUser(
                                                                         flag: 4,
                                                                         movie: widget.movie,
@@ -411,7 +411,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                     ),
                                   ],
                                 ),
-                                 if (widget.movie.special!.isNotEmpty)
+                              if (widget.movie.special!.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(left: 8.0),
                                   child: Text(

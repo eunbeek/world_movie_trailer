@@ -5,10 +5,36 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
+import 'package:world_movie_trailer/common/providers/show_permission.dart';
+import 'package:world_movie_trailer/common/services/alarm_service.dart';
 import 'package:world_movie_trailer/common/translate.dart';
 
-class AlarmListPage extends StatelessWidget {
+class AlarmListPage extends StatefulWidget {
   const AlarmListPage({super.key});
+
+  @override
+  State<AlarmListPage> createState() => _AlarmListPageState();
+}
+
+class _AlarmListPageState extends State<AlarmListPage> {
+  @override
+  void initState() {
+    super.initState();
+    _checkNotificationPermission();
+  }
+
+  Future<void> _checkNotificationPermission() async {
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final alarmService = AlarmService();
+
+    if (settingsProvider.isDailyAlarmOn) {
+      final hasPermission = await alarmService.hasNotificationPermission();
+      if (!hasPermission) {
+        settingsProvider.updateIsDailyAlarmOn(false);
+        await showPermissionDialog(context);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +48,9 @@ class AlarmListPage extends StatelessWidget {
             leading: GestureDetector(
               onTap: () => Navigator.of(context).pop(),
               child: Padding(
-                padding: const EdgeInsets.only(top: 10.0), // Adjust padding to move the arrow down
+                padding: const EdgeInsets.only(top: 10.0),
                 child: Icon(
-                  Icons.arrow_back, 
+                  Icons.arrow_back,
                   size: MediaQuery.of(context).size.height * 0.03,
                 ),
               ),
@@ -43,7 +69,7 @@ class AlarmListPage extends StatelessWidget {
                       style: TextStyle(
                         fontSize: MediaQuery.of(context).size.height * 0.02,
                         fontWeight: FontWeight.bold,
-                        color: settingsProvider.isDarkTheme ? Colors.white : Colors.black
+                        color: settingsProvider.isDarkTheme ? Colors.white : Colors.black,
                       ),
                     ),
                   ),
@@ -76,24 +102,15 @@ class AlarmListPage extends StatelessWidget {
             ),
           ),
           SliverList(
-            delegate: SliverChildListDelegate(
-              [
-                const Divider(),
-                              // All Alarm
+            delegate: SliverChildListDelegate([
+              const Divider(),
               _buildAllAlarmOn(context, settingsProvider),
-
-              // Bookmark & Memo Group
               _buildBookmarkAndMemoGroup(context, settingsProvider),
-
-              // Divider
               const Divider(height: 20),
-
-              // Country List
               ..._buildCountryList(context, settingsProvider),
-              ]
-            ),
+            ]),
           ),
-        ]
+        ],
       ),
       bottomNavigationBar: _buildBottomNavigationBar(context, settingsProvider),
     );
@@ -111,8 +128,20 @@ class AlarmListPage extends StatelessWidget {
           ),
           trailing: Switch(
             value: settingsProvider.isDailyAlarmOn,
-            onChanged: (bool value) {
-              settingsProvider.updateIsDailyAlarmOn(value);
+            onChanged: (bool value) async {
+              final alarmService = AlarmService();
+              if (value) {
+                if (await alarmService.hasNotificationPermission()) {
+                  settingsProvider.updateIsDailyAlarmOn(true);
+                } else {
+                  await showPermissionDialog(context);
+                  if (await alarmService.hasNotificationPermission()) {
+                    settingsProvider.updateIsDailyAlarmOn(true);
+                  }
+                }
+              } else {
+                settingsProvider.updateIsDailyAlarmOn(false);
+              }
             },
           ),
         ),
@@ -121,7 +150,6 @@ class AlarmListPage extends StatelessWidget {
     );
   }
 
-   /// Builds the Bookmark and Memo group with switches.
   Widget _buildBookmarkAndMemoGroup(BuildContext context, SettingsProvider settingsProvider) {
     return Column(
       children: [
@@ -135,14 +163,13 @@ class AlarmListPage extends StatelessWidget {
           trailing: Switch(
             value: !settingsProvider.isDailyAlarmOn ? false : settingsProvider.isBookmarkAlarmOn,
             onChanged: (bool value) {
-              if(settingsProvider.isDailyAlarmOn) settingsProvider.updateIsBookmarkAlarmOn(value);
+              if (settingsProvider.isDailyAlarmOn) {
+                settingsProvider.updateIsBookmarkAlarmOn(value);
+              }
             },
           ),
         ),
-        Divider(
-          color: Colors.grey[700], 
-          thickness: 0.2, 
-        ),
+        Divider(color: Colors.grey[700], thickness: 0.2),
         ListTile(
           title: Text(
             getMenuItemTitle(settingsProvider.language, 'Memo'),
@@ -153,7 +180,9 @@ class AlarmListPage extends StatelessWidget {
           trailing: Switch(
             value: !settingsProvider.isDailyAlarmOn ? false : settingsProvider.isMemoAlarmOn,
             onChanged: (bool value) {
-              if(settingsProvider.isDailyAlarmOn) settingsProvider.updateIsMemoAlarmOn(value);
+              if (settingsProvider.isDailyAlarmOn) {
+                settingsProvider.updateIsMemoAlarmOn(value);
+              }
             },
           ),
         ),
@@ -161,36 +190,23 @@ class AlarmListPage extends StatelessWidget {
     );
   }
 
-  /// Builds the list of countries with alarm toggles.
   List<Widget> _buildCountryList(BuildContext context, SettingsProvider settingsProvider) {
     List<Widget> countryWidgets = [];
-
-    // Flatten all countries from countryByDay
     final allCountries = countryByDay.values.expand((countries) => countries).toList();
 
     for (int i = 0; i < allCountries.length; i++) {
       countryWidgets.add(_buildCountryListTile(context, settingsProvider, allCountries[i]));
-
-      // Add a divider after every country except the last one
       if (i < allCountries.length - 1) {
-        // countryWidgets.add(const Divider());
-        countryWidgets.add( 
-          Divider(
-            color: Colors.grey[700], 
-            thickness: 0.2, 
-          )
-        );
+        countryWidgets.add(Divider(color: Colors.grey[700], thickness: 0.2));
       }
     }
 
     return countryWidgets;
   }
 
-  /// Builds a single country list tile with alarm toggle.
   Widget _buildCountryListTile(BuildContext context, SettingsProvider settingsProvider, String countryKey) {
     final localizedCountryName = localizedCountries[settingsProvider.language]?[countryKey] ?? countryKey;
-    bool isSwitchValue = settingsProvider.isAlarmOn?.values.any((countryMap) => countryMap[countryKey] == true) ??
-    false; // 초기 값을 설정
+    bool isSwitchValue = settingsProvider.isAlarmOn.values.any((countryMap) => countryMap[countryKey] == true) ?? false;
     return ListTile(
       title: Text(
         localizedCountryName,
@@ -204,12 +220,9 @@ class AlarmListPage extends StatelessWidget {
             value: !settingsProvider.isDailyAlarmOn ? false : isSwitchValue,
             onChanged: (bool value) {
               if (settingsProvider.isDailyAlarmOn) {
-                // 즉시 반영
                 setState(() {
                   isSwitchValue = value;
                 });
-
-                // Provider 상태 업데이트
                 _toggleCountryAlarms(settingsProvider, countryKey, value);
               }
             },
@@ -219,37 +232,35 @@ class AlarmListPage extends StatelessWidget {
     );
   }
 
-  /// Toggles the alarm for the specified country across all days.
   void _toggleCountryAlarms(SettingsProvider settingsProvider, String countryKey, bool isOn) {
-    settingsProvider.isAlarmOn?.forEach((day, countryMap) {
+    settingsProvider.isAlarmOn.forEach((day, countryMap) {
       if (countryMap.containsKey(countryKey)) {
         settingsProvider.updateAlarmForCountryByDay(day, countryKey, isOn);
       }
     });
   }
 
-  /// Builds the bottom navigation bar.
   Widget _buildBottomNavigationBar(BuildContext context, SettingsProvider settingsProvider) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.12,
       color: settingsProvider.isDarkTheme ? const Color(0xff3c3c3c) : const Color(0xff435555),
       padding: EdgeInsets.only(
-          top: MediaQuery.of(context).size.height * 0.12 * 0.1,
-          bottom: MediaQuery.of(context).size.height * 0.12 * 0.1),
+        top: MediaQuery.of(context).size.height * 0.12 * 0.1,
+        bottom: MediaQuery.of(context).size.height * 0.12 * 0.1,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           GestureDetector(
             onTap: () async {
-              const url =
-                  'https://marmalade-neptune-dbe.notion.site/Home-Page-7589a833b4f6482e90844b9fe49c8ae0';
+              const url = 'https://marmalade-neptune-dbe.notion.site/Home-Page-7589a833b4f6482e90844b9fe49c8ae0';
               if (await canLaunchUrl(Uri.parse(url))) {
                 await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
               }
             },
             child: Image.asset(
               'assets/images/SIL_logo_h_xxhdpi.png',
-              height: MediaQuery.of(context).size.height * 0.045, // Adjust size as needed
+              height: MediaQuery.of(context).size.height * 0.045,
             ),
           ),
           SizedBox(height: MediaQuery.of(context).size.height * 0.12 * 0.1),
@@ -258,44 +269,30 @@ class AlarmListPage extends StatelessWidget {
             children: [
               GestureDetector(
                 onTap: () async {
-                  const url =
-                      'https://sunnyinnolab.notion.site/Terms-and-Conditions-0601612ffa404317a4ddaf5a094e5471';
+                  const url = 'https://sunnyinnolab.notion.site/Terms-and-Conditions-0601612ffa404317a4ddaf5a094e5471';
                   if (await canLaunchUrl(Uri.parse(url))) {
                     await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
                   }
                 },
                 child: Text(
                   getSettingsLabel(settingsProvider.language, "terms"),
-                  style: TextStyle(
-                    fontSize: MediaQuery.of(context).size.height * 0.015,
-                    color: Colors.white,
-                  ),
+                  style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.015, color: Colors.white),
                 ),
               ),
               const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0), // Space around the separator
-                child: Text(
-                  '|',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white,
-                  ),
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                child: Text('|', style: TextStyle(fontSize: 14, color: Colors.white)),
               ),
               GestureDetector(
                 onTap: () async {
-                  const url =
-                      'https://sunnyinnolab.notion.site/Privacy-Policy-2919720d6e7848669b9d5e1170c6cabc';
+                  const url = 'https://sunnyinnolab.notion.site/Privacy-Policy-2919720d6e7848669b9d5e1170c6cabc';
                   if (await canLaunchUrl(Uri.parse(url))) {
                     await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
                   }
                 },
                 child: Text(
                   getSettingsLabel(settingsProvider.language, "privacy"),
-                  style: TextStyle(
-                    fontSize: MediaQuery.of(context).size.height * 0.015,
-                    color: Colors.white,
-                  ),
+                  style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.015, color: Colors.white),
                 ),
               ),
             ],

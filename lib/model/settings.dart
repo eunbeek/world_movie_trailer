@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:hive/hive.dart';
+import 'package:uuid/uuid.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 
 part 'settings.g.dart'; // This is needed for the generated code
@@ -61,6 +62,12 @@ class Settings extends HiveObject {
   @HiveField(17)
   bool? isMemoAlarmOn;
 
+  @HiveField(18)
+  bool? isAdsFree;
+
+  @HiveField(19)
+  String? userId;
+
   Settings({
     required this.language,
     required this.theme,
@@ -80,6 +87,8 @@ class Settings extends HiveObject {
     this.isDailyAlarmOn,
     this.isBookmarkAlarmOn,
     this.isMemoAlarmOn,
+    this.isAdsFree,
+    this.userId
   });
 
   // Factory constructor to create default settings
@@ -121,6 +130,10 @@ class Settings extends HiveObject {
       });
     });
 
+    // UUID 생성 (앱 실행 시마다 새로 생성)
+    var uuid = Uuid();
+    String generatedUuid = uuid.v4();  // 새로운 UUID 생성
+    
     return Settings(
       language: deviceLanguage,
       theme: 'dark',
@@ -139,6 +152,8 @@ class Settings extends HiveObject {
       isDailyAlarmOn: true,
       isBookmarkAlarmOn: true,
       isMemoAlarmOn: true,
+      isAdsFree: false,
+      userId: generatedUuid
     );
   }
 }

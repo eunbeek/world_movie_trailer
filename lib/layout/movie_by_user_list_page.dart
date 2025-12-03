@@ -1,4 +1,3 @@
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,7 +7,6 @@ import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/common/error_page_by_user.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
 import 'package:world_movie_trailer/layout/movie_detail_youtube_page.dart';
-import 'package:world_movie_trailer/layout/movie_detail_chewie_page.dart';
 import 'package:intl/intl.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
@@ -66,6 +64,10 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
   }
 
   void _loadAd() {
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    
+    if (settingsProvider.isAdsFree) return;
+
     _appAdManager.loadAd(
       onAdLoaded: () {},
       onAdFailed: () {}
@@ -73,7 +75,14 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
   }
   
   void _showAd(Function onAdDismiss) {
-    print('showAd');
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+
+    if (settingsProvider.isAdsFree) {
+      print('adsFree');
+      onAdDismiss();
+      return;
+    }
+
     _appAdManager.showAdIfAvailable(() {
       onAdDismiss();
     });
@@ -170,9 +179,8 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => movie.movie.isYoutube != false
-                            ? MovieDetailPageYouTube(movie: movie.movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language, isCustomized: true, flag: customizedFlag, cIdx:index)
-                            : MovieDetailPageChewie(movie: movie.movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language, isCustomized: true, flag: customizedFlag, cIdx:index),
+                        builder: (context) => MovieDetailPageYouTube(movie: movie.movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language, isCustomized: true, flag: customizedFlag, cIdx:index)
+
                       ),
                     ).then((result) {
                       if (result == true) {
@@ -187,9 +195,7 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => movie.movie.isYoutube != false
-                        ? MovieDetailPageYouTube(movie: movie.movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language, isCustomized: true, flag: customizedFlag, cIdx:index)
-                        : MovieDetailPageChewie(movie: movie.movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language, isCustomized: true, flag: customizedFlag, cIdx:index),
+                    builder: (context) => MovieDetailPageYouTube(movie: movie.movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language, isCustomized: true, flag: customizedFlag, cIdx:index)
                   ),
                 ).then((result) {
                   if (result == true) {

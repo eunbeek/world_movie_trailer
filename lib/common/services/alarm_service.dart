@@ -70,7 +70,7 @@ class AlarmService {
   }
 
   /// 알림 권한 요청 (iOS 및 Android 모두)
-  Future<void> requestPermission() async {
+  Future<void> requestPermission(SettingsProvider settingsProvider) async {
     if (Platform.isIOS) {
       // iOS specific notification permission
       final bool? granted = await FlutterLocalNotificationsPlugin()
@@ -84,8 +84,10 @@ class AlarmService {
 
       if (granted == true) {
         print('iOS Notification Permission Granted');
+        settingsProvider.updateIsDailyAlarmOn(true);
       } else {
         print('iOS Notification Permission Denied');
+        settingsProvider.updateIsDailyAlarmOn(false);
       }
     } else if (Platform.isAndroid) {
       print('android permission ready');
@@ -94,8 +96,10 @@ class AlarmService {
         final PermissionStatus status = await Permission.notification.request();
         if (status.isGranted) {
           print('Android Notification Permission Granted');
+          settingsProvider.updateIsDailyAlarmOn(true);
         } else {
           print('Android Notification Permission Denied');
+          settingsProvider.updateIsDailyAlarmOn(false);
         }
       }
 
@@ -107,9 +111,73 @@ class AlarmService {
       final bool? exactAlarmGranted = await androidPlugin?.requestExactAlarmsPermission();
       if (exactAlarmGranted == true) {
         print('Android Exact Alarm Permission Granted');
+        settingsProvider.updateIsDailyAlarmOn(true);
       } else {
         print('Android Exact Alarm Permission Denied');
+        settingsProvider.updateIsDailyAlarmOn(false);
       }
+    }
+  }
+
+  Future<bool> hasNotificationPermission() async {
+    if(Platform.isIOS){
+      // iOS specific notification permission
+      final bool? granted = await FlutterLocalNotificationsPlugin()
+          .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
+
+      if (granted == true) {
+        print('iOS Notification Permission Granted');
+        return true;
+      } else {
+        print('iOS Notification Permission Denied');
+        return false;
+      }
+    } else if (Platform.isAndroid) {
+      print('android permission ready');
+      // Check and request POST_NOTIFICATIONS for Android 13+
+      if (await Permission.notification.isDenied) {
+        final PermissionStatus status = await Permission.notification.request();
+        if (status.isGranted) {
+          print('Android Notification Permission Granted');
+          return true;
+        } else {
+          print('Android Notification Permission Denied');
+          return false;
+        }
+      }
+
+      // Check and request SCHEDULE_EXACT_ALARM for Android 12+
+      final AndroidFlutterLocalNotificationsPlugin? androidPlugin =
+          flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+
+      final bool? exactAlarmGranted = await androidPlugin?.requestExactAlarmsPermission();
+      if (exactAlarmGranted == true) {
+        print('Android Exact Alarm Permission Granted');
+        return true;
+      } else {
+        print('Android Exact Alarm Permission Denied');
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Future<bool> requestPermissionOnly(SettingsProvider settingsProvider) async {
+    if (Platform.isIOS) {
+      final bool? granted = await FlutterLocalNotificationsPlugin()
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
+      return granted == true;
+    } else {
+      final status = await Permission.notification.request();
+      return status.isGranted;
     }
   }
 
@@ -166,8 +234,8 @@ class AlarmService {
             getAlarmsLabel(settingsProvider.language, 'country', localizedCountries[settingsProvider.language]?[country]),
             nextNotificationTime,
             platformChannel,
-            uiLocalNotificationDateInterpretation:
-                UILocalNotificationDateInterpretation.wallClockTime,
+            // uiLocalNotificationDateInterpretation:
+            //     UILocalNotificationDateInterpretation.wallClockTime,
             matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
             androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
           );
@@ -248,8 +316,8 @@ class AlarmService {
           scheduleTime,
           platformChannel,
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-          uiLocalNotificationDateInterpretation:
-              UILocalNotificationDateInterpretation.wallClockTime,
+          // uiLocalNotificationDateInterpretation:
+          //     UILocalNotificationDateInterpretation.wallClockTime,
         );
 
         print('Release alarm set for "${movie.localTitle}" on $scheduleTime');
@@ -332,8 +400,8 @@ class AlarmService {
         releaseAlarmTime,
         platformChannel,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.wallClockTime,
+        // uiLocalNotificationDateInterpretation:
+        //     UILocalNotificationDateInterpretation.wallClockTime,
       );
 
       print('Release alarm set for "${movie.localTitle}" on $releaseAlarmTime');

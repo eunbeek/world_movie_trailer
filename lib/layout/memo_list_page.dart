@@ -6,7 +6,6 @@ import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/common/error_page_by_user.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
 import 'package:world_movie_trailer/layout/movie_detail_youtube_page.dart';
-import 'package:world_movie_trailer/layout/movie_detail_chewie_page.dart';
 import 'package:intl/intl.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
@@ -23,8 +22,8 @@ class MemoListPage extends StatefulWidget {
 
 class _MemoListPageState extends State<MemoListPage> {
   List<MovieByUser> allMovies = [];
-  Map<int, TextEditingController> _memoControllers = {}; // Store controllers by index
-  Map<int, ScrollController> _scrollController = {};
+  final Map<int, TextEditingController> _memoControllers = {}; // Store controllers by index
+  final Map<int, ScrollController> _scrollController = {};
   bool fetchComplete = false;
   late InterstitialAdManager _appAdManager;
 
@@ -66,6 +65,9 @@ class _MemoListPageState extends State<MemoListPage> {
   }
 
   void _loadAd() {
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    
+    if (settingsProvider.isAdsFree) return;
     _appAdManager.loadAd(
       onAdLoaded: () {},
       onAdFailed: () {}
@@ -73,7 +75,14 @@ class _MemoListPageState extends State<MemoListPage> {
   }
 
   void _showAd(Function onAdDismiss) {
-    print('showAd');
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+
+    if (settingsProvider.isAdsFree) {
+      print('adsFree');
+      onAdDismiss();
+      return;
+    }
+
     _appAdManager.showAdIfAvailable(() {
       onAdDismiss();
     });
@@ -149,7 +158,6 @@ class _MemoListPageState extends State<MemoListPage> {
         final movie = movies[index];
          
          _memoControllers[index] = TextEditingController(text: '${movie.memo}\r\n');
-;
         if (!_scrollController.containsKey(index)) {
           _scrollController[index] = ScrollController();
         }
@@ -184,16 +192,7 @@ class _MemoListPageState extends State<MemoListPage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => movie.movie.isYoutube != false
-                                    ? MovieDetailPageYouTube(
-                                        movie: movie.movie,
-                                        captionFlag: settingsProvider.isCaptionOn,
-                                        captionLan: settingsProvider.language,
-                                        isCustomized: true,
-                                        flag: 4, 
-                                        cIdx: index
-                                      )
-                                    : MovieDetailPageChewie(
+                                builder: (context) => MovieDetailPageYouTube(
                                         movie: movie.movie,
                                         captionFlag: settingsProvider.isCaptionOn,
                                         captionLan: settingsProvider.language,
@@ -215,16 +214,7 @@ class _MemoListPageState extends State<MemoListPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => movie.movie.isYoutube != false
-                                ? MovieDetailPageYouTube(
-                                    movie: movie.movie,
-                                    captionFlag: settingsProvider.isCaptionOn,
-                                    captionLan: settingsProvider.language,
-                                    isCustomized: true,
-                                    flag: 4, 
-                                    cIdx: index
-                                  )
-                                : MovieDetailPageChewie(
+                            builder: (context) => MovieDetailPageYouTube(
                                     movie: movie.movie,
                                     captionFlag: settingsProvider.isCaptionOn,
                                     captionLan: settingsProvider.language,
@@ -335,7 +325,7 @@ class _MemoListPageState extends State<MemoListPage> {
                                 onPressed: () async {
                                   // Update the memo in the movie object
                                   var  newMemo = _memoControllers[index]!.text;
-                                  if(newMemo.length >= 300){
+                                  if(!settingsProvider.isAdsFree && newMemo.length >= 300){
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(getMessage(settingsProvider.language, 'maxMemosReached')),
