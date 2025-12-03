@@ -6,7 +6,6 @@ import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/common/error_page_by_user.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
 import 'package:world_movie_trailer/layout/movie_detail_youtube_page.dart';
-import 'package:world_movie_trailer/layout/movie_detail_chewie_page.dart';
 import 'package:intl/intl.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
@@ -193,16 +192,7 @@ class _MemoListPageState extends State<MemoListPage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => movie.movie.isYoutube != false
-                                    ? MovieDetailPageYouTube(
-                                        movie: movie.movie,
-                                        captionFlag: settingsProvider.isCaptionOn,
-                                        captionLan: settingsProvider.language,
-                                        isCustomized: true,
-                                        flag: 4, 
-                                        cIdx: index
-                                      )
-                                    : MovieDetailPageChewie(
+                                builder: (context) => MovieDetailPageYouTube(
                                         movie: movie.movie,
                                         captionFlag: settingsProvider.isCaptionOn,
                                         captionLan: settingsProvider.language,
@@ -224,16 +214,7 @@ class _MemoListPageState extends State<MemoListPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => movie.movie.isYoutube != false
-                                ? MovieDetailPageYouTube(
-                                    movie: movie.movie,
-                                    captionFlag: settingsProvider.isCaptionOn,
-                                    captionLan: settingsProvider.language,
-                                    isCustomized: true,
-                                    flag: 4, 
-                                    cIdx: index
-                                  )
-                                : MovieDetailPageChewie(
+                            builder: (context) => MovieDetailPageYouTube(
                                     movie: movie.movie,
                                     captionFlag: settingsProvider.isCaptionOn,
                                     captionLan: settingsProvider.language,

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/services/in_app_purchase_service.dart';
 import 'package:world_movie_trailer/common/translate.dart';
@@ -18,6 +19,7 @@ class _DonationPageState extends State<DonationPage> {
   bool _isRestoreLoading = false;
 
   void _handlePurchase(BuildContext context) async {
+    LogHelper().logEvent('pay_clicked');
     setState(() {
       _isLoading = true;
     });
@@ -30,6 +32,7 @@ class _DonationPageState extends State<DonationPage> {
   }
 
   void _handleRestore(BuildContext context) async {
+    LogHelper().logEvent('restore_clicked');
     setState(() {
       _isRestoreLoading = true;
     });
@@ -42,10 +45,28 @@ class _DonationPageState extends State<DonationPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _fetchPrice(); 
+  }
+
+  Future<void> _fetchPrice() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    await IapHelper.fetchProductPrice(context);
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
     final lang = settingsProvider.language;
-    print(settingsProvider.isAdsFree);
+
     return Scaffold(
       body: CustomScrollView(
             slivers: [
@@ -190,7 +211,7 @@ class _DonationPageState extends State<DonationPage> {
                                     : Text(
                                         settingsProvider.isAdsFree
                                             ? getDonationLabel(lang, 'donateComplete')
-                                            : '\$4.99 USD',
+                                            : '${IapHelper.price} ${IapHelper.currency}',
                                         style: const TextStyle(color: Colors.white),
                                       ),
                               ),

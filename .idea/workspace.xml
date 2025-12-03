@@ -5,28 +5,45 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="cea47c26-cfc0-4d27-af92-2877659bbf08" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.firebase/hosting.cHVibGlj.cache" beforeDir="false" afterPath="$PROJECT_DIR$/.firebase/hosting.cHVibGlj.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/android/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/android/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/android/gradle.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/android/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/settings.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/android/settings.gradle" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/functions/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/functions/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/functions/movie_au.js" beforeDir="false" afterPath="$PROJECT_DIR$/functions/movie_au.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/functions/movie_ca.js" beforeDir="false" afterPath="$PROJECT_DIR$/functions/movie_ca.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/functions/movie_cn.js" beforeDir="false" afterPath="$PROJECT_DIR$/functions/movie_cn.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/functions/movie_de.js" beforeDir="false" afterPath="$PROJECT_DIR$/functions/movie_de.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/functions/movie_es.js" beforeDir="false" afterPath="$PROJECT_DIR$/functions/movie_es.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/functions/movie_fr.js" beforeDir="false" afterPath="$PROJECT_DIR$/functions/movie_fr.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/functions/movie_in.js" beforeDir="false" afterPath="$PROJECT_DIR$/functions/movie_in.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/functions/movie_jp.js" beforeDir="false" afterPath="$PROJECT_DIR$/functions/movie_jp.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/functions/movie_kr.js" beforeDir="false" afterPath="$PROJECT_DIR$/functions/movie_kr.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/functions/movie_th.js" beforeDir="false" afterPath="$PROJECT_DIR$/functions/movie_th.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/functions/movie_tw.js" beforeDir="false" afterPath="$PROJECT_DIR$/functions/movie_tw.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/functions/movie_us.js" beforeDir="false" afterPath="$PROJECT_DIR$/functions/movie_us.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/functions/tmdb.js" beforeDir="false" afterPath="$PROJECT_DIR$/functions/tmdb.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/functions/utils.js" beforeDir="false" afterPath="$PROJECT_DIR$/functions/utils.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Podfile" beforeDir="false" afterPath="$PROJECT_DIR$/ios/Podfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ios/Podfile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/ios/Podfile.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner.xcodeproj/project.pbxproj" beforeDir="false" afterPath="$PROJECT_DIR$/ios/Runner.xcodeproj/project.pbxproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme" beforeDir="false" afterPath="$PROJECT_DIR$/ios/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ios/Runner/Info.plist" beforeDir="false" afterPath="$PROJECT_DIR$/ios/Runner/Info.plist" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/common/ad_helper.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/common/ad_helper.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/common/constants.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/common/constants.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/common/log_helper.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/common/log_helper.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/common/providers/settings_provider.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/common/providers/settings_provider.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/common/services/alarm_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/common/services/alarm_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/common/services/in_app_purchase_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/common/services/in_app_purchase_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/common/services/movie_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/common/services/movie_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/common/translate.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/common/translate.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/layout/alarm_list_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/layout/alarm_list_page.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/layout/country_list_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/layout/country_list_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/layout/credits_list_apge.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/layout/credits_list_apge.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/layout/donation_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/layout/donation_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/layout/memo_list_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/layout/memo_list_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/layout/movie_by_user_list_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/layout/movie_by_user_list_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/layout/movie_detail_better_page.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/layout/movie_detail_youtube_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/layout/movie_detail_youtube_page.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/layout/movie_list_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/layout/movie_list_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/layout/other_app_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/layout/other_app_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/layout/open_source_list_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/layout/open_source_list_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/layout/settings_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/layout/settings_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/main.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/model/settings.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/model/settings.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/model/settings.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/model/settings.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/widget_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/test/widget_test.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,6 +52,9 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectId" id="2rZ1hbbBhERZX9KIPlc3nXby9Cs" />
   <component name="ProjectView">
@@ -51,9 +71,12 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "AnalyzeApkAction.lastApkPath": "/Volumes/LG External HDD/Projects/world_movie_trailer/build/app/outputs/bundle/release/app-release.aab",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.cidr.known.project.marker": "true",
     "cidr.known.project.marker": "true",
-    "last_opened_file_path": "/Volumes/LG External HDD/Projects/world_movie_trailer"
+    "last_opened_file_path": "/Volumes/LG External HDD/Projects/world_movie_trailer",
+    "settings.editor.selected.configurable": "AndroidSdkUpdater"
   }
 }]]></component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:uuid/uuid.dart';
 import 'package:world_movie_trailer/common/ad_manager/interstitial_ad_manager.dart';
 import 'package:world_movie_trailer/common/background.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
@@ -69,15 +70,23 @@ void main() async {
     initSettings.isNewShown[4] = friday;
   }
 
+  if (!isInitialSetting) {
+    updateUserIdIfNeeded();  // 기존 사용자라면 userId를 새로 생성하여 저장
+  }
+
   LogHelper();
 
   final alarmService = AlarmService();
   await alarmService.initialize();
-  await alarmService.requestPermission();
-
+  
   await initializeDateFormatting();
 
   final settingsProviderInstance = SettingsProvider(initSettings, isInitialSetting);
+  // 신규 유저일 경우 notification permission request
+  if(isInitialSetting){
+    await alarmService.requestPermission(settingsProviderInstance);
+  }
+
   bool isAdsFree = settingsProviderInstance.isAdsFree;
 
   runApp(
@@ -281,5 +290,21 @@ Future<void> initializeAlarms(SettingsProvider settingsProvider, bool isInitialS
     await AlarmService().registerDailyAlarms(settingsProvider);
     await AlarmService().registerReleaseAlarmsFromList(settingsProvider, true);
     await AlarmService().registerReleaseAlarmsFromList(settingsProvider, false);
+  }
+}
+
+void updateUserIdIfNeeded() async {
+  var settingsBox = await Hive.openBox<Settings>('settings');
+  Settings? currentSettings = settingsBox.get('app_settings');
+  
+  // If userId is empty, generate a new one
+  if (currentSettings != null && (currentSettings.userId == null || currentSettings.userId!.isEmpty)) {
+    var uuid = Uuid();
+    String newUserId = uuid.v4(); // 새 UUID 생성
+
+    currentSettings.userId = newUserId; // userId 업데이트
+    settingsBox.put('app_settings', currentSettings); // 변경된 설정을 Hive에 저장
+
+    print("Generated new userId: $newUserId");
   }
 }

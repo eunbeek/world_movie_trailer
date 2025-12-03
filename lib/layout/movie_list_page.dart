@@ -6,7 +6,6 @@ import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/services/movie_service.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/layout/movie_detail_youtube_page.dart';
-import 'package:world_movie_trailer/layout/movie_detail_chewie_page.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:world_movie_trailer/common/TabBarGradientIndicator.dart';
@@ -564,9 +563,7 @@ List<Movie> _getFilteredMovies(String filter) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => movie.isYoutube != false
-                            ? MovieDetailPageYouTube(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language, isCustomized: false,)
-                            : MovieDetailPageChewie(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language, isCustomized: false,),
+                        builder: (context) => MovieDetailPageYouTube(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language, isCustomized: false,)
                       ),
                     );
                   });
@@ -577,9 +574,7 @@ List<Movie> _getFilteredMovies(String filter) {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => movie.isYoutube != false
-                        ? MovieDetailPageYouTube(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language, isCustomized: false,)
-                        : MovieDetailPageChewie(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language, isCustomized: false,),
+                    builder: (context) => MovieDetailPageYouTube(movie: movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language, isCustomized: false,)
                   ),
                 );
               }

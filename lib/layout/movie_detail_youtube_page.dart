@@ -411,7 +411,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                     ),
                                   ],
                                 ),
-                                 if (widget.movie.special!.isNotEmpty)
+                              if (widget.movie.special!.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(left: 8.0),
                                   child: Text(

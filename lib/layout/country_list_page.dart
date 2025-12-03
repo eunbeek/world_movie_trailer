@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:world_movie_trailer/common/hotFixBanner.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/layout/box_office_list_page.dart';
 import 'package:world_movie_trailer/layout/donation_page.dart';
@@ -33,11 +34,13 @@ class _CountryListPageState extends State<CountryListPage> with WidgetsBindingOb
   List<String>? oldCountryOrder;
   List<Movie>? specialMovieList;
   String? promotionUrl;
+  bool hotFixMode = false;
 
   @override
   void initState() {
     super.initState();
     _fetchPromotionUrl();
+    _fetchHotFixMode(); 
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchSpecialMovies();
@@ -76,6 +79,17 @@ class _CountryListPageState extends State<CountryListPage> with WidgetsBindingOb
       setState(() {
         promotionUrl = '';  // In case of an error, reset the URL
       });
+    }
+  }
+
+  Future<void> _fetchHotFixMode() async {
+    try {
+      final result = await MovieService.fetchHotFixMode();
+      setState(() {
+        hotFixMode = result;
+      });
+    } catch (e) {
+      print('Error fetching hotFixMode: $e');
     }
   }
 
@@ -170,6 +184,9 @@ class _CountryListPageState extends State<CountryListPage> with WidgetsBindingOb
             const BackgroundWidget(isPausePage: false, isTapeExist: true,),
             Column(
               children: [
+                if (hotFixMode)
+                  HotFixBanner(language: languageCode),
+
                 Container(
                   padding: const EdgeInsets.only(top: 20.0, left: 24.0, right: 16.0,),
                   child: Row(

@@ -242,3 +242,13 @@ String getDonationLabel(String languageCode, String field) {
          field; 
 }
 
+String getPermissionLabel(String languageCode, String field){
+  print(languageCode);
+  return permissionLabels[field]?[languageCode.toLowerCase()] ??
+         permissionLabels[field]?['en'] ??
+         field; 
+}
+
+String getHotFixLabel(String language) {
+  return hotFixMessageByLanguage[language] ?? hotFixMessageByLanguage['en']!;
+}

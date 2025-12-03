@@ -8,20 +8,23 @@ class OpenSourceList extends StatelessWidget {
   OpenSourceList({super.key});
 
   final List<Map<String, String>> _openSourcePackages = [
-    {'name': 'youtube_player_flutter', 'version': '9.1.0', 'url': 'https://pub.dev/packages/youtube_player_flutter'},
+    {'name': 'youtube_player_flutter', 'version': '9.0.0', 'url': 'https://pub.dev/packages/youtube_player_flutter'},
     {'name': 'hive', 'version': '2.2.3', 'url': 'https://pub.dev/packages/hive'},
     {'name': 'hive_flutter', 'version': '1.1.0', 'url': 'https://pub.dev/packages/hive_flutter'},
     {'name': 'provider', 'version': '6.0.0', 'url': 'https://pub.dev/packages/provider'},
     {'name': 'url_launcher', 'version': '6.3.0', 'url': 'https://pub.dev/packages/url_launcher'},
     {'name': 'simple_animations', 'version': '5.0.2', 'url': 'https://pub.dev/packages/simple_animations'},
-    {'name': 'video_player', 'version': '2.5.1', 'url': 'https://pub.dev/packages/video_player'},
-    {'name': 'chewie', 'version': '1.3.4', 'url': 'https://pub.dev/packages/chewie'},
     {'name': 'share_plus', 'version': '10.0.2', 'url': 'https://pub.dev/packages/share_plus'},
-    {'name': 'google_mobile_ads', 'version': '5.1.0', 'url': 'https://pub.dev/packages/google_mobile_ads'},
-    {'name': 'amplitude_flutter', 'version': '3.9.0', 'url': 'https://pub.dev/packages/amplitude_flutter'},
+    {'name': 'google_mobile_ads', 'version': '5.3.1', 'url': 'https://pub.dev/packages/google_mobile_ads'},
+    {'name': 'amplitude_flutter', 'version': '3.16.7', 'url': 'https://pub.dev/packages/amplitude_flutter'},
     {'name': 'cached_network_image', 'version': '3.4.1', 'url': 'https://pub.dev/packages/cached_network_image'},
-    {'name': 'flutter_local_notifications', 'version': '18.0.1', 'url': 'https://pub.dev/packages/flutter_local_notifications'},
-    {'name': 'permission_handler', 'version': '10.0.0', 'url': 'https://pub.dev/packages/permission_handler'},
+    {'name': 'flutter_local_notifications', 'version': '19.3.0', 'url': 'https://pub.dev/packages/flutter_local_notifications'},
+    {'name': 'permission_handler', 'version': '11.3.1', 'url': 'https://pub.dev/packages/permission_handler'},
+    {'name': 'in_app_purchase', 'version': '3.1.8', 'url': 'https://pub.dev/packages/in_app_purchase'},
+    {'name': 'uuid', 'version': '4.4.2', 'url': 'https://pub.dev/packages/uuid'},
+    {'name': 'marquee', 'version': '2.2.3', 'url': 'https://pub.dev/packages/marquee'},
+    {'name': 'firebase_core', 'version': '3.5.0', 'url': 'https://pub.dev/packages/firebase_core'},
+    {'name': 'firebase_storage', 'version': '12.1.3', 'url': 'https://pub.dev/packages/firebase_storage'},
   ];
 
   @override

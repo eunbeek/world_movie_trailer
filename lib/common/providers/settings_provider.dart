@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:uuid/uuid.dart';
 import 'package:world_movie_trailer/common/services/alarm_service.dart';
 import 'package:world_movie_trailer/model/settings.dart';
 import 'package:world_movie_trailer/common/constants.dart';
@@ -49,6 +52,20 @@ class SettingsProvider with ChangeNotifier {
   bool get isMemoAlarmOn => _settings.isMemoAlarmOn ?? true;
 
   bool get isAdsFree => _settings.isAdsFree ?? false;
+
+  String get userId {
+    if (_settings.userId == null || _settings.userId!.isEmpty) {
+      // Generate a new UUID if the userId is null or empty
+      var uuid = Uuid();
+      String newUserId = uuid.v4(); // Generate new UUID
+      _settings.userId = newUserId; // Assign it to userId
+      _saveSettings(); // Save it in Hive
+      notifyListeners(); // Notify listeners for the change
+      return newUserId; // Return the newly generated userId
+    } else {
+      return _settings.userId!; // Return existing userId
+    }
+  }
 
   // update & setter
   set language(String newLanguage) {
@@ -218,11 +235,17 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void updateIsDailyAlarmOn(bool dailyAlarm) async {
+  Future<bool> updateIsDailyAlarmOn(bool dailyAlarm) async {
     print('updateIsDailyAlarmOn');
     _settings.isDailyAlarmOn = dailyAlarm;
     _saveSettings();
     if (dailyAlarm) {
+      bool hasPermission = await alarmService.hasNotificationPermission();
+      if (!hasPermission) {
+        bool granted = await alarmService.requestPermissionOnly(this);
+        if (!granted) return false; 
+      }
+
       await alarmService.registerDailyAlarms(this);
       if(isBookmarkAlarmOn) await alarmService.registerReleaseAlarmsFromList(this, true);
       if(isMemoAlarmOn) await alarmService.registerReleaseAlarmsFromList(this, false);
@@ -230,6 +253,7 @@ class SettingsProvider with ChangeNotifier {
       await alarmService.cancelAllAlarms();
     }
     notifyListeners();
+    return true;
   }
 
   void updateIsBookmarkAlarmOn(bool bookmarkAlarmOn) async {
