@@ -1,6 +1,6 @@
 // main
 const appTitle = "World Movie Trailer";
-const appVersion = "v 1.3.3";
+const appVersion = "v 1.3.5";
 
 // settings_provider
 const supportedLanguages = ['en', 'ko', 'ja', 'zh', 'tw', 'fr', 'de', 'es', 'hi', 'th'];
@@ -81,7 +81,7 @@ Map<String, Map<String, String>> alarmLabel = {
     'country': 'AAAの新しい映画をチェックしよう！',
     'bookmark': 'お気に入りにした映画',
     'memo': 'メモした映画',
-    'release': 'が明日公開します！',
+    'release': 'が明日公開されます！',
   },
   'zh': {
     'alarmAll': '允许通知',
@@ -418,9 +418,9 @@ Map<String, Map<String, String>> donateLabels = {
     "donate": "업그레이드",
     "donateRemoveAds": "프리미엄으로 업그레이드",
     "donateDesc": "광고를 제거하고 더 많은 기능을 사용하세요. 앱 내 광고를 모두 제거하고, 메모와 북마크를 무제한으로 이용할 수 있습니다.",
-    "trailerAdNotice": "예고편 동영상 내의 영화사가 넣은 광고는 저희들에게 책임이 없고 컨트롤 할 수 없음을 미리 말씀 드립니다.",
+    "trailerAdNotice": "예고편 동영상에 영화사가 삽입한 광고는 당사에서 제어할 수 없으며, 이에 대한 책임을 지지 않습니다.",
     "restorePurchase": "이전 구매 복원",
-    "donateComplete": "구매완료",
+    "donateComplete": "구매 완료",
     "cancelDonation": "결제가 취소 되었습니다.",
     "pending": "결제가 처리 중입니다. 잠시 후 다시 시도해주세요.",
     "retry": "결제 중 오류가 발생했습니다. 다시 시도해주세요."
@@ -567,7 +567,7 @@ Map<String, Map<String, String>> countryNameByLan = {
 const Map<String, String> countryAppBars = {
   'EN': "World\nMovie\nTrailers",  // English
   'KO': '월드\n무비\n트레일러',  // Korean
-  'JA': 'ワールド\nムービー\nトレーラー',  // Japanese
+  'JA': 'ワールド・\nムービー・\nトレーラー',
   'FR': 'World\nMovie\nTrailers',  // French
   'ZH': '世界\n电影\n预告片',  // Simplified Chinese
   'TW': '世界\n電影\n預告片',  // Traditional Chinese
@@ -581,7 +581,7 @@ const Map<String, String> countryAppBars = {
 const Map<String, String> countryAppBarsForShare = {
   'en': "World Movie Trailers",  // English
   'ko': "월드 무비 트레일러",       // Korean
-  'ja': "ワールド ムービー トレーラー",  // Japanese
+  'ja': "ワールド・ ムービー・ トレーラー",  // Japanese
   'ft': "World Movie Trailers",  // French
   'zh': "世界 电影 预告片",         // Simplified Chinese
   'tw': "世界 電影 預告片",         // Traditional Chinese
@@ -786,18 +786,18 @@ Map<String, Map<String, String>> messageTranslations = {
     'memoDeleted': 'ลบบันทึกแล้ว',
   },
 };
-
+//useless
 const Map<String, String> countryAppBarNameByCountry = {
-  'en': "Trailer in ",  // English
-  'ko': '영화의 예고편',  // Korean
-  'ja': '予告編 in ',  // Japanese
-  'fr': 'Bande-annonce du film in ',  // French
-  'zh': '电影预告片 in ',  // Simplified Chinese
-  'tw': '電影預告片 in ',  // Traditional Chinese
+  'en': "Movie Trailers in ",  // English
+  'ko': ' 영화 예고편',  // Korean
+  'ja': ' の映画予告編',  // Japanese
+  'fr': 'Bandes-annonces de films en ',  // French
+  'zh': ' 的电影预告片',  // Simplified Chinese
+  'tw': ' 的電影預告片',  // Traditional Chinese
   'de': 'Filmtrailer in ',  // German
-  'es': 'Tráiler de la película in ',  // Spanish
-  'hi': 'फिल्म का ट्रेलर in ',  // Hindi
-  'th': 'ตัวอย่างหนัง',  // Thai
+  'es': 'Tráilers de películas en ',  // Spanish
+  'hi': ' में फ़िल्मों के ट्रेलर',  // Hindi
+  'th': 'ตัวอย่างภาพยนตร์ใน ',  // Thai
 };
 
 const Map<String, Map<String, String>> boxOfficeKeyword = {
@@ -966,7 +966,7 @@ const Map<String, Map<String, String>> localizedCountries = {
   'fr': {
     'box': 'Top Box Office',
     'france': 'France',
-    'usa': 'États-Unis',
+    'usa': 'USA',
     'china': 'Chine',
     'korea': 'Corée',
     'japan': 'Japon',
@@ -981,7 +981,7 @@ const Map<String, Map<String, String>> localizedCountries = {
     'box': 'Top Box Office',
     'germany': 'Deutschland',
     'france': 'Frankreich',
-    'usa': 'Vereinigte Staaten',
+    'usa': 'USA',
     'china': 'China',
     'korea': 'Korea',
     'japan': 'Japan',
@@ -996,7 +996,7 @@ const Map<String, Map<String, String>> localizedCountries = {
     'spain': 'España',
     'germany': 'Alemania',
     'france': 'Francia',
-    'usa': 'Estados Unidos',
+    'usa': 'USA',
     'china': 'China',
     'korea': 'Corea',
     'japan': 'Japón',
@@ -1011,7 +1011,7 @@ const Map<String, Map<String, String>> localizedCountries = {
     'korea': 'कोरिया',
     'japan': 'जापान',
     'taiwan': 'ताइवान',
-    'usa': 'संयुक्त राज्य अमेरिका',
+    'usa': 'अमेरिका',
     'canada': 'कनाडा',
     'france': 'फ्रांस',
     'germany': 'जर्मनी',
@@ -1023,7 +1023,7 @@ const Map<String, Map<String, String>> localizedCountries = {
   'th': {
     'box': 'Top Box Office',
     'thailand': 'ประเทศไทย',
-    'usa': 'สหรัฐอเมริกา',
+    'usa': 'สหรัฐฯ',
     'korea': 'เกาหลีใต้',
     'japan': 'ญี่ปุ่น',
     'taiwan': 'ไต้หวัน',
@@ -1209,7 +1209,7 @@ const listFilterAll = "All";
 const listFilterRunning = "Running";
 const listFilterUpcoming = "Upcoming";
 
-const labelFilterAll = "All";
+const labelFilterAll = "All Trailers";
 const labelFilterRunning = "Now Showing";
 const labelFilterUpcoming = "Coming Soon";
 
@@ -1217,26 +1217,37 @@ const labelFilterAllKR = "모든 예고편";
 const labelFilterRunningKR = "상영 중";
 const labelFilterUpcomingKR = "개봉 예정";
 
-const labelFilterAllJP = "全て";
+const labelFilterAllJP = "すべての予告編";
 const labelFilterRunningJP = "上映中";
 const labelFilterUpcomingJP = "公開予定";
 
-const labelFilterAllZH = "全部预告片";
+const labelFilterAllZH = "所有预告片";
 const labelFilterRunningZH = "上映中";
 const labelFilterUpcomingZH = "即将上映";
 
-const labelFilterAllTW = "全部預告片";
+const labelFilterAllTW = "所有預告片";
 const labelFilterRunningTW = "上映中";
 const labelFilterUpcomingTW = "即將上映 ";
 
-const labelFilterAllFR = "Tout";
-const labelFilterAllDE = "Alles";
-const labelFilterAllES = "Todo";
-const labelFilterAllHI = "सब";
+const labelFilterAllFR = "Toutes les bandes-annonces";
+const labelFilterRunningFR = "À l’affiche";
+const labelFilterUpcomingFR = "Prochainement";
 
-const labelFilterAllTH = "ทั้งหมด";
+const labelFilterAllDE = "Alle Trailer";
+const labelFilterRunningDE = "Jetzt im Kino";
+const labelFilterUpcomingDE = "Demnächst";
+
+const labelFilterAllES = "Todos los tráileres";
+const labelFilterRunningES = "En cartelera";
+const labelFilterUpcomingES = "Próximamente";
+
+const labelFilterAllHI = "सभी ट्रेलर";
+const labelFilterRunningHI = "अभी प्रदर्शित";
+const labelFilterUpcomingHI = "जल्द आ रही है";
+
+const labelFilterAllTH = "ตัวอย่างทั้งหมด";
 const labelFilterRunningTH = "กำลังฉาย";
-const labelFilterUpcomingTH = "เร็วๆ นี้";
+const labelFilterUpcomingTH = "เร็ว ๆ นี้";
 
 const Map<String, Map<String, String>> sortFilters = {
   'date_new': {
@@ -1320,13 +1331,14 @@ const labelReleaseJP = "公開";
 const labelReleaseZH = "已发行";
 const labelReleaseTW = "已發行";
 const labelReleaseFR = "Sortie";
+const labelReleaseDE = "Veröffentlichung";
 const labelReleaseES = "Estreno";
 const labelReleaseHI = "रिलीज़";
 const labelReleaseTH = "เข้าฉาย"; 
 
 // movie error 
-const labelNetworkErrorKR = "서버 네트워크가 원활하지 않습니다.\r\n조금있다 다시 시도해 주세요.";
-const labelNetworkErrorEN = "The server network is not up.\r\nPlease try again later.";
+const labelNetworkErrorKR = "서버 네트워크가 원활하지 않습니다.\r\n잠시 후 다시 시도해 주세요.";
+const labelNetworkErrorEN = "Unable to connect to the server.\r\nPlease try again later.";
 const labelNetworkErrorJP = "サーバーネットワークが円滑ではありません。\r\n少し後でもう一度お試しください。";
 const labelNetworkErrorZH = "服务器网络不畅\r\n请稍后再试";
 const labelNetworkErrorTW = "伺服器網路不穩\r\n請稍後再重試";
@@ -1388,7 +1400,7 @@ const Map<String, Map<String, String>> movieDetailTranslations = {
     'en': 'Country'
   },
   'Running Time': {
-    'ko': '상영시간',
+    'ko': '상영 시간',
     'ja': '上映時間',
     'zh': '片长',
     'tw': '片長',
@@ -1400,7 +1412,7 @@ const Map<String, Map<String, String>> movieDetailTranslations = {
     'en': 'Running Time',
   },
   'Year': {
-    'ko': '공개년도',
+    'ko': '공개 연도',
     'ja': '公開年',
     'zh': '上映年份',
     'tw': '上映年份',

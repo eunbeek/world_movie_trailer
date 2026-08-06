@@ -30,7 +30,7 @@ String getAlarmsLabel(String languageCode, String field, [String? country]) {
 String getAppBarTitle(String languageCode) {
   return countryAppBars[languageCode.toUpperCase()] ?? countryAppBars['EN']!;
 }
-
+// useless
 String getAppBarCountry(String languageCode, String country){
   final appbarTitle = countryAppBarNameByCountry[languageCode.toLowerCase()] ?? 'Trailer in ';
   return appbarTitle + country;
