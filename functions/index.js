@@ -17,7 +17,7 @@ const {fetchMovieInSpecialSection} = require("./features/special/movies");
 const {fetchQuotesInSpecialSection} = require("./features/quote/special");
 const {fetchMovieListFromMojo} = require("./features/box_office/usa");
 const {fetchMovieListFromKobis} = require("./features/box_office/kr");
-const {processBatch, saveMoviesAsJson, saveQuotesAsJson, updateMovieTrailer, deleteMovieByManual, updatePromotionUrl, processBatchForSpecial} = require("./services/utils");
+const {processBatch, saveMoviesAsJson, saveQuotesAsJson, updatePromotionUrl, processBatchForSpecial} = require("./services/utils");
 const {publishSheetMovies} = require("./services/movie_publisher");
 
 admin.initializeApp();
@@ -50,6 +50,23 @@ function limitTestItems(req, items) {
   const limit = Number.isInteger(requestedLimit) ?
     Math.min(Math.max(requestedLimit, 1), MAX_TEST_LIMIT) : DEFAULT_TEST_LIMIT;
   return items.slice(0, limit);
+}
+
+/**
+ * Returns a small diagnostic payload without exposing raw TMDB responses.
+ * @param {Array} movies Processed movies.
+ * @return {Array} Compact diagnostic movie objects.
+ */
+function buildTestMoviePreview(movies) {
+  return movies.map((movie) => ({
+    id: movie.id || "",
+    tid: movie.tid || movie.tmdbId || "",
+    title: movie.title || movie.localTitle || "",
+    posterUrl: movie.posterUrl || "",
+    trailerUrl: movie.trailerUrl || "",
+    releaseDate: movie.releaseDate || "",
+    source: movie.source || "",
+  }));
 }
 
 /**
@@ -505,7 +522,7 @@ exports.testFetchMovieListKR = functions.runWith(movieRuntimeOptions).https.onRe
       timestamp,
       country: "KR",
       movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movies: buildTestMoviePreview(moviesWithTrailer),
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -542,7 +559,7 @@ exports.testFetchMovieListJP = functions.runWith(movieRuntimeOptions).https.onRe
       timestamp,
       country: "JP",
       movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movies: buildTestMoviePreview(moviesWithTrailer),
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -579,7 +596,7 @@ exports.testFetchMovieListCA = functions.runWith(movieRuntimeOptions).https.onRe
       timestamp,
       country: "CA",
       movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movies: buildTestMoviePreview(moviesWithTrailer),
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -612,7 +629,7 @@ exports.testFetchMovieListTW = functions.runWith(movieRuntimeOptions).https.onRe
       timestamp,
       country: "TW",
       movieCount: testMovies.length,
-      movies: testMovies,
+      movies: buildTestMoviePreview(testMovies),
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -649,7 +666,7 @@ exports.testFetchMovieListFR = functions.runWith(movieRuntimeOptions).https.onRe
       timestamp,
       country: "FR",
       movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movies: buildTestMoviePreview(moviesWithTrailer),
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -686,7 +703,7 @@ exports.testFetchMovieListDE = functions.runWith(movieRuntimeOptions).https.onRe
       timestamp,
       country: "DE",
       movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movies: buildTestMoviePreview(moviesWithTrailer),
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -723,7 +740,7 @@ exports.testFetchMovieListUS = functions.runWith(movieRuntimeOptions).https.onRe
       timestamp,
       country: "US",
       movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movies: buildTestMoviePreview(moviesWithTrailer),
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -760,7 +777,7 @@ exports.testFetchMovieListTH = functions.runWith(movieRuntimeOptions).https.onRe
       timestamp,
       country: "TH",
       movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movies: buildTestMoviePreview(moviesWithTrailer),
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -797,7 +814,7 @@ exports.testFetchMovieListAU = functions.runWith(movieRuntimeOptions).https.onRe
       timestamp,
       country: "AU",
       movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movies: buildTestMoviePreview(moviesWithTrailer),
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -834,7 +851,7 @@ exports.testFetchMovieListES = functions.runWith(movieRuntimeOptions).https.onRe
       timestamp,
       country: "ES",
       movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movies: buildTestMoviePreview(moviesWithTrailer),
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -871,7 +888,7 @@ exports.testFetchMovieListIN = functions.runWith(movieRuntimeOptions).https.onRe
       timestamp,
       country: "IN",
       movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movies: buildTestMoviePreview(moviesWithTrailer),
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -910,7 +927,7 @@ exports.testFetchMovieListCN = functions.runWith(movieRuntimeOptions).https.onRe
       timestamp,
       country: "CN",
       movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movies: buildTestMoviePreview(moviesWithTrailer),
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -946,7 +963,7 @@ exports.testFetchMovieListSpecial = functions.runWith(movieRuntimeOptions).https
       timestamp,
       country: "Special",
       movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movies: buildTestMoviePreview(moviesWithTrailer),
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -1014,7 +1031,7 @@ exports.testFetchMovieListBoxOffice = functions.runWith(movieRuntimeOptions).htt
       timestamp,
       country: "Box-Office",
       movieCount: moviesWithTrailer.length,
-      movies: moviesWithTrailer,
+      movies: buildTestMoviePreview(moviesWithTrailer),
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -1130,56 +1147,6 @@ exports.readMovieListByCountry = functions.https.onRequest((req, res) => {
 });
 
 /**
-   * Saves the list of quotes as a JSON file in Firebase Storage.
-   *
-   * @param {string} country - The country code for the movies.
-   * @param {string} title - The movie title
-   * @param {string} newTrailerUrl - new trailer url
-   * @return {Promise<void>} Saves the quote list in Firebase Storage.
-   */
-exports.updateMovieTrailer = functions.https.onRequest((req, res) => {
-  corsHandler(req, res, async () => {
-    const {country, title, newTrailerUrl} = req.body;
-
-    if (!country || !title || !newTrailerUrl) {
-      return res.status(400).json({success: false, message: "Missing required parameters."});
-    }
-
-    try {
-      const result = await updateMovieTrailer(country, title, newTrailerUrl);
-      res.status(200).json(result);
-    } catch (error) {
-      console.error("Error in updateMovieTrailer function:", error);
-      res.status(500).json({success: false, error: error.message});
-    }
-  });
-});
-
-/**
- * Deletes a movie by title via HTTP request.
- *
- * @param {object} req - The request object.
- * @param {object} res - The response object.
- */
-exports.deleteMovieByManual = functions.https.onRequest((req, res) => {
-  corsHandler(req, res, async () => {
-    const {country, title} = req.body;
-
-    if (!country || !title) {
-      return res.status(400).json({success: false, message: "Country and title are required."});
-    }
-
-    try {
-      const result = await deleteMovieByManual(country, title);
-      res.status(200).json(result);
-    } catch (error) {
-      console.error("Error deleting movie:", error);
-      res.status(500).json({success: false, message: error.message});
-    }
-  });
-});
-
-/**
    * Saves new promotion url as a JSON file in Firebase Storage.
    *
    * @param {string} newUrl - new trailer url
@@ -1197,7 +1164,7 @@ exports.updatePromotionUrl = functions.https.onRequest((req, res) => {
       const result = await updatePromotionUrl(newUrl);
       res.status(200).json(result);
     } catch (error) {
-      console.error("Error in updateMovieTrailer function:", error);
+      console.error("Error in updatePromotionUrl function:", error);
       res.status(500).json({success: false, error: error.message});
     }
   });

@@ -158,6 +158,7 @@ async function saveQuotesAsJson(country, quotes) {
     console.log(`File ${mainFileName} saved successfully with timestamp ${timestamp}`);
   } catch (error) {
     console.error("Error saving file to Firebase Storage:", error);
+    throw error;
   }
 }
 
@@ -169,93 +170,6 @@ async function saveQuotesAsJson(country, quotes) {
    * @param {string} newTrailerUrl - new trailer url
    * @return {Promise<void>} Saves the quote list in Firebase Storage.
    */
-async function updateMovieTrailer(country, title, newTrailerUrl) {
-  const bucket = admin.storage().bucket();
-  const fileName = `movies_${country}.json`;
-
-  try {
-    const file = bucket.file(fileName);
-    const exists = await file.exists();
-
-    if (!exists[0]) {
-      throw new Error(`File not found: ${fileName}`);
-    }
-
-    // Read the file contents
-    const fileContents = await file.download();
-    const moviesData = JSON.parse(fileContents.toString());
-
-    // Update the movie with the matching title
-    let isUpdated = false;
-    for (const movie of moviesData.movies) {
-      if (movie.localTitle === title) {
-        movie.trailerUrl = newTrailerUrl;
-        isUpdated = true;
-        break;
-      }
-    }
-
-    if (!isUpdated) {
-      console.log(`Movie with title "${title}" not found.`);
-      return {success: false, message: `Movie "${title}" not found.`};
-    }
-
-    // Save the updated JSON back to Firebase Storage
-    const updatedData = JSON.stringify(moviesData, null, 2);
-    await file.save(updatedData, {
-      metadata: {
-        contentType: "application/json",
-      },
-    });
-
-    console.log(`Trailer updated for "${title}" in ${fileName}.`);
-    return {success: true, message: `Trailer updated for "${title}".`};
-  } catch (error) {
-    console.error("Error updating trailer:", error);
-    return {success: false, error: error.message};
-  }
-}
-
-/**
- * Deletes a movie by title from the JSON file in Firebase Storage.
- *
- * @param {string} country - The country code of the movie list.
- * @param {string} title - The title of the movie to delete.
- * @return {Promise<object>} - Result of the deletion.
- */
-async function deleteMovieByManual(country, title) {
-  if (!country || !title) {
-    throw new Error("Country and title are required.");
-  }
-
-  const bucket = admin.storage().bucket();
-  const fileName = `movies_${country.toLowerCase()}.json`; // JSON file name for the country
-  const file = bucket.file(fileName);
-
-  // Check if the file exists
-  const [exists] = await file.exists();
-  if (!exists) {
-    return {success: false, message: `File for country ${country} does not exist.`};
-  }
-
-  // Read the file content
-  const [fileContents] = await file.download();
-  const moviesData = JSON.parse(fileContents.toString());
-
-  // Find and remove the movie by title
-  const filteredMovies = moviesData.movies.filter((movie) => movie.localTitle !== title);
-
-  if (filteredMovies.length === moviesData.movies.length) {
-    return {success: false, message: `Movie titled "${title}" not found.`};
-  }
-
-  // Save the updated movie list back to Firebase Storage
-  moviesData.movies = filteredMovies;
-  await file.save(JSON.stringify(moviesData, null, 2), {contentType: "application/json"});
-
-  return {success: true, message: `Movie titled "${title}" deleted successfully.`};
-}
-
 /**
    * Saves the list of quotes as a JSON file in Firebase Storage.
    *
@@ -284,7 +198,5 @@ module.exports = {
   processBatchForSpecial,
   saveMoviesAsJson,
   saveQuotesAsJson,
-  updateMovieTrailer,
-  deleteMovieByManual,
   updatePromotionUrl,
 };

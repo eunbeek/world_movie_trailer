@@ -5,6 +5,8 @@ const {BOX_OFFICE_KR_SHEET, BOX_OFFICE_USA_SHEET, buildOriginSource, buildMovieM
 
 const BOX_OFFICE_USA_COUNTRIES = new Set(["box_office", "box_office_usa", "box_office-usa"]);
 const BOX_OFFICE_KR_COUNTRIES = new Set(["box_office_kr", "box-office-kr"]);
+const TRANSLATION_POLL_INTERVAL_MS = 10000;
+const TRANSLATION_POLL_ATTEMPTS = 6;
 
 /** Returns whether a processed movie can be included in published data. */
 function isPublishableMovie(movie) {
@@ -53,10 +55,36 @@ async function readFinalizedSheet(normalizedCountry) {
   throw new Error(`No finalized worksheet configured for ${normalizedCountry}.`);
 }
 
+/** Returns true when every non-empty source field has every translation result. */
+function areTranslationsComplete(movies) {
+  return movies.every((movie) => {
+    const source = movie.originSource || {};
+    const translations = Object.values(movie.translations || {});
+    if (translations.length === 0) return false;
+    const requiredFields = ["title", "overview", "country", "credits"];
+    if (source.concept) requiredFields.push("concept");
+    return translations.every((translation) => requiredFields.every((field) =>
+      !source[field] || String(translation[field] || "").trim() !== ""));
+  });
+}
+
+/** Waits for GOOGLETRANSLATE formula results before publishing Storage JSON. */
+async function readFinalizedSheetAfterTranslations(normalizedCountry) {
+  for (let attempt = 1; attempt <= TRANSLATION_POLL_ATTEMPTS; attempt++) {
+    const movies = await readFinalizedSheet(normalizedCountry);
+    if (areTranslationsComplete(movies)) return movies;
+    if (attempt < TRANSLATION_POLL_ATTEMPTS) {
+      console.log(`Translations for ${normalizedCountry} are incomplete (${attempt}/${TRANSLATION_POLL_ATTEMPTS}); retrying in ${TRANSLATION_POLL_INTERVAL_MS / 1000}s.`);
+      await new Promise((resolve) => setTimeout(resolve, TRANSLATION_POLL_INTERVAL_MS));
+    }
+  }
+  throw new Error(`Translations for ${normalizedCountry} did not finish within ${TRANSLATION_POLL_ATTEMPTS * TRANSLATION_POLL_INTERVAL_MS / 1000} seconds; existing Storage JSON was preserved.`);
+}
+
 /** Publishes already finalized Sheet rows to Firebase Storage. */
 async function publishSheetMovies(normalizedCountry) {
   const timestamp = new Date().toISOString();
-  const sheetMovies = (await readFinalizedSheet(normalizedCountry)).filter(isPublishableMovie);
+  const sheetMovies = (await readFinalizedSheetAfterTranslations(normalizedCountry)).filter(isPublishableMovie);
   const storageMovies = sheetMovies.map(buildStorageMovie);
   const dataToSave = {
     schemaVersion: 2,
@@ -104,6 +132,7 @@ async function publishMovies(country, movies) {
 }
 
 module.exports = {
+  areTranslationsComplete,
   buildMovieId,
   buildStorageMovie,
   isPublishableMovie,

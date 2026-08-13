@@ -46,12 +46,12 @@ async function searchMovieInfoByTitle(countryCode, query) {
   try {
     // 1. 첫 번째 TMDb 검색 (사용자 언어)
     const data = await searchTmdb(query, countryCode);
-    if (data.trailerLink) return data;
+    if (data && data.trailerLink) return data;
 
     // 2. zh-CN인 경우 en-US로 한 번 더 검색
     if (countryCode === "zh-CN") {
       const fallbackData = await searchTmdb(query, "en-US");
-      if (fallbackData.trailerLink) return fallbackData;
+      if (fallbackData && fallbackData.trailerLink) return fallbackData;
     }
 
     // 3. YouTube로 검색 (국가 코드 뒷 2자리만 사용)
@@ -114,10 +114,12 @@ async function fetchFullMovieInfo(movieId, countryCode) {
     }
     const data = await response.json();
 
-    let youtubeVideo = data.videos.results.find((video) => video.site === "YouTube" && video.type === "Trailer");
+    let youtubeVideo = findPreferredYoutubeVideo(data.videos && data.videos.results);
 
-    if (!youtubeVideo) {
-      youtubeVideo = data.videos.results.find((video) => video.site === "YouTube" && video.type === "Teaser");
+    // TMDB video requests are much cheaper than YouTube search.list quota.
+    // Try the English TMDB video catalogue before falling back to YouTube search.
+    if (!youtubeVideo && countryCode !== "en-US") {
+      youtubeVideo = await fetchEnglishYoutubeVideo(movieId);
     }
 
     const trailerLink = youtubeVideo ? youtubeVideo.key : await fetchFirstYouTubeVideoId(data.original_title + trailerQuery[countryCode], countryCode.slice(-2));
@@ -152,6 +154,36 @@ async function fetchFullMovieInfo(movieId, countryCode) {
     };
   } catch (err) {
     console.error("Error fetching full movie information:", err);
+    return null;
+  }
+}
+
+/**
+ * Selects an official-looking YouTube trailer, then a teaser.
+ * @param {Array} videos TMDB video results.
+ * @return {Object|null} Preferred YouTube video.
+ */
+function findPreferredYoutubeVideo(videos = []) {
+  if (!Array.isArray(videos)) return null;
+  return videos.find((video) => video.site === "YouTube" && video.type === "Trailer" && video.official) ||
+    videos.find((video) => video.site === "YouTube" && video.type === "Trailer") ||
+    videos.find((video) => video.site === "YouTube" && video.type === "Teaser" && video.official) ||
+    videos.find((video) => video.site === "YouTube" && video.type === "Teaser") || null;
+}
+
+/**
+ * Fetches the English TMDB video list without full movie details.
+ * @param {string|number} movieId TMDB movie ID.
+ * @return {Promise<Object|null>} Preferred English YouTube video.
+ */
+async function fetchEnglishYoutubeVideo(movieId) {
+  try {
+    const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?language=en-US`, getTmdbOptions());
+    if (!response.ok) return null;
+    const data = await response.json();
+    return findPreferredYoutubeVideo(data.results);
+  } catch (error) {
+    console.error(`Error fetching English TMDB videos for ${movieId}:`, error);
     return null;
   }
 }
