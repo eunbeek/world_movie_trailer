@@ -1,14 +1,21 @@
 const {fetchFirstYouTubeVideoId} = require("./youtube");
 
 /* eslint-disable max-len */
-const options = {
-  method: "GET",
-  headers: {
-    accept: "application/json",
-    Authorization: "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiYzJkYjEzZDdhMTJhYjgzYWQ0NmQyZTM2ZmJiZjUxMyIsIm5iZiI6MTcyNDk3MTMyNy40OTIzNTEsInN1YiI6IjY2YzJjNGMxYjE3YjliNTMxMTZlMzQ1NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.BnU8r2hmsyzTk2eVNXROukxSlDrRbFhV7dlQmuH8AaU"
-    ,
-  },
-};
+/**
+ * Builds authenticated options for a TMDB API request.
+ * @return {Object} Fetch options containing the configured bearer token.
+ */
+function getTmdbOptions() {
+  const accessToken = process.env.TMDB_ACCESS_TOKEN;
+  if (!accessToken) throw new Error("TMDB_ACCESS_TOKEN secret is not configured.");
+  return {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  };
+}
 
 const trailerQuery = {
   "ko-KR": " 영화 예고편",
@@ -72,7 +79,7 @@ async function searchTmdb(query, langCode) {
   try {
     const response = await fetch(
         `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(query)}&include_adult=false&language=${langCode}&page=1`,
-        options,
+        getTmdbOptions(),
     );
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
@@ -101,7 +108,7 @@ async function searchTmdb(query, langCode) {
  */
 async function fetchFullMovieInfo(movieId, countryCode) {
   try {
-    const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?append_to_response=videos,credits&language=${countryCode}`, options);
+    const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?append_to_response=videos,credits&language=${countryCode}`, getTmdbOptions());
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -157,7 +164,7 @@ async function fetchFullMovieInfo(movieId, countryCode) {
  */
 async function fetchSpeicalMovieInfo(movieId, countryCode) {
   try {
-    const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?append_to_response=videos,credits&language=${countryCode}`, options);
+    const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?append_to_response=videos,credits&language=${countryCode}`, getTmdbOptions());
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -238,7 +245,7 @@ async function searchMovieInfoByTid(movie) {
  */
 async function fetchRunningMovieByCountryCode(country, countryCode, page) {
   try {
-    const response = await fetch(`https://api.themoviedb.org/3/movie/now_playing?language=${countryCode}&page=${page}&region=${country}`, options);
+    const response = await fetch(`https://api.themoviedb.org/3/movie/now_playing?language=${countryCode}&page=${page}&region=${country}`, getTmdbOptions());
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -264,7 +271,7 @@ async function fetchRunningMovieByCountryCode(country, countryCode, page) {
  */
 async function fetchUpcomingMovieByCountryCode(country, countryCode, page) {
   try {
-    const response = await fetch(`https://api.themoviedb.org/3/movie/upcoming?language=${countryCode}&page=${page}&region=${country}`, options);
+    const response = await fetch(`https://api.themoviedb.org/3/movie/upcoming?language=${countryCode}&page=${page}&region=${country}`, getTmdbOptions());
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }

@@ -21,7 +21,9 @@ import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
-void main() async {
+void main() => bootstrap(DefaultFirebaseOptions.currentPlatform);
+
+Future<void> bootstrap(FirebaseOptions firebaseOptions) async {
   WidgetsFlutterBinding.ensureInitialized();
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -31,7 +33,7 @@ void main() async {
   ]);
 
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+    options: firebaseOptions,
   );
 
   MobileAds.instance.initialize();

@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 const admin = require("firebase-admin");
 const {searchMovieInfoByTitle, searchMovieInfoByTid, searchSpecialMovieInfoByTid} = require("./tmdb");
+const {publishMovies} = require("./movie_publisher");
 
 /**
  * Processes a batch of movies to fetch trailers and updates the list.
@@ -34,6 +35,9 @@ async function processBatch(country, moviesData, processedCount, startTime, isTM
       }
 
       if (fetchedMovie) {
+        movie.tid = movie.tid || fetchedMovie.id || "";
+        movie.title = fetchedMovie.title || movie.title || movie.localTitle || "";
+        movie.originCountry = fetchedMovie.origin_country && fetchedMovie.origin_country[0] || movie.originCountry || "";
         movie.posterUrl = fetchedMovie.poster_path ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${fetchedMovie.poster_path}` : movie.posterUrl;
         movie.trailerUrl = fetchedMovie.trailerLink || "";
         movie.country = movie.country ? movie.country : fetchedMovie.origin_country ? fetchedMovie.origin_country[0]: "";
@@ -121,31 +125,7 @@ async function processBatchForSpecial(country, moviesData, processedCount, start
    * @return {Promise<void>} Saves the movie list in Firebase Storage.
    */
 async function saveMoviesAsJson(country, movies) {
-  const bucket = admin.storage().bucket();
-  const mainFileName = `movies_${country}.json`;
-  const timestamp = new Date().toISOString(); // Get the current timestamp
-
-  // Add the timestamp to each movie object or at the beginning of the JSON structure
-  const dataToSave = {
-    timestamp: timestamp, // Add the timestamp here
-    movies: movies.filter((movie) => {
-      return movie.trailerUrl !== "ERR404";
-    }),
-  };
-
-  const jsonData = JSON.stringify(dataToSave, null, 2);
-
-  try {
-    // Overwrite the main file
-    await bucket.file(mainFileName).save(jsonData, {
-      metadata: {
-        contentType: "application/json",
-      },
-    });
-    console.log(`File ${mainFileName} saved successfully with timestamp ${timestamp}`);
-  } catch (error) {
-    console.error("Error saving file to Firebase Storage:", error);
-  }
+  return await publishMovies(country, movies);
 }
 
 /**

@@ -97,107 +97,128 @@ class Movie extends HiveObject {
   @HiveField(30)
   String? weekEndDate;
 
-  Movie({
-    required this.localTitle,
-    required this.posterUrl,
-    required this.trailerUrl,
-    required this.country,
-    required this.source,
-    required this.spec,
-    required this.releaseDate,
-    this.runtime,
-    this.credits,
-    this.status,
-    this.special, // special
-    this.year, // special
-    this.nameKR, // special
-    this.nameJP, // special
-    this.nameCH, // special
-    this.nameTW, // special
-    this.nameFR, // special
-    this.nameDE, // special
-    this.nameES, // special
-    this.nameHI, // special
-    this.nameTH, // special
-    this.isYoutube, // es
-    this.period, // special
-    this.rank, // box office
-    this.lastRank, // box office
-    this.totalGross, // box office
-    this.weeks, // box office
-    this.distributor, // box office
-    this.isNewThisWeek, // box office
-    this.weekStartDate, // box office
-    this.weekEndDate // box office
-  });
+  Movie(
+      {required this.localTitle,
+      required this.posterUrl,
+      required this.trailerUrl,
+      required this.country,
+      required this.source,
+      required this.spec,
+      required this.releaseDate,
+      this.runtime,
+      this.credits,
+      this.status,
+      this.special, // special
+      this.year, // special
+      this.nameKR, // special
+      this.nameJP, // special
+      this.nameCH, // special
+      this.nameTW, // special
+      this.nameFR, // special
+      this.nameDE, // special
+      this.nameES, // special
+      this.nameHI, // special
+      this.nameTH, // special
+      this.isYoutube, // es
+      this.period, // special
+      this.rank, // box office
+      this.lastRank, // box office
+      this.totalGross, // box office
+      this.weeks, // box office
+      this.distributor, // box office
+      this.isNewThisWeek, // box office
+      this.weekStartDate, // box office
+      this.weekEndDate // box office
+      });
 
   Map<String, dynamic> toJson() => {
-    'localTitle': localTitle,
-    'posterUrl': posterUrl,
-    'trailerUrl': trailerUrl,
-    'country': country,
-    'source': source,
-    'spec': spec,
-    'releaseDate': releaseDate,
-    'runtime': runtime,
-    'credits': credits,
-    'status': status,
-    'special': special,
-    'year': year,
-    'nameKR': nameKR,
-    'nameJP': nameJP,
-    'nameCH': nameCH,
-    'nameTW': nameTW,
-    'nameFR': nameFR,
-    'nameDE': nameDE,
-    'nameES': nameES,
-    'nameHI': nameHI,
-    'nameTH': nameTH,
-    'isYoutube': isYoutube,
-    'period': period,
-    'rank': rank,
-    'lastRank': lastRank,
-    'totalGross': totalGross,
-    'weeks': weeks,
-    'distributor': distributor,
-    'isNewThisWeek': isNewThisWeek,
-    'weekStartDate': weekStartDate,
-    'weekEndDate': weekEndDate
-  };
+        'localTitle': localTitle,
+        'posterUrl': posterUrl,
+        'trailerUrl': trailerUrl,
+        'country': country,
+        'source': source,
+        'spec': spec,
+        'releaseDate': releaseDate,
+        'runtime': runtime,
+        'credits': credits,
+        'status': status,
+        'special': special,
+        'year': year,
+        'nameKR': nameKR,
+        'nameJP': nameJP,
+        'nameCH': nameCH,
+        'nameTW': nameTW,
+        'nameFR': nameFR,
+        'nameDE': nameDE,
+        'nameES': nameES,
+        'nameHI': nameHI,
+        'nameTH': nameTH,
+        'isYoutube': isYoutube,
+        'period': period,
+        'rank': rank,
+        'lastRank': lastRank,
+        'totalGross': totalGross,
+        'weeks': weeks,
+        'distributor': distributor,
+        'isNewThisWeek': isNewThisWeek,
+        'weekStartDate': weekStartDate,
+        'weekEndDate': weekEndDate
+      };
 
-  factory Movie.fromJson(Map<dynamic, dynamic> json) {
+  factory Movie.fromJson(Map<dynamic, dynamic> json,
+      {String languageCode = 'en'}) {
+    final origin = json['originSource'] is Map
+        ? Map<dynamic, dynamic>.from(json['originSource'])
+        : <dynamic, dynamic>{};
+    final metadata = json['metadata'] is Map
+        ? Map<dynamic, dynamic>.from(json['metadata'])
+        : <dynamic, dynamic>{};
+    final translations = json['translations'] is Map
+        ? Map<dynamic, dynamic>.from(json['translations'])
+        : <dynamic, dynamic>{};
+    const translationKeys = {'zh': 'cn', 'hi': 'in'};
+    final translationKey = translationKeys[languageCode] ?? languageCode;
+    final selected = translations[translationKey] is Map
+        ? Map<dynamic, dynamic>.from(translations[translationKey])
+        : <dynamic, dynamic>{};
+
+    dynamic value(String key, [dynamic fallback = '']) =>
+        json[key] ?? metadata[key] ?? fallback;
+    String localized(String key, String legacyKey) =>
+        (selected[key] ?? origin[key] ?? json[legacyKey] ?? '').toString();
+
     return Movie(
-      localTitle: json['localTitle'] ?? '',
-      posterUrl: json['posterUrl'] ?? '',
-      trailerUrl: json['trailerUrl'] ?? '',
-      country: json['country'] ?? '',
-      source: json['source'] ?? '',
-      spec: json['spec'] ?? '',
-      releaseDate: json['releaseDate'] ?? '',
-      runtime: json['runtime'] ?? 0,
-      credits: json['credits'] ?? {},
-      status: json['status'] ?? '',
-      special: json['special'] ?? '',
-      year: json['year'] ?? '', 
-      nameKR: json['NameKR'] ?? '', 
-      nameJP: json['NameJP'] ?? '', 
-      nameCH: json['NameCH'] ?? '', 
-      nameTW: json['NameTW'] ?? '', 
-      nameFR: json['NameFR'] ?? '', 
-      nameDE: json['NameDE'] ?? '', 
-      nameES: json['NameES'] ?? '', 
-      nameHI: json['NameHI'] ?? '', 
-      nameTH: json['NameTH'] ?? '', 
-      isYoutube: json['isYoutube'] ??  true,
-      period: int.tryParse(json['period']?.toString() ?? '0') ?? 0,
-      rank: json['rank'] ?? '',
-      lastRank: json['lastRank'] ?? '',
-      totalGross: json['totalGross'] ?? '',
-      weeks: json['weeks'] ?? '',
-      distributor: json['distributor'] ?? '',
-      isNewThisWeek: json['isNewThisWeek'] ?? false,
-      weekStartDate: json['weekStartDate'] ?? '',
-      weekEndDate: json['weekEndDate'] ?? ''
-    );
+        localTitle: localized('title', 'localTitle'),
+        posterUrl: value('posterUrl'),
+        trailerUrl: value('trailerUrl'),
+        country: localized('country', 'country'),
+        source: value('source'),
+        spec: localized('overview', 'spec'),
+        releaseDate: value('releaseDate'),
+        runtime: value('runtime', 0),
+        credits: value('credits', <String, dynamic>{}),
+        status: value('status'),
+        special: (selected['concept'] ?? origin['concept'] ?? value('special'))
+            .toString(),
+        year: value('year'),
+        nameKR: translations['ko']?['credits'] ?? json['NameKR'] ?? '',
+        nameJP: translations['ja']?['credits'] ?? json['NameJP'] ?? '',
+        nameCH: translations['cn']?['credits'] ?? json['NameCH'] ?? '',
+        nameTW: translations['tw']?['credits'] ?? json['NameTW'] ?? '',
+        nameFR: translations['fr']?['credits'] ?? json['NameFR'] ?? '',
+        nameDE: translations['de']?['credits'] ?? json['NameDE'] ?? '',
+        nameES: translations['es']?['credits'] ?? json['NameES'] ?? '',
+        nameHI: translations['in']?['credits'] ?? json['NameHI'] ?? '',
+        nameTH: translations['th']?['credits'] ?? json['NameTH'] ?? '',
+        isYoutube: value('isYoutube', true),
+        period: int.tryParse(value('period', 0).toString()) ?? 0,
+        rank: value('rank'),
+        lastRank: value('lastRank'),
+        totalGross: value('totalGross'),
+        weeks: value('weeks'),
+        distributor: value('distributor'),
+        isNewThisWeek: value('isNewThisWeek', false),
+        weekStartDate: value('weekStartDate'),
+        weekEndDate: value('weekEndDate'));
   }
 }

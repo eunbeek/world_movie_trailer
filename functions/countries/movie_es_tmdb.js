@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-const {fetchRunningMovieByCountryCode, fetchUpcomingMovieByCountryCode} = require("./tmdb");
+const {fetchRunningMovieByCountryCode, fetchUpcomingMovieByCountryCode} = require("../services/tmdb");
 
 /**
  * Fetches movie data from TMDB for the ES.

@@ -9,12 +9,14 @@ const youtube = google.youtube("v3");
  */
 async function fetchFirstYouTubeVideoId(query, country) {
   try {
+    const apiKey = process.env.YOUTUBE_API_KEY;
+    if (!apiKey) throw new Error("YOUTUBE_API_KEY secret is not configured.");
     const response = await youtube.search.list({
       q: query,
       part: "id",
       maxResults: 1,
       regionCode: country,
-      key: "AIzaSyD5D-K3UTFbBr5aBwrHCzciDYjPaa4bi2I",
+      key: apiKey,
     });
 
     if (response.data.items.length === 0) {

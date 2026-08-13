@@ -1,16 +1,16 @@
 /* eslint-disable max-len */
-const {fetchRunningMovieByCountryCode, fetchUpcomingMovieByCountryCode} = require("./tmdb");
+const {fetchRunningMovieByCountryCode, fetchUpcomingMovieByCountryCode} = require("../services/tmdb");
 
 /**
- * Fetches movie data from TMDB for the JP.
+ * Fetches movie data from TMDB for the CN.
  * @return {Promise<Array>}
  * A promise that resolves to a list of movies from TMDB.
  */
-async function fetchMovieListFromTMDBByJP() {
+async function fetchMovieListFromTMDBByCN() {
   const movies = [];
 
   /**
-   * Fetches running and upcoming movie data from TMDB for the TH.
+   * Fetches running and upcoming movie data from TMDB for the CN.
    * The function fetches data in two batches (two pages) for both running and upcoming movies.
    * The fetched data includes the movie title, country, source, specification, release date, and TMDB ID.
    * @param {String} page - page number
@@ -25,8 +25,8 @@ async function fetchMovieListFromTMDBByJP() {
    */
   async function fetchMovies(page) {
     try {
-      const responseRun = await fetchRunningMovieByCountryCode("JP", "ja-JP", page);
-      const responseUp = await fetchUpcomingMovieByCountryCode("JP", "ja-JP", page);
+      const responseRun = await fetchRunningMovieByCountryCode("CN", "zh-CN", page);
+      const responseUp = await fetchUpcomingMovieByCountryCode("CN", "zh-CN", page);
 
       const addMovies = (response) => {
         if (response) {
@@ -58,12 +58,10 @@ async function fetchMovieListFromTMDBByJP() {
   await fetchMovies("2");
   await fetchMovies("3");
   await fetchMovies("4");
-  await fetchMovies("5");
-  await fetchMovies("6");
 
   return movies;
 }
 
 module.exports = {
-  fetchMovieListFromTMDBByJP,
+  fetchMovieListFromTMDBByCN,
 };

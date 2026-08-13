@@ -1,23 +1,23 @@
 /* eslint-disable max-len */
-const {fetchRunningMovieByCountryCode, fetchUpcomingMovieByCountryCode} = require("./tmdb");
+const {fetchRunningMovieByCountryCode, fetchUpcomingMovieByCountryCode} = require("../services/tmdb");
 
 /**
- * Fetches movie data from TMDB for the DE.
+ * Fetches movie data from TMDB for the TH.
  * @return {Promise<Array>}
  * A promise that resolves to a list of movies from TMDB.
  */
-async function fetchMovieListFromTMDBByDE() {
+async function fetchMovieListFromTMDBByTH() {
   const movies = [];
 
   /**
-   * Fetches running and upcoming movie data from TMDB for the DE.
+   * Fetches running and upcoming movie data from TMDB for the TH.
    * The function fetches data in two batches (two pages) for both running and upcoming movies.
    * The fetched data includes the movie title, country, source, specification, release date, and TMDB ID.
    * @param {String} page - page number
    * @return {Promise<Array>} A promise that resolves to a list of movies from TMDB.
    * Each movie object contains the following properties:
    * - `localTitle` (string): The title of the movie.
-   * - `country` (string): The country code, which is "de" for this function.
+   * - `country` (string): The country code, which is "us" for this function.
    * - `source` (string): The source of the data, which is "imdb" for this function.
    * - `spec` (string): The overview or specification of the movie.
    * - `releaseDate` (string): The release date of the movie in YYYY-MM-DD format.
@@ -25,8 +25,8 @@ async function fetchMovieListFromTMDBByDE() {
    */
   async function fetchMovies(page) {
     try {
-      const responseRun = await fetchRunningMovieByCountryCode("DE", "de-DE", page);
-      const responseUp = await fetchUpcomingMovieByCountryCode("DE", "de-DE", page);
+      const responseRun = await fetchRunningMovieByCountryCode("TH", "th-TH", page);
+      const responseUp = await fetchUpcomingMovieByCountryCode("TH", "th-TH", page);
 
       const addMovies = (response) => {
         if (response) {
@@ -63,5 +63,5 @@ async function fetchMovieListFromTMDBByDE() {
 }
 
 module.exports = {
-  fetchMovieListFromTMDBByDE,
+  fetchMovieListFromTMDBByTH,
 };

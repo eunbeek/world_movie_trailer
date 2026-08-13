@@ -10,16 +10,20 @@ class MovieService {
     return await Hive.openBox('moviesBox');
   }
 
-  static Future<List<Movie>> fetchMovie(String country, String languageCode) async {
+  static Future<List<Movie>> fetchMovie(
+      String country, String languageCode) async {
     print('fetchMovie');
     Box box = await _openBox();
     String countryCode;
-    String? countryName = country == special ? special : country == boxOffice ? boxOffice : localizedCountries[languageCode]?.entries
-    .firstWhere(
-        (entry) => entry.value == country,
-        orElse: () => MapEntry('', '')
-    )
-    .key;
+    String? countryName = country == special
+        ? special
+        : country == boxOffice
+            ? boxOffice
+            : localizedCountries[languageCode]
+                ?.entries
+                .firstWhere((entry) => entry.value == country,
+                    orElse: () => MapEntry('', ''))
+                .key;
 
     switch (countryName) {
       case kr:
@@ -48,13 +52,13 @@ class MovieService {
         break;
       case es:
         countryCode = 'es';
-      break;
+        break;
       case ind:
         countryCode = 'in';
-      break;
+        break;
       case cn:
         countryCode = 'cn';
-      break;
+        break;
       case boxOffice:
         countryCode = 'box_office';
         break;
@@ -65,17 +69,20 @@ class MovieService {
         countryCode = 'us';
         break;
     }
-  
+
     // Check if movies are stored in Hive
     Map<String, dynamic> result = await _getMoviesFromHive(box, countryCode);
     List<Movie> movies = [];
     String? timestamp = result['timestamp'];
 
-    if (timestamp != null && !_isDataOutdated(DateTime.parse(timestamp), countryCode == special, country: countryName)) {
+    if (timestamp != null &&
+        !_isDataOutdated(DateTime.parse(timestamp), countryCode == special,
+            country: countryName)) {
       return result['movies'];
     } else {
       // Fetch new data from Firebase Storage
-      Map<String, dynamic> newResult = await readMoviesFromStorage(countryCode);
+      Map<String, dynamic> newResult =
+          await readMoviesFromStorage(countryCode, languageCode);
       movies = newResult['movies'];
       // Save the new data to Hive
       await _saveMoviesToHive(box, countryCode, newResult);
@@ -83,10 +90,12 @@ class MovieService {
     }
   }
 
-  static Future<Map<String, dynamic>> readMoviesFromStorage(String countryCode) async {
+  static Future<Map<String, dynamic>> readMoviesFromStorage(String countryCode,
+      [String languageCode = 'en']) async {
     try {
       print('readMoviesFromStorage');
-      final ref = FirebaseStorage.instance.ref().child('movies_$countryCode.json');
+      final ref =
+          FirebaseStorage.instance.ref().child('movies_$countryCode.json');
       final data = await ref.getData();
       final jsonString = utf8.decode(data!);
 
@@ -102,33 +111,45 @@ class MovieService {
       DateTime today = DateTime.now();
       final DateFormat dateFormat = DateFormat('yyyy-MM-dd');
 
-      List<Movie> movies = movieList.map((json) {
-        final movie = Movie.fromJson(json);
-        if(!movie.posterUrl.startsWith('http')) {
-          movie.posterUrl = "";
-        }
-        DateTime? releaseDate;
-        try {
-          releaseDate = movie.releaseDate.isNotEmpty ? dateFormat.parseStrict(movie.releaseDate) : null;
-        } catch (e) {
-          print('Invalid date format: ${movie.releaseDate}');
-          releaseDate = null;
-        }
+      List<Movie> movies = movieList
+          .map((json) {
+            final movie = Movie.fromJson(json, languageCode: languageCode);
+            if (!movie.posterUrl.startsWith('http')) {
+              movie.posterUrl = "";
+            }
+            DateTime? releaseDate;
+            try {
+              releaseDate = movie.releaseDate.isNotEmpty
+                  ? dateFormat.parseStrict(movie.releaseDate)
+                  : null;
+            } catch (e) {
+              print('Invalid date format: ${movie.releaseDate}');
+              releaseDate = null;
+            }
 
-        if (releaseDate != null && (releaseDate.isBefore(today) || releaseDate.isAtSameMomentAs(today))) {
-          movie.status = 'Running';
-        } else {
-          movie.status = 'Upcoming';
-        }
+            if (releaseDate != null &&
+                (releaseDate.isBefore(today) ||
+                    releaseDate.isAtSameMomentAs(today))) {
+              movie.status = 'Running';
+            } else {
+              movie.status = 'Upcoming';
+            }
 
-        return movie;
-      }).where((movie)=> movie.trailerUrl.isNotEmpty && movie.localTitle.isNotEmpty && movie.posterUrl.isNotEmpty && movie.releaseDate.isNotEmpty)
-      .toList();
-      
+            return movie;
+          })
+          .where((movie) =>
+              movie.trailerUrl.isNotEmpty &&
+              movie.localTitle.isNotEmpty &&
+              movie.posterUrl.isNotEmpty &&
+              (countryCode == special || movie.releaseDate.isNotEmpty))
+          .toList();
+
       String normalizeTitle(String title) {
         return title
-            .replaceAll(RegExp(r'[-:]', multiLine: true), ' ') // Replace `-` and `:` with a space
-            .replaceAll(RegExp(r'\s+'), ' ') // Collapse multiple spaces into one
+            .replaceAll(RegExp(r'[-:]', multiLine: true),
+                ' ') // Replace `-` and `:` with a space
+            .replaceAll(
+                RegExp(r'\s+'), ' ') // Collapse multiple spaces into one
             .trim(); // Trim leading and trailing spaces
       }
 
@@ -150,7 +171,7 @@ class MovieService {
       // Return a Map containing the timestamp and the processed movies
       return {
         'timestamp': timestamp,
-        'movies': countryCode == 'special' ? movies: finalMovies,
+        'movies': countryCode == 'special' ? movies : finalMovies,
       };
     } catch (e) {
       print('Error reading movies: $e');
@@ -161,7 +182,8 @@ class MovieService {
     }
   }
 
-  static Future<void> _saveMoviesToHive(Box box, String countryCode, Map<String, dynamic> newUpdate) async {
+  static Future<void> _saveMoviesToHive(
+      Box box, String countryCode, Map<String, dynamic> newUpdate) async {
     try {
       print('_saveMoviesToHive');
 
@@ -174,7 +196,8 @@ class MovieService {
     }
   }
 
-  static Future<Map<String, dynamic>> _getMoviesFromHive(Box box, String countryCode) async {
+  static Future<Map<String, dynamic>> _getMoviesFromHive(
+      Box box, String countryCode) async {
     print('_getMoviesFromHive');
     try {
       // Retrieve data as dynamic first
@@ -182,7 +205,8 @@ class MovieService {
 
       if (storedData != null) {
         // Convert JSON data back to Movie objects
-        List<Movie> movies = (storedData["movies"] as List<dynamic>).map((json) {
+        List<Movie> movies =
+            (storedData["movies"] as List<dynamic>).map((json) {
           return Movie(
             localTitle: json.localTitle as String,
             posterUrl: json.posterUrl as String,
@@ -196,16 +220,16 @@ class MovieService {
             status: json.status as String? ?? 'Upcoming',
             special: json.special as String? ?? '',
             year: json.year as String? ?? '',
-            nameKR: json.nameKR as String? ?? '', 
-            nameJP: json.nameJP as String? ?? '', 
-            nameCH: json.nameCH as String? ?? '', 
-            nameTW: json.nameTW as String? ?? '', 
-            nameFR: json.nameFR as String? ?? '', 
-            nameDE: json.nameDE as String? ?? '', 
-            nameES: json.nameES as String? ?? '', 
-            nameHI: json.nameHI as String? ?? '', 
-            nameTH: json.nameTH as String? ?? '', 
-            isYoutube: json.isYoutube as bool? ?? true, 
+            nameKR: json.nameKR as String? ?? '',
+            nameJP: json.nameJP as String? ?? '',
+            nameCH: json.nameCH as String? ?? '',
+            nameTW: json.nameTW as String? ?? '',
+            nameFR: json.nameFR as String? ?? '',
+            nameDE: json.nameDE as String? ?? '',
+            nameES: json.nameES as String? ?? '',
+            nameHI: json.nameHI as String? ?? '',
+            nameTH: json.nameTH as String? ?? '',
+            isYoutube: json.isYoutube as bool? ?? true,
             period: json.period ?? 0,
             rank: json.rank as String? ?? '',
             lastRank: json.lastRank as String? ?? '',
@@ -237,12 +261,13 @@ class MovieService {
     }
   }
 
-  static bool _isDataOutdated(DateTime lastFetched, bool isSpecial, {String? country}) {
+  static bool _isDataOutdated(DateTime lastFetched, bool isSpecial,
+      {String? country}) {
     final now = DateTime.now();
     print('_isDataOutdated');
     if (isSpecial) {
       // For special sections, check if the year and month are the same
-      return now.difference(lastFetched).inDays  > 30;
+      return now.difference(lastFetched).inDays > 30;
     } else {
       if (country == null) return true;
 
@@ -267,12 +292,12 @@ class MovieService {
 
     // Calculate the difference in days to the next update day
     final daysToNextUpdate = (updateDay - fetchedDay + 7) % 7;
-    final nextUpdateDate =
-        lastFetched.add(Duration(days: daysToNextUpdate == 0 ? 7 : daysToNextUpdate));
-    
-    return DateTime(nextUpdateDate.year, nextUpdateDate.month, nextUpdateDate.day);
-  }
+    final nextUpdateDate = lastFetched
+        .add(Duration(days: daysToNextUpdate == 0 ? 7 : daysToNextUpdate));
 
+    return DateTime(
+        nextUpdateDate.year, nextUpdateDate.month, nextUpdateDate.day);
+  }
 
   static Future<String> fetchPromotionUrl() async {
     try {

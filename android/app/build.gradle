@@ -52,6 +52,19 @@ android {
         versionName flutterVersionName
     }
 
+    flavorDimensions "environment"
+    productFlavors {
+        dev {
+            dimension "environment"
+            applicationIdSuffix ".dev"
+            resValue "string", "app_name", "World Movie Trailer Dev"
+        }
+        prod {
+            dimension "environment"
+            resValue "string", "app_name", "World Movie Trailer"
+        }
+    }
+
     signingConfigs {
         release {
             keyAlias = keystoreProperties['keyAlias']
