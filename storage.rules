@@ -1,12 +1,19 @@
 rules_version = '2';
 
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
+    // Functions use the Admin SDK and do not depend on these client rules.
+    // Apps only need read access to the published JSON documents.
+    match /{fileName} {
+      allow read: if fileName.matches('movies_.*[.]json')
+                  || fileName == 'quotes_special.json'
+                  || fileName == 'promotion_url.json'
+                  || fileName == 'hotFixMode.json';
+      allow write: if false;
+    }
+
     match /{allPaths=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

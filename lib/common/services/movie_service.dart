@@ -4,6 +4,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:hive/hive.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class MovieService {
   static Future<Box> _openBox() async {
@@ -71,21 +72,29 @@ class MovieService {
     }
 
     // Check if movies are stored in Hive
-    Map<String, dynamic> result = await _getMoviesFromHive(box, countryCode);
+    // A Movie contains the selected localized values. Keep a cache per language
+    // so changing the app language never returns objects localized previously.
+    final cacheKey =
+        'movies_v2_${countryCode}_${_translationKey(languageCode)}';
+    Map<String, dynamic> result = await _getMoviesFromHive(box, cacheKey);
     List<Movie> movies = [];
     String? timestamp = result['timestamp'];
 
     if (timestamp != null &&
-        !_isDataOutdated(DateTime.parse(timestamp), countryCode == special,
+        !_isDataOutdated(DateTime.tryParse(timestamp) ?? DateTime(1970),
+            countryCode == special,
             country: countryName)) {
       return result['movies'];
     } else {
       // Fetch new data from Firebase Storage
       Map<String, dynamic> newResult =
           await readMoviesFromStorage(countryCode, languageCode);
-      movies = newResult['movies'];
+      final fetchedMovies = newResult['movies'];
+      movies = fetchedMovies is List
+          ? fetchedMovies.whereType<Movie>().toList()
+          : <Movie>[];
       // Save the new data to Hive
-      await _saveMoviesToHive(box, countryCode, newResult);
+      await _saveMoviesToHive(box, cacheKey, newResult);
       return movies;
     }
   }
@@ -103,46 +112,63 @@ class MovieService {
       final Map<String, dynamic> jsonData = json.decode(jsonString);
 
       // Assuming jsonData[0] contains the timestamp and jsonData[1] contains the movies
-      final String timestamp = jsonData['timestamp'];
+      final String timestamp = (jsonData['timestamp'] ?? '').toString();
 
-      final List<dynamic> movieList = jsonData['movies'];
+      final List<dynamic> movieList = jsonData['movies'] is List
+          ? jsonData['movies'] as List<dynamic>
+          : const [];
 
       // Process each movie
       DateTime today = DateTime.now();
       final DateFormat dateFormat = DateFormat('yyyy-MM-dd');
 
-      List<Movie> movies = movieList
-          .map((json) {
-            final movie = Movie.fromJson(json, languageCode: languageCode);
-            if (!movie.posterUrl.startsWith('http')) {
-              movie.posterUrl = "";
-            }
-            DateTime? releaseDate;
-            try {
-              releaseDate = movie.releaseDate.isNotEmpty
-                  ? dateFormat.parseStrict(movie.releaseDate)
-                  : null;
-            } catch (e) {
-              print('Invalid date format: ${movie.releaseDate}');
-              releaseDate = null;
-            }
+      final List<Movie> movies = <Movie>[];
+      for (final item in movieList) {
+        if (item is! Map) continue;
+        try {
+          final movie = Movie.fromJson(
+            Map<dynamic, dynamic>.from(item),
+            languageCode: languageCode,
+          );
+          if (!movie.posterUrl.startsWith('http')) {
+            movie.posterUrl = "";
+          }
+          // Native apps can display external crawler images directly. On
+          // Web, only request origins whose CORS behavior we control or
+          // explicitly trust; every other source falls back to the blank
+          // poster instead of flooding the console with CORS errors.
+          if (kIsWeb && !_isWebSafePoster(movie.posterUrl)) {
+            movie.posterUrl = "";
+          }
+          DateTime? releaseDate;
+          try {
+            releaseDate = movie.releaseDate.isNotEmpty
+                ? dateFormat.parseStrict(movie.releaseDate)
+                : null;
+          } catch (e) {
+            print('Invalid date format: ${movie.releaseDate}');
+            releaseDate = null;
+          }
 
-            if (releaseDate != null &&
-                (releaseDate.isBefore(today) ||
-                    releaseDate.isAtSameMomentAs(today))) {
-              movie.status = 'Running';
-            } else {
-              movie.status = 'Upcoming';
-            }
+          if (releaseDate != null &&
+              (releaseDate.isBefore(today) ||
+                  releaseDate.isAtSameMomentAs(today))) {
+            movie.status = 'Running';
+          } else {
+            movie.status = 'Upcoming';
+          }
 
-            return movie;
-          })
-          .where((movie) =>
-              movie.trailerUrl.isNotEmpty &&
+          if (movie.trailerUrl.isNotEmpty &&
               movie.localTitle.isNotEmpty &&
               movie.posterUrl.isNotEmpty &&
-              (countryCode == special || movie.releaseDate.isNotEmpty))
-          .toList();
+              (countryCode == special || movie.releaseDate.isNotEmpty)) {
+            movies.add(movie);
+          }
+        } catch (error, stackTrace) {
+          print('Skipping invalid movie JSON: $error');
+          print(stackTrace);
+        }
+      }
 
       String normalizeTitle(String title) {
         return title
@@ -173,8 +199,9 @@ class MovieService {
         'timestamp': timestamp,
         'movies': countryCode == 'special' ? movies : finalMovies,
       };
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('Error reading movies: $e');
+      print(stackTrace);
       return {
         'timestamp': null,
         'movies': [],
@@ -183,13 +210,13 @@ class MovieService {
   }
 
   static Future<void> _saveMoviesToHive(
-      Box box, String countryCode, Map<String, dynamic> newUpdate) async {
+      Box box, String cacheKey, Map<String, dynamic> newUpdate) async {
     try {
       print('_saveMoviesToHive');
 
       Map<String, dynamic> dataToSave = newUpdate;
 
-      await box.put('movies_$countryCode', dataToSave);
+      await box.put(cacheKey, dataToSave);
       print('Movies saved to Hive successfully');
     } catch (err) {
       print('Error saving movies to Hive: $err');
@@ -197,50 +224,29 @@ class MovieService {
   }
 
   static Future<Map<String, dynamic>> _getMoviesFromHive(
-      Box box, String countryCode) async {
+      Box box, String cacheKey) async {
     print('_getMoviesFromHive');
     try {
       // Retrieve data as dynamic first
-      Map<dynamic, dynamic>? storedData = box.get('movies_$countryCode');
+      final dynamic cached = box.get(cacheKey);
+      Map<dynamic, dynamic>? storedData =
+          cached is Map ? Map<dynamic, dynamic>.from(cached) : null;
 
       if (storedData != null) {
         // Convert JSON data back to Movie objects
-        List<Movie> movies =
-            (storedData["movies"] as List<dynamic>).map((json) {
-          return Movie(
-            localTitle: json.localTitle as String,
-            posterUrl: json.posterUrl as String,
-            trailerUrl: json.trailerUrl ?? '',
-            country: json.country as String,
-            source: json.source as String,
-            spec: json.spec as String,
-            releaseDate: json.releaseDate ?? '',
-            runtime: json.runtime ?? 0,
-            credits: json.credits as Map<String, dynamic>? ?? {},
-            status: json.status as String? ?? 'Upcoming',
-            special: json.special as String? ?? '',
-            year: json.year as String? ?? '',
-            nameKR: json.nameKR as String? ?? '',
-            nameJP: json.nameJP as String? ?? '',
-            nameCH: json.nameCH as String? ?? '',
-            nameTW: json.nameTW as String? ?? '',
-            nameFR: json.nameFR as String? ?? '',
-            nameDE: json.nameDE as String? ?? '',
-            nameES: json.nameES as String? ?? '',
-            nameHI: json.nameHI as String? ?? '',
-            nameTH: json.nameTH as String? ?? '',
-            isYoutube: json.isYoutube as bool? ?? true,
-            period: json.period ?? 0,
-            rank: json.rank as String? ?? '',
-            lastRank: json.lastRank as String? ?? '',
-            totalGross: json.totalGross as String? ?? '',
-            weeks: json.weeks as String? ?? '',
-            distributor: json.distributor as String? ?? '',
-            isNewThisWeek: json.isNewThisWeek as bool? ?? false,
-            weekStartDate: json.weekStartDate as String? ?? '',
-            weekEndDate: json.weekEndDate as String? ?? '',
-          );
-        }).toList();
+        final rawMovies = storedData['movies'];
+        final List<Movie> movies = rawMovies is List
+            ? rawMovies
+                .map<Movie?>((value) {
+                  if (value is Movie) return value;
+                  if (value is Map) {
+                    return Movie.fromJson(Map<dynamic, dynamic>.from(value));
+                  }
+                  return null;
+                })
+                .whereType<Movie>()
+                .toList()
+            : [];
 
         return {
           'timestamp': storedData["timestamp"] as String?,
@@ -259,6 +265,19 @@ class MovieService {
         'movies': [],
       };
     }
+  }
+
+  static String _translationKey(String languageCode) {
+    const aliases = {'zh': 'cn', 'hi': 'in'};
+    return aliases[languageCode] ?? languageCode;
+  }
+
+  static bool _isWebSafePoster(String url) {
+    final host = Uri.tryParse(url)?.host.toLowerCase() ?? '';
+    return host == 'image.tmdb.org' ||
+        host == 'firebasestorage.googleapis.com' ||
+        host.endsWith('.firebasestorage.app') ||
+        host == 'storage.googleapis.com';
   }
 
   static bool _isDataOutdated(DateTime lastFetched, bool isSpecial,

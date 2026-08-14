@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -20,7 +21,8 @@ import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
 void main() => bootstrap(DefaultFirebaseOptions.currentPlatform);
 
 Future<void> bootstrap(FirebaseOptions firebaseOptions) async {
@@ -36,7 +38,9 @@ Future<void> bootstrap(FirebaseOptions firebaseOptions) async {
     options: firebaseOptions,
   );
 
-  MobileAds.instance.initialize();
+  if (!kIsWeb) {
+    MobileAds.instance.initialize();
+  }
 
   await Hive.initFlutter();
   Hive.registerAdapter(MovieAdapter());
@@ -45,9 +49,10 @@ Future<void> bootstrap(FirebaseOptions firebaseOptions) async {
   Hive.registerAdapter(MovieByUserAdapter());
 
   var settingsBox = await Hive.openBox<Settings>('settings');
-  Settings initSettings = settingsBox.get('app_settings') ?? Settings.defaultSettings();
+  Settings initSettings =
+      settingsBox.get('app_settings') ?? Settings.defaultSettings();
   bool isInitialSetting = settingsBox.get('app_settings') == null;
-  bool hasBox =  initSettings.countryOrder.contains('box');
+  bool hasBox = initSettings.countryOrder.contains('box');
 
   //temporary for box
   if (!hasBox) {
@@ -73,19 +78,22 @@ Future<void> bootstrap(FirebaseOptions firebaseOptions) async {
   }
 
   if (!isInitialSetting) {
-    updateUserIdIfNeeded();  // 기존 사용자라면 userId를 새로 생성하여 저장
+    updateUserIdIfNeeded(); // 기존 사용자라면 userId를 새로 생성하여 저장
   }
 
   LogHelper();
 
   final alarmService = AlarmService();
-  await alarmService.initialize();
-  
+  if (!kIsWeb) {
+    await alarmService.initialize();
+  }
+
   await initializeDateFormatting();
 
-  final settingsProviderInstance = SettingsProvider(initSettings, isInitialSetting);
+  final settingsProviderInstance =
+      SettingsProvider(initSettings, isInitialSetting);
   // 신규 유저일 경우 notification permission request
-  if(isInitialSetting){
+  if (isInitialSetting && !kIsWeb) {
     await alarmService.requestPermission(settingsProviderInstance);
   }
 
@@ -108,13 +116,15 @@ class MyApp extends StatefulWidget {
   final bool isInitialSetting;
   final bool isAdsFree;
 
-  const MyApp({super.key, required this.isInitialSetting, required this.isAdsFree});
+  const MyApp(
+      {super.key, required this.isInitialSetting, required this.isAdsFree});
 
   @override
   _MyAppState createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBindingObserver {
+class _MyAppState extends State<MyApp>
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late InterstitialAdManager _appAdManager;
   bool _isAdDismissed = false;
   late AnimationController _controller;
@@ -138,10 +148,15 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-      IapHelper.listenToPurchases(context);
+      final settingsProvider =
+          Provider.of<SettingsProvider>(context, listen: false);
+      if (!kIsWeb) {
+        IapHelper.listenToPurchases(context);
+      }
 
-      await initializeAlarms(settingsProvider, widget.isInitialSetting);
+      if (!kIsWeb) {
+        await initializeAlarms(settingsProvider, widget.isInitialSetting);
+      }
       settingsProvider.resetOpenCount();
       settingsProvider.updateIsQuotes(!settingsProvider.isQuotes);
       _updateNewShownStatus(settingsProvider, widget.isInitialSetting);
@@ -149,8 +164,15 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
   }
 
   void _loadAd() async {
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-    
+    if (kIsWeb) {
+      setState(() {
+        _isAdDismissed = true;
+      });
+      return;
+    }
+    final settingsProvider =
+        Provider.of<SettingsProvider>(context, listen: false);
+
     if (settingsProvider.isAdsFree) {
       setState(() {
         _isAdDismissed = true;
@@ -158,16 +180,13 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
       return;
     }
 
-    _appAdManager.loadAd(
-      onAdLoaded: () {
-        _showAd();
-      },
-      onAdFailed: () {
-        setState(() {
-          _isAdDismissed = true;
-        });
-      }
-    );
+    _appAdManager.loadAd(onAdLoaded: () {
+      _showAd();
+    }, onAdFailed: () {
+      setState(() {
+        _isAdDismissed = true;
+      });
+    });
   }
 
   void _showAd() {
@@ -182,12 +201,15 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
     });
   }
 
-  void _updateNewShownStatus(SettingsProvider settingsProvider, bool isInitialSetting) {
+  void _updateNewShownStatus(
+      SettingsProvider settingsProvider, bool isInitialSetting) {
     DateTime lastOpenDate = settingsProvider.lastDate;
     DateTime currentDate = DateTime.now();
 
-    DateTime lastDateOnly = DateTime(lastOpenDate.year, lastOpenDate.month, lastOpenDate.day);
-    DateTime currentDateOnly = DateTime(currentDate.year, currentDate.month, currentDate.day);
+    DateTime lastDateOnly =
+        DateTime(lastOpenDate.year, lastOpenDate.month, lastOpenDate.day);
+    DateTime currentDateOnly =
+        DateTime(currentDate.year, currentDate.month, currentDate.day);
 
     int gap = currentDateOnly.difference(lastDateOnly).inDays;
 
@@ -225,7 +247,29 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
       child: MaterialApp(
         title: appTitle,
         scaffoldMessengerKey: scaffoldMessengerKey,
-        themeMode: settingsProvider.isDarkTheme ? ThemeMode.dark : ThemeMode.light,
+        builder: (context, child) {
+          if (!kIsWeb || child == null) return child ?? const SizedBox.shrink();
+
+          final mediaQuery = MediaQuery.of(context);
+          final appWidth = mediaQuery.size.width.clamp(0.0, 500.0);
+          return ColoredBox(
+            color: const Color(0xFF111111),
+            child: Center(
+              child: SizedBox(
+                width: appWidth,
+                height: mediaQuery.size.height,
+                child: MediaQuery(
+                  data: mediaQuery.copyWith(
+                    size: Size(appWidth, mediaQuery.size.height),
+                  ),
+                  child: child,
+                ),
+              ),
+            ),
+          );
+        },
+        themeMode:
+            settingsProvider.isDarkTheme ? ThemeMode.dark : ThemeMode.light,
         theme: ThemeData.light(),
         darkTheme: ThemeData.dark(),
         debugShowCheckedModeBanner: false,
@@ -255,20 +299,21 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin, WidgetsBin
   }
 }
 
-Future<void> initializeAlarms(SettingsProvider settingsProvider, bool isInitialSetting) async {
-
+Future<void> initializeAlarms(
+    SettingsProvider settingsProvider, bool isInitialSetting) async {
   // new user
-  if(isInitialSetting){
+  if (isInitialSetting) {
     await AlarmService().registerDailyAlarms(settingsProvider);
   }
 
   // Reset or verify existing alarm states
   final currentAlarms = settingsProvider.isAlarmOn;
-  bool hasBox = currentAlarms.values.any((alarmMap) => alarmMap.containsKey('box'));
+  bool hasBox =
+      currentAlarms.values.any((alarmMap) => alarmMap.containsKey('box'));
   bool hasChinaOnThurs = currentAlarms[4]?.containsKey('china') == true;
 
   // existing user(only 1 time run)
-  if(currentAlarms.isEmpty){
+  if (currentAlarms.isEmpty) {
     settingsProvider.resetAlarms();
     await AlarmService().registerDailyAlarms(settingsProvider);
     await AlarmService().registerReleaseAlarmsFromList(settingsProvider, true);
@@ -278,7 +323,7 @@ Future<void> initializeAlarms(SettingsProvider settingsProvider, bool isInitialS
     settingsProvider.addAlarmForBoxOffice();
   }
 
-  if(hasChinaOnThurs) {
+  if (hasChinaOnThurs) {
     final wednesday = currentAlarms[4]!;
     final thursday = currentAlarms[5] ?? {};
 
@@ -298,9 +343,10 @@ Future<void> initializeAlarms(SettingsProvider settingsProvider, bool isInitialS
 void updateUserIdIfNeeded() async {
   var settingsBox = await Hive.openBox<Settings>('settings');
   Settings? currentSettings = settingsBox.get('app_settings');
-  
+
   // If userId is empty, generate a new one
-  if (currentSettings != null && (currentSettings.userId == null || currentSettings.userId!.isEmpty)) {
+  if (currentSettings != null &&
+      (currentSettings.userId == null || currentSettings.userId!.isEmpty)) {
     var uuid = Uuid();
     String newUserId = uuid.v4(); // 새 UUID 생성
 

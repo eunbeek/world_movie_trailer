@@ -5,8 +5,11 @@ const {BOX_OFFICE_KR_SHEET, BOX_OFFICE_USA_SHEET, buildOriginSource, buildMovieM
 
 const BOX_OFFICE_USA_COUNTRIES = new Set(["box_office", "box_office_usa", "box_office-usa"]);
 const BOX_OFFICE_KR_COUNTRIES = new Set(["box_office_kr", "box-office-kr"]);
-const TRANSLATION_POLL_INTERVAL_MS = 10000;
-const TRANSLATION_POLL_ATTEMPTS = 6;
+// Large scheduled imports (for example, France with roughly 150 rows) need
+// substantially longer than a limited test run for all GOOGLETRANSLATE
+// formulas to settle. Keep polling rather than publishing partial data.
+const TRANSLATION_POLL_INTERVAL_MS = 15000;
+const TRANSLATION_POLL_ATTEMPTS = 16;
 
 /** Returns whether a processed movie can be included in published data. */
 function isPublishableMovie(movie) {
@@ -44,6 +47,40 @@ function buildStorageMovie(movie) {
   };
 }
 
+/** Keeps only person fields required by the client and external TMDB links. */
+function compactCredits(credits) {
+  const source = credits || {};
+  const cast = Array.isArray(source.cast) ? source.cast.map((person) => ({
+    id: person && person.id || "",
+    name: person && person.name || "",
+    character: person && person.character || "",
+  })).filter((person) => person.id && person.name) : [];
+  const crew = Array.isArray(source.crew) ? source.crew.map((person) => ({
+    id: person && person.id || "",
+    name: person && person.name || "",
+    job: person && person.job || "",
+  })).filter((person) => person.id && person.name) : [];
+  return {cast, crew};
+}
+
+/** Returns a stable key used to preserve credits across manual Sheet syncs. */
+function movieLookupKey(movie) {
+  return String(movie.id || movie.tid || movie.tmdbId || "");
+}
+
+/** Reads existing Storage credits so Sheet-only edits do not discard person IDs. */
+async function readExistingCredits(fileName) {
+  try {
+    const [buffer] = await admin.storage().bucket().file(fileName).download();
+    const data = JSON.parse(buffer.toString("utf8"));
+    return new Map((data.movies || []).map((movie) =>
+      [movieLookupKey(movie), compactCredits(movie.credits)]).filter(([key]) => key));
+  } catch (error) {
+    if (error.code !== 404) console.warn(`Could not preserve credits from ${fileName}:`, error.message);
+    return new Map();
+  }
+}
+
 /** Reads finalized rows for a country/category directly from Google Sheets. */
 async function readFinalizedSheet(normalizedCountry) {
   if (normalizedCountry === "special") return await readSpecialDataSheet();
@@ -78,14 +115,25 @@ async function readFinalizedSheetAfterTranslations(normalizedCountry) {
       await new Promise((resolve) => setTimeout(resolve, TRANSLATION_POLL_INTERVAL_MS));
     }
   }
-  throw new Error(`Translations for ${normalizedCountry} did not finish within ${TRANSLATION_POLL_ATTEMPTS * TRANSLATION_POLL_INTERVAL_MS / 1000} seconds; existing Storage JSON was preserved.`);
+  const waitSeconds = (TRANSLATION_POLL_ATTEMPTS - 1) * TRANSLATION_POLL_INTERVAL_MS / 1000;
+  throw new Error(`Translations for ${normalizedCountry} did not finish within ${waitSeconds} seconds; existing Storage JSON was preserved.`);
 }
 
 /** Publishes already finalized Sheet rows to Firebase Storage. */
-async function publishSheetMovies(normalizedCountry) {
+async function publishSheetMovies(normalizedCountry, processedMovies = []) {
   const timestamp = new Date().toISOString();
   const sheetMovies = (await readFinalizedSheetAfterTranslations(normalizedCountry)).filter(isPublishableMovie);
-  const storageMovies = sheetMovies.map(buildStorageMovie);
+  const fileName = `movies_${normalizedCountry}.json`;
+  const existingCredits = await readExistingCredits(fileName);
+  const processedCredits = new Map(processedMovies.map((movie) =>
+    [movieLookupKey(movie), compactCredits(movie.credits)]).filter(([key]) => key));
+  const storageMovies = sheetMovies.map((movie) => {
+    const key = movieLookupKey(movie);
+    return buildStorageMovie({
+      ...movie,
+      credits: processedCredits.get(key) || existingCredits.get(key) || {cast: [], crew: []},
+    });
+  });
   const dataToSave = {
     schemaVersion: 2,
     timestamp,
@@ -94,7 +142,6 @@ async function publishSheetMovies(normalizedCountry) {
   };
 
   const bucket = admin.storage().bucket();
-  const fileName = `movies_${normalizedCountry}.json`;
   await bucket.file(fileName).save(JSON.stringify(dataToSave), {
     metadata: {
       contentType: "application/json",
@@ -128,13 +175,14 @@ async function publishMovies(country, movies) {
   } else {
     throw new Error(`Sheet publishing is not configured for ${normalizedCountry}.`);
   }
-  return await publishSheetMovies(normalizedCountry);
+  return await publishSheetMovies(normalizedCountry, sheetInputMovies);
 }
 
 module.exports = {
   areTranslationsComplete,
   buildMovieId,
   buildStorageMovie,
+  compactCredits,
   isPublishableMovie,
   publishMovies,
   publishSheetMovies,

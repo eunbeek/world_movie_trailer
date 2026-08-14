@@ -165,9 +165,12 @@ exports.fetchMovieListTW = functions
     .schedule("0 9 * * 4")
     .timeZone("America/Toronto") // Adjust if the timezone should be CST
     .onRun(async () => {
+      const processedCount = 0;
+      const startTime = Date.now();
       const allMovies = await fetchMovieListFromShowTime();
+      const moviesWithDetails = await processBatch("zh-TW", allMovies, processedCount, startTime);
 
-      await saveMoviesAsJson("tw", allMovies);
+      await saveMoviesAsJson("tw", moviesWithDetails);
 
       const timestamp = new Date().toISOString();
       console.log(`Success: [${timestamp}] Country: TW, Movie Count: ${allMovies.length}`);
@@ -616,10 +619,13 @@ exports.testFetchMovieListTW = functions.runWith(movieRuntimeOptions).https.onRe
   try {
     const allMovies = await fetchMovieListFromShowTime();
     const testMovies = limitTestItems(req, allMovies);
+    const processedCount = 0;
+    const startTime = Date.now();
 
     console.log(`ShowTime Movies: ${allMovies.length}, test limit: ${testMovies.length}`);
 
-    await saveMoviesAsJson("tw", testMovies);
+    const moviesWithDetails = await processBatch("zh-TW", testMovies, processedCount, startTime);
+    await saveMoviesAsJson("tw", moviesWithDetails);
 
     const timestamp = new Date().toISOString();
     console.log(`Success: [${timestamp}] Country: TW, Movie Count: ${testMovies.length}`);
@@ -629,7 +635,7 @@ exports.testFetchMovieListTW = functions.runWith(movieRuntimeOptions).https.onRe
       timestamp,
       country: "TW",
       movieCount: testMovies.length,
-      movies: buildTestMoviePreview(testMovies),
+      movies: buildTestMoviePreview(moviesWithDetails),
     });
   } catch (error) {
     console.error("Error fetching movie list:", error);
@@ -1077,7 +1083,7 @@ exports.testFetchMovieListBoxOfficeKR = functions.runWith(kobisRuntimeOptions).h
  * @param {Object} res HTTP response.
  * @returns {Promise<void>} Sends the Storage publishing result.
  */
-exports.syncMovieSheetToStorage = functions.runWith({timeoutSeconds: 120}).https.onRequest((req, res) => {
+exports.syncMovieSheetToStorage = functions.runWith({timeoutSeconds: 300}).https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
     if (req.method !== "POST") {
       res.status(405).json({success: false, error: "Use POST."});

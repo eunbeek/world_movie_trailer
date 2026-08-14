@@ -1,6 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -23,7 +23,14 @@ class MovieDetailPageYouTube extends StatefulWidget {
   final int? flag;
   final int? cIdx;
 
-  const MovieDetailPageYouTube({super.key, required this.movie, required this.captionFlag, required this.captionLan, required this.isCustomized, this.flag, this.cIdx});
+  const MovieDetailPageYouTube(
+      {super.key,
+      required this.movie,
+      required this.captionFlag,
+      required this.captionLan,
+      required this.isCustomized,
+      this.flag,
+      this.cIdx});
 
   @override
   _MovieDetailPageYouTubeState createState() => _MovieDetailPageYouTubeState();
@@ -42,7 +49,9 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
     _initializeYoutubePlayer();
 
     LogHelper().logEvent(
-      widget.movie.special!.isNotEmpty ? "special_trailer_watched" : "trailer_watched",
+      widget.movie.special!.isNotEmpty
+          ? "special_trailer_watched"
+          : "trailer_watched",
       parameters: {
         'movie': widget.movie.localTitle,
         'timestamp': DateTime.now().toIso8601String(),
@@ -56,7 +65,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    
+
     // Check if movie is bookmarked asynchronously
     Future.microtask(() => _checkIfBookmarked());
   }
@@ -69,7 +78,8 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
 
   // Async method to check if the movie is bookmarked
   Future<void> _checkIfBookmarked() async {
-    bool isUnique = await MovieByUserService.getIsUnique(3, widget.movie.localTitle);
+    bool isUnique =
+        await MovieByUserService.getIsUnique(3, widget.movie.localTitle);
     setState(() {
       _isBookmarked = !isUnique; // If it's unique, it's not bookmarked
     });
@@ -105,11 +115,6 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
     super.dispose();
   }
 
-  double _calculateAspectRatio(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    return screenSize.height / screenSize.width;
-  }
-
   Future<void> showMovieSnackbar(String messageType) async {
     Future.delayed(Duration(milliseconds: 700)).then((_) {
       scaffoldMessengerKey.currentState?.showSnackBar(
@@ -125,11 +130,11 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
     try {
       if (widget.movie.runtime != "") {
         return Text(
-            '${getTranslatedDetail('Running Time', _settingsProvider.language)}: ${widget.movie.runtime} ${getTranslatedDetail('Minute', _settingsProvider.language)}',
-            style: TextStyle(
-              fontSize: MediaQuery.of(context).size.height * 0.018,
-            ),
-          );
+          '${getTranslatedDetail('Running Time', _settingsProvider.language)}: ${widget.movie.runtime} ${getTranslatedDetail('Minute', _settingsProvider.language)}',
+          style: TextStyle(
+            fontSize: MediaQuery.of(context).size.height * 0.018,
+          ),
+        );
       } else {
         return SizedBox.shrink(); // Return an empty widget if no runtime
       }
@@ -137,7 +142,6 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
       return SizedBox.shrink(); // Return an empty widget if there is an error
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -151,13 +155,17 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
           children: [
             // Background Image
             if (!_isFullScreen)
-              const BackgroundWidget(isPausePage: true, isTapeExist: true,),
+              const BackgroundWidget(
+                isPausePage: true,
+                isTapeExist: true,
+              ),
             // Custom AppBar
             Column(
               children: [
                 if (!_isFullScreen)
                   Padding(
-                    padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.02),
+                    padding: EdgeInsets.only(
+                        top: MediaQuery.of(context).size.height * 0.02),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -175,7 +183,8 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                 : widget.movie.localTitle,
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.height * 0.02,
+                              fontSize:
+                                  MediaQuery.of(context).size.height * 0.02,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -185,27 +194,56 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                     ),
                   ),
                 Expanded(
-                  child: YoutubePlayerScaffold(
-                    controller: _youtubePlayerController,
-                    defaultOrientations: const [
-                      DeviceOrientation.portraitUp,
-                      DeviceOrientation.portraitDown,
-                    ],
-                    builder: (context, player) {
-                      return SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            if (_errorMessage.isNotEmpty)
-                              _buildErrorWidget()
-                            else
-                              AspectRatio(
-                                aspectRatio: _isFullScreen ? 16 / 9 : _calculateAspectRatio(context),
-                                child: player,
-                              ),
-                            // 여기에 제목, 설명 등 UI 추가
-                            if (!_isFullScreen) ...[
-                                SizedBox(height:10),
-                                if(!widget.isCustomized)
+                    child: YoutubePlayerScaffold(
+                  controller: _youtubePlayerController,
+                  defaultOrientations: const [
+                    DeviceOrientation.portraitUp,
+                    DeviceOrientation.portraitDown,
+                  ],
+                  builder: (context, player) {
+                    return SingleChildScrollView(
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            // Leave room for actions and movie information on
+                            // desktop instead of letting the video dominate
+                            // the entire browser viewport.
+                            maxWidth: kIsWeb ? 760 : double.infinity,
+                          ),
+                          child: Column(
+                            children: [
+                              if (_errorMessage.isNotEmpty)
+                                _buildErrorWidget()
+                              else
+                                LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final viewportHeight =
+                                        MediaQuery.sizeOf(context).height;
+                                    final availableWidth = constraints.maxWidth;
+                                    final widthByHeight =
+                                        viewportHeight * 0.52 * 16 / 9;
+                                    final playerWidth = kIsWeb
+                                        ? availableWidth.clamp(0, widthByHeight)
+                                        : availableWidth;
+
+                                    return Center(
+                                      child: SizedBox(
+                                        width: playerWidth.toDouble(),
+                                        child: ColoredBox(
+                                          color: Colors.black,
+                                          child: AspectRatio(
+                                            aspectRatio: 16 / 9,
+                                            child: player,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              // 여기에 제목, 설명 등 UI 추가
+                              if (!_isFullScreen) ...[
+                                SizedBox(height: 10),
+                                if (!widget.isCustomized)
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
@@ -213,17 +251,27 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                         onPressed: () async {
                                           if (_isBookmarked) {
                                             // If the movie is already bookmarked, remove it
-                                            final existingMovies = await MovieByUserService.getMoviesByFlag(3);
-                                            final index = existingMovies.indexWhere((movie) => movie.movie.localTitle == widget.movie.localTitle);
+                                            final existingMovies =
+                                                await MovieByUserService
+                                                    .getMoviesByFlag(3);
+                                            final index = existingMovies
+                                                .indexWhere((movie) =>
+                                                    movie.movie.localTitle ==
+                                                    widget.movie.localTitle);
 
                                             if (index != -1) {
-                                              await MovieByUserService.deleteMovie(3, index);
+                                              await MovieByUserService
+                                                  .deleteMovie(3, index);
                                               showMovieSnackbar('movieDeleted');
                                             }
                                           }
-                                          bool isCount = await MovieByUserService.getIsAvailable(3, _settingsProvider);
+                                          bool isCount =
+                                              await MovieByUserService
+                                                  .getIsAvailable(
+                                                      3, _settingsProvider);
                                           if (!isCount) {
-                                            showMovieSnackbar('maxMoviesReached');
+                                            showMovieSnackbar(
+                                                'maxMoviesReached');
                                             return;
                                           }
 
@@ -231,12 +279,16 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                             // Create MovieByUser object
                                             MovieByUser addMovie = MovieByUser(
                                               flag: 3, // Bookmark flag
-                                              movie: widget.movie, // Current movie object
+                                              movie: widget
+                                                  .movie, // Current movie object
                                             );
 
                                             // Add movie to MovieByUserService
-                                            await MovieByUserService.addMovie(3, addMovie, _settingsProvider).then((_) {
-                                              showMovieSnackbar('addToBookmark');
+                                            await MovieByUserService.addMovie(3,
+                                                    addMovie, _settingsProvider)
+                                                .then((_) {
+                                              showMovieSnackbar(
+                                                  'addToBookmark');
                                             });
                                           }
                                           setState(() {
@@ -250,108 +302,188 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                                   : 'assets/images/dark/icon_bookmark_DT_xxhdpi.png')
                                               : (_isBookmarked
                                                   ? 'assets/images/light/icon_bookmark_fill_LT_xxhdpi.png'
-                                                  : 'assets/images/light/icon_bookmark_LT_xxhdpi.png'),                               
+                                                  : 'assets/images/light/icon_bookmark_LT_xxhdpi.png'),
                                           height: iconSize,
                                           width: iconSize,
                                         ),
                                       ),
                                       IconButton(
                                         onPressed: () async {
-                                          MovieByUser? existingMovie = await MovieByUserService.getMovieMemoByTitle(widget.movie.localTitle);
+                                          MovieByUser? existingMovie =
+                                              await MovieByUserService
+                                                  .getMovieMemoByTitle(
+                                                      widget.movie.localTitle);
                                           FocusNode memoFocusNode = FocusNode();
                                           // Show memo input modal bottom sheet
                                           showModalBottomSheet(
                                             context: context,
                                             isScrollControlled: true,
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                              borderRadius:
+                                                  BorderRadius.vertical(
+                                                      top: Radius.circular(20)),
                                             ),
                                             builder: (BuildContext context) {
-                                              String initialMemo = existingMovie != null
+                                              String initialMemo = existingMovie !=
+                                                      null
                                                   ? '${existingMovie.memo}\r\n'
                                                   : '${DateFormat('yyyy/MM/dd').format(DateTime.now())}\r\n';
 
-                                              TextEditingController memoController = TextEditingController(text: initialMemo);
+                                              TextEditingController
+                                                  memoController =
+                                                  TextEditingController(
+                                                      text: initialMemo);
 
-                                              memoController.selection = TextSelection.fromPosition(
-                                                TextPosition(offset: memoController.text.length),
+                                              memoController.selection =
+                                                  TextSelection.fromPosition(
+                                                TextPosition(
+                                                    offset: memoController
+                                                        .text.length),
                                               );
 
                                               return Padding(
                                                 padding: EdgeInsets.only(
-                                                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                                                  bottom: MediaQuery.of(context)
+                                                      .viewInsets
+                                                      .bottom,
                                                   left: 16,
                                                   right: 16,
                                                 ),
                                                 child: Column(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
                                                   children: <Widget>[
                                                     const SizedBox(height: 10),
                                                     Text(
-                                                      getMessage(_settingsProvider.language, 'addMemo'),
+                                                      getMessage(
+                                                          _settingsProvider
+                                                              .language,
+                                                          'addMemo'),
                                                       style: TextStyle(
-                                                        fontSize: MediaQuery.of(context).size.height * 0.019,
-                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: MediaQuery.of(
+                                                                    context)
+                                                                .size
+                                                                .height *
+                                                            0.019,
+                                                        fontWeight:
+                                                            FontWeight.bold,
                                                       ),
                                                     ),
                                                     const SizedBox(height: 10),
                                                     Scrollbar(
                                                       thumbVisibility: true,
                                                       child: TextField(
-                                                        controller: memoController,
-                                                        focusNode: memoFocusNode,
+                                                        controller:
+                                                            memoController,
+                                                        focusNode:
+                                                            memoFocusNode,
                                                         maxLines: 6,
-                                                        decoration: InputDecoration(
-                                                          border: OutlineInputBorder(),
+                                                        decoration:
+                                                            InputDecoration(
+                                                          border:
+                                                              OutlineInputBorder(),
                                                         ),
-                                                        style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.018),
+                                                        style: TextStyle(
+                                                            fontSize: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .height *
+                                                                0.018),
                                                       ),
                                                     ),
                                                     const SizedBox(height: 10),
                                                     Row(
-                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
                                                       children: [
                                                         ElevatedButton(
                                                           onPressed: () {
-                                                            Navigator.pop(context);
+                                                            Navigator.pop(
+                                                                context);
                                                           },
-                                                          child: Text(getMessage(_settingsProvider.language, 'closeMemo')),
+                                                          child: Text(getMessage(
+                                                              _settingsProvider
+                                                                  .language,
+                                                              'closeMemo')),
                                                         ),
                                                         ElevatedButton(
-                                                          onPressed: memoController.text.isEmpty || memoController.text.length >= 300
+                                                          onPressed: memoController
+                                                                      .text
+                                                                      .isEmpty ||
+                                                                  memoController
+                                                                          .text
+                                                                          .length >=
+                                                                      300
                                                               ? null
                                                               : () async {
-                                                                  String memo = memoController.text;
+                                                                  String memo =
+                                                                      memoController
+                                                                          .text;
 
-                                                                  if (!_settingsProvider.isAdsFree && memo.length >= 300) {
-                                                                    showMovieSnackbar('maxMemosReached');
+                                                                  if (!_settingsProvider
+                                                                          .isAdsFree &&
+                                                                      memo.length >=
+                                                                          300) {
+                                                                    showMovieSnackbar(
+                                                                        'maxMemosReached');
                                                                   } else {
-                                                                    if (existingMovie != null) {
-                                                                      existingMovie.memo = memo;
-                                                                      existingMovie.savedDate = DateTime.now();
-                                                                      await MovieByUserService.updateMovieMemo(existingMovie).then((_){
-                                                                        showMovieSnackbar('addToMemo');
+                                                                    if (existingMovie !=
+                                                                        null) {
+                                                                      existingMovie
+                                                                              .memo =
+                                                                          memo;
+                                                                      existingMovie
+                                                                              .savedDate =
+                                                                          DateTime
+                                                                              .now();
+                                                                      await MovieByUserService.updateMovieMemo(
+                                                                              existingMovie)
+                                                                          .then(
+                                                                              (_) {
+                                                                        showMovieSnackbar(
+                                                                            'addToMemo');
                                                                       });
                                                                     } else {
-                                                                      if (memo.isNotEmpty && await MovieByUserService.getIsAvailable(4, _settingsProvider)) {
-                                                                        MovieByUser addMovie = MovieByUser(
-                                                                          flag: 4,
-                                                                          movie: widget.movie,
-                                                                          savedDate: DateTime.now(),
-                                                                          memo: memo,
+                                                                      if (memo.isNotEmpty &&
+                                                                          await MovieByUserService.getIsAvailable(
+                                                                              4,
+                                                                              _settingsProvider)) {
+                                                                        MovieByUser
+                                                                            addMovie =
+                                                                            MovieByUser(
+                                                                          flag:
+                                                                              4,
+                                                                          movie:
+                                                                              widget.movie,
+                                                                          savedDate:
+                                                                              DateTime.now(),
+                                                                          memo:
+                                                                              memo,
                                                                         );
-                                                                        await MovieByUserService.addMovie(4, addMovie, _settingsProvider).then((_){
-                                                                          showMovieSnackbar('addToMemo');
+                                                                        await MovieByUserService.addMovie(
+                                                                                4,
+                                                                                addMovie,
+                                                                                _settingsProvider)
+                                                                            .then((_) {
+                                                                          showMovieSnackbar(
+                                                                              'addToMemo');
                                                                         });
                                                                       } else {
-                                                                        showMovieSnackbar('maxMoviesReached');
+                                                                        showMovieSnackbar(
+                                                                            'maxMoviesReached');
                                                                       }
                                                                     }
-                                                                    Navigator.pop(context);
+                                                                    Navigator.pop(
+                                                                        context);
                                                                   }
                                                                 },
-                                                          child: Text(getMessage(_settingsProvider.language, 'saveMemo')),
+                                                          child: Text(getMessage(
+                                                              _settingsProvider
+                                                                  .language,
+                                                              'saveMemo')),
                                                         ),
                                                       ],
                                                     ),
@@ -375,16 +507,30 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                       // Add an invisible icon button for spacing
                                       IconButton(
                                         icon: Icon(
-                                          Platform.isIOS 
-                                            ? Icons.ios_share_outlined  // iOS에서 사용할 아이콘
-                                            : Icons.share_outlined,     // Android에서 사용할 아이콘
+                                          !kIsWeb &&
+                                                  defaultTargetPlatform ==
+                                                      TargetPlatform.iOS
+                                              ? Icons
+                                                  .ios_share_outlined // iOS에서 사용할 아이콘
+                                              : Icons
+                                                  .share_outlined, // Android에서 사용할 아이콘
                                         ),
                                         iconSize: iconSize,
                                         onPressed: () => {
                                           Share.share(
                                             'https://www.youtube.com/watch?v=${widget.movie.trailerUrl}',
-                                            subject: 'Share ${widget.movie.localTitle} Movie Trailer',
-                                            sharePositionOrigin: Rect.fromLTWH(0, 0, MediaQuery.of(context).size.width, MediaQuery.of(context).size.height / 2),
+                                            subject:
+                                                'Share ${widget.movie.localTitle} Movie Trailer',
+                                            sharePositionOrigin: Rect.fromLTWH(
+                                                0,
+                                                0,
+                                                MediaQuery.of(context)
+                                                    .size
+                                                    .width,
+                                                MediaQuery.of(context)
+                                                        .size
+                                                        .height /
+                                                    2),
                                           )
                                         }, // No action
                                       ),
@@ -395,18 +541,19 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                                   child: _buildMovieInfo(),
                                 ),
                               ],
-                          ],
+                            ],
+                          ),
                         ),
-                      );
-                    },
-                  )
-                ),
+                      ),
+                    );
+                  },
+                )),
               ],
             )
           ],
         ),
       ),
-    ); 
+    );
   }
 
   Widget _buildMovieInfo() {
@@ -419,35 +566,29 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (widget.movie.special!.isNotEmpty)
-            Text('${getTranslatedDetail('Year', lang)}: ${widget.movie.year}', style: TextStyle(fontSize: fontSize)),
-
+            Text('${getTranslatedDetail('Year', lang)}: ${widget.movie.year}',
+                style: TextStyle(fontSize: fontSize)),
           if (widget.movie.credits?["crew"] != null &&
-              widget.movie.credits?["crew"].isNotEmpty && widget.movie.special!.isEmpty)
-            Text('${getTranslatedDetail('Director', lang)}: ${widget.movie.credits?["crew"]
-                .firstWhere((c) => c["job"] == "Director", orElse: () => widget.movie.credits?["crew"][0])["name"]}',
+              widget.movie.credits?["crew"].isNotEmpty &&
+              widget.movie.special!.isEmpty)
+            Text(
+                '${getTranslatedDetail('Director', lang)}: ${widget.movie.credits?["crew"].firstWhere((c) => c["job"] == "Director", orElse: () => widget.movie.credits?["crew"][0])["name"]}',
                 style: TextStyle(fontSize: fontSize)),
-
           if (widget.movie.special!.isNotEmpty)
-            Text('${getTranslatedDetail('Director', lang)}: ${getNameBySpecialSource(widget.movie, lang)}',
+            Text(
+                '${getTranslatedDetail('Director', lang)}: ${getNameBySpecialSource(widget.movie, lang)}',
                 style: TextStyle(fontSize: fontSize)),
-
           if (widget.movie.credits?["cast"] != null &&
               widget.movie.credits?["cast"].isNotEmpty)
-            Text('${getTranslatedDetail('Stars', lang)}: ${widget.movie.credits?["cast"]
-                .take(4)
-                .map((cast) => cast["name"])
-                .join(", ")}',
+            Text(
+                '${getTranslatedDetail('Stars', lang)}: ${widget.movie.credits?["cast"].take(4).map((cast) => cast["name"]).join(", ")}',
                 style: TextStyle(fontSize: fontSize)),
-
           if (widget.movie.country != "")
-            Text('${getTranslatedDetail('Country', lang)}: ${convertCountryCodeToName(widget.movie.country)}',
+            Text(
+                '${getTranslatedDetail('Country', lang)}: ${convertCountryCodeToName(widget.movie.country)}',
                 style: TextStyle(fontSize: fontSize)),
-
-          if (widget.movie.runtime != "")
-            _buildRunningTime(),
-
+          if (widget.movie.runtime != "") _buildRunningTime(),
           const SizedBox(height: 10),
-
           if (widget.movie.spec != "ERR404")
             Text(widget.movie.spec, style: TextStyle(fontSize: fontSize)),
         ],

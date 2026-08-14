@@ -5,7 +5,7 @@ import 'package:world_movie_trailer/common/ad_manager/interstitial_ad_manager.da
 import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/services/movie_service.dart';
 import 'package:world_movie_trailer/model/movie.dart';
-import 'package:world_movie_trailer/layout/movie_detail_youtube_page.dart';
+import 'package:world_movie_trailer/layout/movie_detail_page.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
@@ -15,14 +15,14 @@ import 'package:world_movie_trailer/common/error_page.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class BoxOfficeListPage extends StatefulWidget {
-
   const BoxOfficeListPage({super.key});
 
   @override
   _BoxOfficeListPageState createState() => _BoxOfficeListPageState();
 }
 
-class _BoxOfficeListPageState extends State<BoxOfficeListPage> with SingleTickerProviderStateMixin {
+class _BoxOfficeListPageState extends State<BoxOfficeListPage>
+    with SingleTickerProviderStateMixin {
   List<Movie> allMovies = [];
   bool fetchComplete = false;
   late InterstitialAdManager _appAdManager;
@@ -37,9 +37,10 @@ class _BoxOfficeListPageState extends State<BoxOfficeListPage> with SingleTicker
 
   Future<void> _fetchMovies() async {
     try {
-      final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+      final settingsProvider =
+          Provider.of<SettingsProvider>(context, listen: false);
       final language = settingsProvider.language;
-      
+
       final movies = await MovieService.fetchMovie(boxOffice, language);
       setState(() {
         allMovies = movies;
@@ -54,18 +55,17 @@ class _BoxOfficeListPageState extends State<BoxOfficeListPage> with SingleTicker
   }
 
   void _loadAd() {
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-    
+    final settingsProvider =
+        Provider.of<SettingsProvider>(context, listen: false);
+
     if (settingsProvider.isAdsFree) return;
 
-    _appAdManager.loadAd(
-      onAdLoaded: () {},
-      onAdFailed: () {}
-    );
+    _appAdManager.loadAd(onAdLoaded: () {}, onAdFailed: () {});
   }
 
   void _showAd(Function onAdDismiss) {
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final settingsProvider =
+        Provider.of<SettingsProvider>(context, listen: false);
 
     if (settingsProvider.isAdsFree) {
       print('adsFree');
@@ -78,21 +78,30 @@ class _BoxOfficeListPageState extends State<BoxOfficeListPage> with SingleTicker
     });
   }
 
-  String getFormattedDateRange(String languageCode, DateTime startDate, DateTime endDate) {
+  String getFormattedDateRange(
+      String languageCode, DateTime startDate, DateTime endDate) {
     if (languageCode == 'ko') {
       // 한국어: 1월 30일 - 2월 2일
       String startFormatted = DateFormat("M월 d일", 'ko').format(startDate);
-      String endFormatted = DateFormat(startDate.month == endDate.month ? "d일" : "M월 d일", 'ko').format(endDate);
+      String endFormatted =
+          DateFormat(startDate.month == endDate.month ? "d일" : "M월 d일", 'ko')
+              .format(endDate);
       return "$startFormatted - $endFormatted";
-    } else if (languageCode == 'ja' || languageCode == 'zh' || languageCode == 'tw') {
+    } else if (languageCode == 'ja' ||
+        languageCode == 'zh' ||
+        languageCode == 'tw') {
       // 일본어/중국어: 1月30日 - 2月2日
       String startFormatted = DateFormat("M月d日", 'ja').format(startDate);
-      String endFormatted = DateFormat(startDate.month == endDate.month ? "d日" : "M月d日", 'ja').format(endDate);
+      String endFormatted =
+          DateFormat(startDate.month == endDate.month ? "d日" : "M月d日", 'ja')
+              .format(endDate);
       return "$startFormatted - $endFormatted";
     } else {
       // 기본 (영어): Jan 30 - Feb 2
       String startFormatted = DateFormat("MMM d", 'en').format(startDate);
-      String endFormatted = DateFormat(startDate.month == endDate.month ? "d" : "MMM d", 'en').format(endDate);
+      String endFormatted =
+          DateFormat(startDate.month == endDate.month ? "d" : "MMM d", 'en')
+              .format(endDate);
       return "$startFormatted - $endFormatted";
     }
   }
@@ -100,7 +109,7 @@ class _BoxOfficeListPageState extends State<BoxOfficeListPage> with SingleTicker
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
-    
+
     return SafeArea(
       child: Scaffold(
         body: Stack(
@@ -109,7 +118,8 @@ class _BoxOfficeListPageState extends State<BoxOfficeListPage> with SingleTicker
             Column(
               children: [
                 Padding(
-                  padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.02),
+                  padding: EdgeInsets.only(
+                      top: MediaQuery.of(context).size.height * 0.02),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
@@ -124,7 +134,8 @@ class _BoxOfficeListPageState extends State<BoxOfficeListPage> with SingleTicker
                       ),
                       Expanded(
                         child: Text(
-                          getBoxOfficeLabel(settingsProvider.language, 'box_usa' ),
+                          getBoxOfficeLabel(
+                              settingsProvider.language, 'box_usa'),
                           style: TextStyle(
                             fontSize: MediaQuery.of(context).size.height * 0.02,
                             fontWeight: FontWeight.bold,
@@ -145,26 +156,27 @@ class _BoxOfficeListPageState extends State<BoxOfficeListPage> with SingleTicker
                     text: TextSpan(
                       children: [
                         TextSpan(
-                          text: getBoxOfficeLabel(settingsProvider.language, 'this_week'), // "이번 주 순위"
+                          text: getBoxOfficeLabel(settingsProvider.language,
+                              'this_week'), // "이번 주 순위"
                           style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.height * 0.019,
+                            fontSize:
+                                MediaQuery.of(context).size.height * 0.019,
                             fontWeight: FontWeight.bold,
-                            color: settingsProvider.isDarkTheme ? Colors.white : Color(0xFF333333),
+                            color: settingsProvider.isDarkTheme
+                                ? Colors.white
+                                : Color(0xFF333333),
                           ),
                         ),
                         TextSpan(
                           text: allMovies.isNotEmpty
-                              ? ' (${getFormattedDateRange(
-                                  settingsProvider.language, 
-                                  DateTime.parse(allMovies[0].weekStartDate!), 
-                                  DateTime.parse(allMovies[0].weekEndDate!)
-                                )})'
+                              ? ' (${getFormattedDateRange(settingsProvider.language, DateTime.parse(allMovies[0].weekStartDate!), DateTime.parse(allMovies[0].weekEndDate!))})'
                               : '',
                           style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.height * 0.019,
+                            fontSize:
+                                MediaQuery.of(context).size.height * 0.019,
                             fontWeight: FontWeight.bold,
-                            color: settingsProvider.isDarkTheme 
-                                ? Colors.amberAccent 
+                            color: settingsProvider.isDarkTheme
+                                ? Colors.amberAccent
                                 : const Color(0xFF00AEEF), // 하늘색
                           ),
                         ),
@@ -198,7 +210,9 @@ class _BoxOfficeListPageState extends State<BoxOfficeListPage> with SingleTicker
 
     return Expanded(
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 15,),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 15,
+        ),
         itemCount: movies.length,
         itemBuilder: (context, index) {
           final movie = movies[index];
@@ -208,7 +222,8 @@ class _BoxOfficeListPageState extends State<BoxOfficeListPage> with SingleTicker
               GestureDetector(
                 onTap: () {
                   HapticFeedback.mediumImpact();
-                  LogHelper().logEvent('movie ${movie.localTitle} clicked in Box Office');
+                  LogHelper().logEvent(
+                      'movie ${movie.localTitle} clicked in Box Office');
 
                   if (settingsProvider.openCount > adLimitNum) {
                     if (_appAdManager.interstitialAd != null) {
@@ -216,13 +231,12 @@ class _BoxOfficeListPageState extends State<BoxOfficeListPage> with SingleTicker
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => MovieDetailPageYouTube(
+                              builder: (context) => MovieDetailPageYouTube(
                                     movie: movie,
                                     captionFlag: settingsProvider.isCaptionOn,
                                     captionLan: settingsProvider.language,
                                     isCustomized: false,
-                                  )
-                          ),
+                                  )),
                         );
                       });
                     }
@@ -232,18 +246,17 @@ class _BoxOfficeListPageState extends State<BoxOfficeListPage> with SingleTicker
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => MovieDetailPageYouTube(
+                          builder: (context) => MovieDetailPageYouTube(
                                 movie: movie,
                                 captionFlag: settingsProvider.isCaptionOn,
                                 captionLan: settingsProvider.language,
                                 isCustomized: false,
-                              )
-                      ),
+                              )),
                     );
                   }
                 },
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8), 
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -255,7 +268,8 @@ class _BoxOfficeListPageState extends State<BoxOfficeListPage> with SingleTicker
                                 width: 80,
                                 height: 120,
                                 fit: BoxFit.cover,
-                                errorWidget: (context, url, error) => Image.asset(
+                                errorWidget: (context, url, error) =>
+                                    Image.asset(
                                   settingsProvider.isDarkTheme
                                       ? 'assets/images/dark/blank_DT_xxhdpi.png'
                                       : 'assets/images/light/blank_LT_xxhdpi.png',
@@ -277,7 +291,8 @@ class _BoxOfficeListPageState extends State<BoxOfficeListPage> with SingleTicker
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.transparent, width: 0.1),
+                            border: Border.all(
+                                color: Colors.transparent, width: 0.1),
                           ),
                           padding: const EdgeInsets.all(6),
                           child: Column(
@@ -294,7 +309,9 @@ class _BoxOfficeListPageState extends State<BoxOfficeListPage> with SingleTicker
                                             ? Colors.white
                                             : Color(0xFF333333),
                                         fontWeight: FontWeight.bold,
-                                        fontSize: MediaQuery.of(context).size.height * 0.019,
+                                        fontSize:
+                                            MediaQuery.of(context).size.height *
+                                                0.019,
                                       ),
                                     ),
                                   ),
@@ -304,9 +321,14 @@ class _BoxOfficeListPageState extends State<BoxOfficeListPage> with SingleTicker
                                       child: Text(
                                         'NEW',
                                         style: TextStyle(
-                                          color: settingsProvider.isDarkTheme ? Colors.amberAccent : const Color(0xFF00AEEF),
+                                          color: settingsProvider.isDarkTheme
+                                              ? Colors.amberAccent
+                                              : const Color(0xFF00AEEF),
                                           fontWeight: FontWeight.bold,
-                                          fontSize: MediaQuery.of(context).size.height * 0.019,
+                                          fontSize: MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              0.019,
                                         ),
                                       ),
                                     ),
@@ -314,39 +336,43 @@ class _BoxOfficeListPageState extends State<BoxOfficeListPage> with SingleTicker
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                '${getBoxOfficeLabel(settingsProvider.language,'last_week')}: ${movie.lastRank ?? "-"}',
+                                '${getBoxOfficeLabel(settingsProvider.language, 'last_week')}: ${movie.lastRank ?? "-"}',
                                 style: TextStyle(
                                   color: settingsProvider.isDarkTheme
                                       ? Colors.grey
                                       : Color(0xFF333333),
-                                  fontSize: MediaQuery.of(context).size.height * 0.017,
+                                  fontSize: MediaQuery.of(context).size.height *
+                                      0.017,
                                 ),
                               ),
                               Text(
-                                '${getBoxOfficeLabel(settingsProvider.language,'total_gross')}: ${movie.totalGross}',
+                                '${getBoxOfficeLabel(settingsProvider.language, 'total_gross')}: ${movie.totalGross}',
                                 style: TextStyle(
                                   color: settingsProvider.isDarkTheme
                                       ? Colors.grey
                                       : Color(0xFF333333),
-                                  fontSize: MediaQuery.of(context).size.height * 0.017,
+                                  fontSize: MediaQuery.of(context).size.height *
+                                      0.017,
                                 ),
                               ),
                               Text(
-                                '${getBoxOfficeLabel(settingsProvider.language,'screening_weeks')}: ${movie.weeks}',
+                                '${getBoxOfficeLabel(settingsProvider.language, 'screening_weeks')}: ${movie.weeks}',
                                 style: TextStyle(
                                   color: settingsProvider.isDarkTheme
                                       ? Colors.grey
                                       : Color(0xFF333333),
-                                  fontSize: MediaQuery.of(context).size.height * 0.017,
+                                  fontSize: MediaQuery.of(context).size.height *
+                                      0.017,
                                 ),
                               ),
                               Text(
-                                '${getBoxOfficeLabel(settingsProvider.language,'distributor')}: ${movie.distributor}',
+                                '${getBoxOfficeLabel(settingsProvider.language, 'distributor')}: ${movie.distributor}',
                                 style: TextStyle(
                                   color: settingsProvider.isDarkTheme
                                       ? Colors.grey
                                       : Color(0xFF333333),
-                                  fontSize: MediaQuery.of(context).size.height * 0.017,
+                                  fontSize: MediaQuery.of(context).size.height *
+                                      0.017,
                                 ),
                               ),
                             ],

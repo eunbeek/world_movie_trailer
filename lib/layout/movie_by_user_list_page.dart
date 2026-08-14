@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -6,7 +5,7 @@ import 'package:world_movie_trailer/common/ad_manager/interstitial_ad_manager.da
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/common/error_page_by_user.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
-import 'package:world_movie_trailer/layout/movie_detail_youtube_page.dart';
+import 'package:world_movie_trailer/layout/movie_detail_page.dart';
 import 'package:intl/intl.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
@@ -27,15 +26,15 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
   bool fetchComplete = false;
   late InterstitialAdManager _appAdManager;
   int customizedFlag = 0;
-  
+
   @override
   void initState() {
     super.initState();
     _appAdManager = InterstitialAdManager();
     _loadAd();
-    _fetchMovies();  // Fetch movies
+    _fetchMovies(); // Fetch movies
   }
-  
+
   Future<void> _fetchMovies() async {
     try {
       // Fetch the movies from the service
@@ -48,7 +47,7 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
           break;
         default:
           print('Unknown flag');
-          break; 
+          break;
       }
 
       setState(() {
@@ -64,18 +63,17 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
   }
 
   void _loadAd() {
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-    
+    final settingsProvider =
+        Provider.of<SettingsProvider>(context, listen: false);
+
     if (settingsProvider.isAdsFree) return;
 
-    _appAdManager.loadAd(
-      onAdLoaded: () {},
-      onAdFailed: () {}
-    );
+    _appAdManager.loadAd(onAdLoaded: () {}, onAdFailed: () {});
   }
-  
+
   void _showAd(Function onAdDismiss) {
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final settingsProvider =
+        Provider.of<SettingsProvider>(context, listen: false);
 
     if (settingsProvider.isAdsFree) {
       print('adsFree');
@@ -103,7 +101,8 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
             Column(
               children: [
                 Padding(
-                  padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.02),
+                  padding: EdgeInsets.only(
+                      top: MediaQuery.of(context).size.height * 0.02),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
@@ -118,7 +117,8 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
                       ),
                       Expanded(
                         child: Text(
-                          getMenuItemTitle(settingsProvider.language, widget.flag),
+                          getMenuItemTitle(
+                              settingsProvider.language, widget.flag),
                           style: TextStyle(
                             fontSize: MediaQuery.of(context).size.height * 0.02,
                             fontWeight: FontWeight.bold,
@@ -139,7 +139,8 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
                 SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                 fetchComplete
                     ? Expanded(child: _buildMovieGrid(allMovies))
-                    : const Expanded(child: Center(child: CircularProgressIndicator())),
+                    : const Expanded(
+                        child: Center(child: CircularProgressIndicator())),
               ],
             ),
           ],
@@ -167,7 +168,8 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
           final movie = movies[index];
           String? releaseDate;
           if (movie.movie.releaseDate != '') {
-            releaseDate = DateFormat('yyyy.MM.dd').format(DateTime.parse(movie.movie.releaseDate));
+            releaseDate = DateFormat('yyyy.MM.dd')
+                .format(DateTime.parse(movie.movie.releaseDate));
           }
 
           return GestureDetector(
@@ -179,9 +181,13 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => MovieDetailPageYouTube(movie: movie.movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language, isCustomized: true, flag: customizedFlag, cIdx:index)
-
-                      ),
+                          builder: (context) => MovieDetailPageYouTube(
+                              movie: movie.movie,
+                              captionFlag: settingsProvider.isCaptionOn,
+                              captionLan: settingsProvider.language,
+                              isCustomized: true,
+                              flag: customizedFlag,
+                              cIdx: index)),
                     ).then((result) {
                       if (result == true) {
                         _fetchMovies();
@@ -195,8 +201,13 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => MovieDetailPageYouTube(movie: movie.movie, captionFlag: settingsProvider.isCaptionOn, captionLan: settingsProvider.language, isCustomized: true, flag: customizedFlag, cIdx:index)
-                  ),
+                      builder: (context) => MovieDetailPageYouTube(
+                          movie: movie.movie,
+                          captionFlag: settingsProvider.isCaptionOn,
+                          captionLan: settingsProvider.language,
+                          isCustomized: true,
+                          flag: customizedFlag,
+                          cIdx: index)),
                 ).then((result) {
                   if (result == true) {
                     _fetchMovies();
@@ -209,7 +220,9 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
                 Container(
                   margin: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: settingsProvider.isDarkTheme ? const Color(0xff666666) : const Color(0xff999999),
+                    color: settingsProvider.isDarkTheme
+                        ? const Color(0xff666666)
+                        : const Color(0xff999999),
                     borderRadius: BorderRadius.circular(15.0),
                   ),
                   child: Column(
@@ -249,7 +262,8 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
                               style: TextStyle(
                                 color: const Color(0xffececec),
                                 fontWeight: FontWeight.bold,
-                                fontSize: MediaQuery.of(context).size.height * 0.017,
+                                fontSize:
+                                    MediaQuery.of(context).size.height * 0.017,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -258,7 +272,8 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
                                 '$releaseDate ${getReleaseLabel(settingsProvider.language)}',
                                 style: TextStyle(
                                   color: const Color(0xffc7c7c7),
-                                  fontSize: MediaQuery.of(context).size.height * 0.013,
+                                  fontSize: MediaQuery.of(context).size.height *
+                                      0.013,
                                 ),
                               ),
                           ],
@@ -268,11 +283,14 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
                   ),
                 ),
                 Positioned(
-                  top: (MediaQuery.of(context).size.height / 1980) * 6, // Padding from the top
-                  right: (MediaQuery.of(context).size.height / 1980) * 6, // Padding from the right
+                  top: (MediaQuery.of(context).size.height / 1980) *
+                      6, // Padding from the top
+                  right: (MediaQuery.of(context).size.height / 1980) *
+                      6, // Padding from the right
                   child: IconButton(
                     icon: Opacity(
-                      opacity: 1, // Adjust the opacity between 0.0 (invisible) and 1.0 (fully visible)
+                      opacity:
+                          1, // Adjust the opacity between 0.0 (invisible) and 1.0 (fully visible)
                       child: Image.asset(
                         'assets/images/icon_list_delete_xxhdpi.png',
                         height: MediaQuery.of(context).size.height * 0.03,
@@ -283,11 +301,13 @@ class _MovieByUserListPageState extends State<MovieByUserListPage> {
                       // Delete movie logic
                       await MovieByUserService.deleteMovie(movie.flag, index);
                       setState(() {
-                        movies.removeAt(index); // Remove the movie from the list
+                        movies
+                            .removeAt(index); // Remove the movie from the list
                       });
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(getMessage(settingsProvider.language, 'movieDeleted')),
+                          content: Text(getMessage(
+                              settingsProvider.language, 'movieDeleted')),
                           duration: Duration(milliseconds: 500),
                         ),
                       );

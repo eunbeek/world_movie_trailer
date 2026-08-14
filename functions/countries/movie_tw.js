@@ -39,7 +39,7 @@ async function fetchMovieListFromShowTime() {
         const formattedDate = item.availableAt.split("T")[0];
         const formattedCast = item.meta.authors ? item.meta.authors.map((cast) => ({name: cast})) : [];
         const formattedCrew = item.meta.directors ? item.meta.directors.map((crew) => ({name: crew})) : [];
-        const posterUrl = item.coverImagePortrait ? item.coverImagePortrait.url : "";
+        const sourcePosterUrl = item.coverImagePortrait ? item.coverImagePortrait.url : "";
         const trailerUrl = item.previewVideo ? item.previewVideo.data : "";
         const runtime = Math.round(item.duration / 60);
         let spec = item.description || "No description available";
@@ -52,7 +52,10 @@ async function fetchMovieListFromShowTime() {
           movies.push({
             localTitle: item.name,
             runtime: runtime,
-            posterUrl: posterUrl,
+            // TMDB replaces this URL when a poster is found. Keep ShowTimes as
+            // the mobile fallback because only browsers enforce its CORS.
+            posterUrl: sourcePosterUrl,
+            sourcePosterUrl,
             source: "showtimes",
             trailerUrl: trailerUrl,
             spec: spec,

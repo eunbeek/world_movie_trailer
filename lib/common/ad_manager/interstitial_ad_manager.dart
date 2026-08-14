@@ -1,13 +1,18 @@
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:world_movie_trailer/common/ad_helper.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
 
 class InterstitialAdManager {
   InterstitialAd? interstitialAd;
   bool isShowingAd = false;
-  
-  // Method to load the interstitial Ad 
+
+  // Method to load the interstitial Ad
   void loadAd({required Function onAdLoaded, required Function onAdFailed}) {
+    if (kIsWeb) {
+      onAdFailed();
+      return;
+    }
     InterstitialAd.load(
       adUnitId: AdHelper.interstitialUnitId,
       request: const AdRequest(),
@@ -28,6 +33,10 @@ class InterstitialAdManager {
 
   // Method to show the ad
   void showAdIfAvailable(Function onAdDismissed) {
+    if (kIsWeb) {
+      onAdDismissed();
+      return;
+    }
     if (isShowingAd) {
       print('Ad is already being shown.');
       return;
@@ -35,7 +44,7 @@ class InterstitialAdManager {
     if (interstitialAd == null) {
       print('interstitial Ad is not loaded yet.');
       loadAd(
-        onAdLoaded: () => showAdIfAvailable(onAdDismissed), 
+        onAdLoaded: () => showAdIfAvailable(onAdDismissed),
         onAdFailed: onAdDismissed,
       );
       return;
@@ -59,8 +68,8 @@ class InterstitialAdManager {
         ad.dispose();
         interstitialAd = null;
         loadAd(
-          onAdLoaded: () => {}, 
-          onAdFailed: ()=>{},
+          onAdLoaded: () => {},
+          onAdFailed: () => {},
         );
       },
       onAdFailedToShowFullScreenContent: (ad, error) {

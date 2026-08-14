@@ -5,7 +5,7 @@ import 'package:world_movie_trailer/common/ad_manager/interstitial_ad_manager.da
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/common/error_page_by_user.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
-import 'package:world_movie_trailer/layout/movie_detail_youtube_page.dart';
+import 'package:world_movie_trailer/layout/movie_detail_page.dart';
 import 'package:intl/intl.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
@@ -13,7 +13,6 @@ import 'package:world_movie_trailer/common/background.dart';
 import 'package:world_movie_trailer/model/movieByUser.dart';
 
 class MemoListPage extends StatefulWidget {
-
   const MemoListPage({super.key});
 
   @override
@@ -22,7 +21,8 @@ class MemoListPage extends StatefulWidget {
 
 class _MemoListPageState extends State<MemoListPage> {
   List<MovieByUser> allMovies = [];
-  final Map<int, TextEditingController> _memoControllers = {}; // Store controllers by index
+  final Map<int, TextEditingController> _memoControllers =
+      {}; // Store controllers by index
   final Map<int, ScrollController> _scrollController = {};
   bool fetchComplete = false;
   late InterstitialAdManager _appAdManager;
@@ -45,7 +45,7 @@ class _MemoListPageState extends State<MemoListPage> {
     _scrollController.forEach((key, controller) {
       controller.dispose();
     });
-    
+
     super.dispose();
   }
 
@@ -65,17 +65,16 @@ class _MemoListPageState extends State<MemoListPage> {
   }
 
   void _loadAd() {
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-    
+    final settingsProvider =
+        Provider.of<SettingsProvider>(context, listen: false);
+
     if (settingsProvider.isAdsFree) return;
-    _appAdManager.loadAd(
-      onAdLoaded: () {},
-      onAdFailed: () {}
-    );
+    _appAdManager.loadAd(onAdLoaded: () {}, onAdFailed: () {});
   }
 
   void _showAd(Function onAdDismiss) {
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final settingsProvider =
+        Provider.of<SettingsProvider>(context, listen: false);
 
     if (settingsProvider.isAdsFree) {
       print('adsFree');
@@ -96,11 +95,13 @@ class _MemoListPageState extends State<MemoListPage> {
       child: Scaffold(
         body: Stack(
           children: [
-            const BackgroundWidget(isPausePage: false, isTapeExist: true), // Background image
+            const BackgroundWidget(
+                isPausePage: false, isTapeExist: true), // Background image
             Column(
               children: [
                 Padding(
-                  padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.02),
+                  padding: EdgeInsets.only(
+                      top: MediaQuery.of(context).size.height * 0.02),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
@@ -136,7 +137,8 @@ class _MemoListPageState extends State<MemoListPage> {
                 SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                 fetchComplete
                     ? Expanded(child: _buildMovieList(allMovies))
-                    : const Expanded(child: Center(child: CircularProgressIndicator())),
+                    : const Expanded(
+                        child: Center(child: CircularProgressIndicator())),
               ],
             ),
           ],
@@ -156,14 +158,16 @@ class _MemoListPageState extends State<MemoListPage> {
       itemCount: movies.length,
       itemBuilder: (context, index) {
         final movie = movies[index];
-         
-         _memoControllers[index] = TextEditingController(text: '${movie.memo}\r\n');
+
+        _memoControllers[index] =
+            TextEditingController(text: '${movie.memo}\r\n');
         if (!_scrollController.containsKey(index)) {
           _scrollController[index] = ScrollController();
         }
         String? releaseDate;
         if (movie.movie.releaseDate != '') {
-          releaseDate = DateFormat('yyyy.MM.dd').format(DateTime.parse(movie.movie.releaseDate));
+          releaseDate = DateFormat('yyyy.MM.dd')
+              .format(DateTime.parse(movie.movie.releaseDate));
         }
 
         return Padding(
@@ -171,14 +175,17 @@ class _MemoListPageState extends State<MemoListPage> {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: settingsProvider.isDarkTheme ? const Color(0xff444444) : const Color(0xfff0f0f0),
+              color: settingsProvider.isDarkTheme
+                  ? const Color(0xff444444)
+                  : const Color(0xfff0f0f0),
               borderRadius: BorderRadius.circular(15.0),
               border: Border.all(
                 color: Colors.grey.shade400,
               ),
             ),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start, // Align items at the top
+              crossAxisAlignment:
+                  CrossAxisAlignment.start, // Align items at the top
               children: [
                 // Movie card section
                 Expanded(
@@ -193,13 +200,12 @@ class _MemoListPageState extends State<MemoListPage> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => MovieDetailPageYouTube(
-                                        movie: movie.movie,
-                                        captionFlag: settingsProvider.isCaptionOn,
-                                        captionLan: settingsProvider.language,
-                                        isCustomized: true,
-                                        flag: 4, 
-                                        cIdx: index
-                                      ),
+                                    movie: movie.movie,
+                                    captionFlag: settingsProvider.isCaptionOn,
+                                    captionLan: settingsProvider.language,
+                                    isCustomized: true,
+                                    flag: 4,
+                                    cIdx: index),
                               ),
                             ).then((result) {
                               if (result == true) {
@@ -215,13 +221,12 @@ class _MemoListPageState extends State<MemoListPage> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => MovieDetailPageYouTube(
-                                    movie: movie.movie,
-                                    captionFlag: settingsProvider.isCaptionOn,
-                                    captionLan: settingsProvider.language,
-                                    isCustomized: true,
-                                    flag: 4, 
-                                    cIdx: index
-                                  ),
+                                movie: movie.movie,
+                                captionFlag: settingsProvider.isCaptionOn,
+                                captionLan: settingsProvider.language,
+                                isCustomized: true,
+                                flag: 4,
+                                cIdx: index),
                           ),
                         ).then((result) {
                           if (result == true) {
@@ -251,7 +256,8 @@ class _MemoListPageState extends State<MemoListPage> {
                                     movie.movie.posterUrl,
                                     fit: BoxFit.cover,
                                     width: double.infinity,
-                                    height: MediaQuery.of(context).size.height * 0.2,
+                                    height: MediaQuery.of(context).size.height *
+                                        0.2,
                                   )
                                 : Image.asset(
                                     settingsProvider.isDarkTheme
@@ -259,7 +265,8 @@ class _MemoListPageState extends State<MemoListPage> {
                                         : 'assets/images/light/blank_LT_xxhdpi.png',
                                     fit: BoxFit.cover,
                                     width: double.infinity,
-                                    height: MediaQuery.of(context).size.height * 0.2,
+                                    height: MediaQuery.of(context).size.height *
+                                        0.2,
                                   ),
                           ),
                           Padding(
@@ -273,7 +280,9 @@ class _MemoListPageState extends State<MemoListPage> {
                                   style: TextStyle(
                                     color: const Color(0xffececec),
                                     fontWeight: FontWeight.bold,
-                                    fontSize: MediaQuery.of(context).size.height * 0.017,
+                                    fontSize:
+                                        MediaQuery.of(context).size.height *
+                                            0.017,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -282,7 +291,9 @@ class _MemoListPageState extends State<MemoListPage> {
                                     '$releaseDate ${getReleaseLabel(settingsProvider.language)}',
                                     style: TextStyle(
                                       color: const Color(0xffc7c7c7),
-                                      fontSize: MediaQuery.of(context).size.height * 0.013,
+                                      fontSize:
+                                          MediaQuery.of(context).size.height *
+                                              0.013,
                                     ),
                                   ),
                               ],
@@ -294,7 +305,8 @@ class _MemoListPageState extends State<MemoListPage> {
                   ),
                 ),
 
-                const SizedBox(width: 16), // Space between movie card and memo section
+                const SizedBox(
+                    width: 16), // Space between movie card and memo section
 
                 // Memo section
                 Expanded(
@@ -308,7 +320,8 @@ class _MemoListPageState extends State<MemoListPage> {
                           Text(
                             getMenuItemTitle(settingsProvider.language, 'Memo'),
                             style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.height * 0.018,
+                              fontSize:
+                                  MediaQuery.of(context).size.height * 0.018,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -316,27 +329,38 @@ class _MemoListPageState extends State<MemoListPage> {
                             children: [
                               IconButton(
                                 icon: Image.asset(
-                                        settingsProvider.isDarkTheme
-                                            ? 'assets/images/dark/icon_save_DT_xxhdpi.png'
-                                            : 'assets/images/light/icon_save_LT_xxhdpi.png',
-                                        height: MediaQuery.of(context).size.height * 0.030,
-                                        width: MediaQuery.of(context).size.height * 0.030,
-                                      ),
+                                  settingsProvider.isDarkTheme
+                                      ? 'assets/images/dark/icon_save_DT_xxhdpi.png'
+                                      : 'assets/images/light/icon_save_LT_xxhdpi.png',
+                                  height: MediaQuery.of(context).size.height *
+                                      0.030,
+                                  width: MediaQuery.of(context).size.height *
+                                      0.030,
+                                ),
                                 onPressed: () async {
                                   // Update the memo in the movie object
-                                  var  newMemo = _memoControllers[index]!.text;
-                                  if(!settingsProvider.isAdsFree && newMemo.length >= 300){
+                                  var newMemo = _memoControllers[index]!.text;
+                                  if (!settingsProvider.isAdsFree &&
+                                      newMemo.length >= 300) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(getMessage(settingsProvider.language, 'maxMemosReached')),
+                                        content: Text(getMessage(
+                                            settingsProvider.language,
+                                            'maxMemosReached')),
                                         duration: Duration(milliseconds: 500),
                                       ),
                                     );
                                   } else {
                                     movie.memo = newMemo;
-                                    await MovieByUserService.updateMovie(movie.flag, index, movie);
+                                    await MovieByUserService.updateMovie(
+                                        movie.flag, index, movie);
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text(getMessage(settingsProvider.language, 'saveMemo')), duration: Duration(milliseconds: 500),),
+                                      SnackBar(
+                                        content: Text(getMessage(
+                                            settingsProvider.language,
+                                            'saveMemo')),
+                                        duration: Duration(milliseconds: 500),
+                                      ),
                                     );
                                   }
                                 },
@@ -346,17 +370,26 @@ class _MemoListPageState extends State<MemoListPage> {
                                   settingsProvider.isDarkTheme
                                       ? 'assets/images/dark/icon_delete_DT_xxhdpi.png'
                                       : 'assets/images/light/icon_delete_LT_xxhdpi.png',
-                                      height: MediaQuery.of(context).size.height * 0.030,
-                                      width: MediaQuery.of(context).size.height * 0.030,
+                                  height: MediaQuery.of(context).size.height *
+                                      0.030,
+                                  width: MediaQuery.of(context).size.height *
+                                      0.030,
                                 ),
                                 onPressed: () async {
                                   // Delete the movie and refresh the list
-                                  await MovieByUserService.deleteMovie(movie.flag, index);
+                                  await MovieByUserService.deleteMovie(
+                                      movie.flag, index);
                                   setState(() {
-                                    movies.removeAt(index); // Remove the movie from the list
+                                    movies.removeAt(
+                                        index); // Remove the movie from the list
                                   });
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(getMessage(settingsProvider.language, 'memoDeleted')), duration: Duration(milliseconds: 500),),
+                                    SnackBar(
+                                      content: Text(getMessage(
+                                          settingsProvider.language,
+                                          'memoDeleted')),
+                                      duration: Duration(milliseconds: 500),
+                                    ),
                                   );
                                 },
                               ),
@@ -368,14 +401,17 @@ class _MemoListPageState extends State<MemoListPage> {
                         thumbVisibility: true,
                         controller: _scrollController[index],
                         child: TextField(
-                          maxLines: 6, // Show up to 6 lines before enabling scrolling
-                          controller: _memoControllers[index], // Use the stored controller
+                          maxLines:
+                              6, // Show up to 6 lines before enabling scrolling
+                          controller: _memoControllers[
+                              index], // Use the stored controller
                           scrollController: _scrollController[index],
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                           ),
                           style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.height * 0.018,
+                            fontSize:
+                                MediaQuery.of(context).size.height * 0.018,
                           ),
                         ),
                       ),

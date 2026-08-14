@@ -6,7 +6,8 @@ import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
 import 'package:share_plus/share_plus.dart';
-import 'dart:io';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:world_movie_trailer/layout/alarm_list_page.dart';
 import 'package:world_movie_trailer/layout/credits_list_apge.dart';
 import 'package:world_movie_trailer/layout/open_source_list_page.dart';
@@ -17,17 +18,17 @@ import 'package:world_movie_trailer/layout/user_data_page.dart';
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
-
- Widget _buildThemeButton(BuildContext context, String theme, SettingsProvider settingsProvider) {
+  Widget _buildThemeButton(
+      BuildContext context, String theme, SettingsProvider settingsProvider) {
     bool isSelected = (theme == 'dark' && settingsProvider.isDarkTheme) ||
-                      (theme == 'light' && !settingsProvider.isDarkTheme);
+        (theme == 'light' && !settingsProvider.isDarkTheme);
 
     return ElevatedButton(
       onPressed: () {
         settingsProvider.updateBackground(theme);
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor: isSelected ? Color(0xff6750a4): Colors.transparent,
+        backgroundColor: isSelected ? Color(0xff6750a4) : Colors.transparent,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.zero,
           side: BorderSide(
@@ -38,9 +39,11 @@ class SettingsPage extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       ),
       child: Text(
-        theme == 'dark' ? getSettingsLabel(settingsProvider.language, "dark") : getSettingsLabel(settingsProvider.language, "light"),
+        theme == 'dark'
+            ? getSettingsLabel(settingsProvider.language, "dark")
+            : getSettingsLabel(settingsProvider.language, "light"),
         style: TextStyle(
-          color:  Colors.white,
+          color: Colors.white,
           fontSize: MediaQuery.of(context).size.height * 0.015,
         ),
       ),
@@ -49,7 +52,8 @@ class SettingsPage extends StatelessWidget {
 
   String _formatHoursMinutes(double totalHours) {
     int hours = totalHours.floor(); // Get the whole number part as hours
-    int minutes = ((totalHours - hours) * 60).round(); // Get the decimal part and convert to minutes
+    int minutes = ((totalHours - hours) * 60)
+        .round(); // Get the decimal part and convert to minutes
     return '$hours hours $minutes minutes';
   }
 
@@ -65,9 +69,10 @@ class SettingsPage extends StatelessWidget {
             leading: GestureDetector(
               onTap: () => Navigator.of(context).pop(),
               child: Padding(
-                padding: const EdgeInsets.only(top: 10.0), // Adjust padding to move the arrow down
+                padding: const EdgeInsets.only(
+                    top: 10.0), // Adjust padding to move the arrow down
                 child: Icon(
-                  Icons.arrow_back, 
+                  Icons.arrow_back,
                   size: MediaQuery.of(context).size.height * 0.03,
                 ),
               ),
@@ -79,15 +84,18 @@ class SettingsPage extends StatelessWidget {
                   titlePadding: const EdgeInsets.only(bottom: 13),
                   centerTitle: true,
                   title: AnimatedOpacity(
-                    opacity: top < MediaQuery.of(context).size.height * 0.1 ? 1.0 : 0.0,
+                    opacity: top < MediaQuery.of(context).size.height * 0.1
+                        ? 1.0
+                        : 0.0,
                     duration: const Duration(milliseconds: 500),
                     child: Text(
                       getSettingsLabel(settingsProvider.language, "setting"),
                       style: TextStyle(
-                        fontSize: MediaQuery.of(context).size.height * 0.02,
-                        fontWeight: FontWeight.bold,
-                        color: settingsProvider.isDarkTheme ? Colors.white : Colors.black
-                      ),
+                          fontSize: MediaQuery.of(context).size.height * 0.02,
+                          fontWeight: FontWeight.bold,
+                          color: settingsProvider.isDarkTheme
+                              ? Colors.white
+                              : Colors.black),
                     ),
                   ),
                   background: Container(
@@ -105,7 +113,8 @@ class SettingsPage extends StatelessWidget {
                         ),
                         const SizedBox(width: 20),
                         Text(
-                          getSettingsLabel(settingsProvider.language, "setting"),
+                          getSettingsLabel(
+                              settingsProvider.language, "setting"),
                           style: TextStyle(
                             fontSize: MediaQuery.of(context).size.height * 0.03,
                             fontWeight: FontWeight.bold,
@@ -128,8 +137,7 @@ class SettingsPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                          UserData(),
+                        builder: (context) => UserData(),
                       ),
                     )
                   },
@@ -178,8 +186,7 @@ class SettingsPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                          AlarmListPage(),
+                        builder: (context) => AlarmListPage(),
                       ),
                     )
                   },
@@ -210,22 +217,26 @@ class SettingsPage extends StatelessWidget {
                           settingsProvider.language = newValue;
                         }
                       },
-                      items: supportedLanguages.map<DropdownMenuItem<String>>((String value) {
+                      items: supportedLanguages
+                          .map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
                           child: Text(
-                            getLanguageName(value,),
-                            style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.height * 0.02,
+                            getLanguageName(
+                              value,
                             ),
-                            overflow: TextOverflow.ellipsis, // This ensures text does not overflow
+                            style: TextStyle(
+                              fontSize:
+                                  MediaQuery.of(context).size.height * 0.02,
+                            ),
+                            overflow: TextOverflow
+                                .ellipsis, // This ensures text does not overflow
                           ),
                         );
                       }).toList(),
                     ),
                   ),
                 ),
-
                 const Divider(),
                 ListTile(
                   title: Text(
@@ -254,7 +265,8 @@ class SettingsPage extends StatelessWidget {
                     onPressed: () async {
                       const url = 'https://www.instagram.com/sunnyinnolab/';
                       if (await canLaunchUrl(Uri.parse(url))) {
-                        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                        await launchUrl(Uri.parse(url),
+                            mode: LaunchMode.externalApplication);
                       } else {
                         throw 'Could not launch $url';
                       }
@@ -279,7 +291,8 @@ class SettingsPage extends StatelessWidget {
                     onPressed: () async {
                       const url = 'https://x.com/Sunnyinnolab';
                       if (await canLaunchUrl(Uri.parse(url))) {
-                        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                        await launchUrl(Uri.parse(url),
+                            mode: LaunchMode.externalApplication);
                       } else {
                         throw 'Could not launch $url';
                       }
@@ -296,13 +309,18 @@ class SettingsPage extends StatelessWidget {
                 ListTile(
                   onTap: () {
                     LogHelper().logEvent('appshare_clicked');
-                    
+
                     String url = "https://wmt.onelink.me/YPN9/m428wgpq";
 
                     Share.share(
                       '${countryAppBarsForShare[settingsProvider.language]} : $url',
-                      subject: countryAppBarsForShare[settingsProvider.language],
-                      sharePositionOrigin: Rect.fromLTWH(0, 0, MediaQuery.of(context).size.width, MediaQuery.of(context).size.height / 2),
+                      subject:
+                          countryAppBarsForShare[settingsProvider.language],
+                      sharePositionOrigin: Rect.fromLTWH(
+                          0,
+                          0,
+                          MediaQuery.of(context).size.width,
+                          MediaQuery.of(context).size.height / 2),
                     );
                   },
                   title: Text(
@@ -319,16 +337,20 @@ class SettingsPage extends StatelessWidget {
 
                     String url;
 
-                    if (Platform.isAndroid) {
-                      url = 'https://play.google.com/store/apps/details?id=com.sunnyinnolab.worldMovieTrailer';
-                    } else if (Platform.isIOS) {
-                      url = 'https://apps.apple.com/app/id6670228768?action=write-review';
+                    if (kIsWeb ||
+                        defaultTargetPlatform == TargetPlatform.android) {
+                      url =
+                          'https://play.google.com/store/apps/details?id=com.sunnyinnolab.worldMovieTrailer';
+                    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+                      url =
+                          'https://apps.apple.com/app/id6670228768?action=write-review';
                     } else {
                       throw 'Platform not supported for this operation';
                     }
-                    
+
                     if (await canLaunchUrl(Uri.parse(url))) {
-                      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                      await launchUrl(Uri.parse(url),
+                          mode: LaunchMode.externalApplication);
                     } else {
                       throw 'Could not launch $url';
                     }
@@ -347,8 +369,7 @@ class SettingsPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                          AppListPage(),
+                        builder: (context) => AppListPage(),
                       ),
                     )
                   },
@@ -366,8 +387,7 @@ class SettingsPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                          CreditsList(),
+                        builder: (context) => CreditsList(),
                       ),
                     )
                   },
@@ -385,8 +405,7 @@ class SettingsPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                          OpenSourceList(),
+                        builder: (context) => OpenSourceList(),
                       ),
                     )
                   },
@@ -420,7 +439,9 @@ class SettingsPage extends StatelessWidget {
       ),
       bottomNavigationBar: Container(
         height: MediaQuery.of(context).size.height * 0.12,
-        color: settingsProvider.isDarkTheme ? const Color(0xff3c3c3c) : const Color(0xff435555),
+        color: settingsProvider.isDarkTheme
+            ? const Color(0xff3c3c3c)
+            : const Color(0xff435555),
         padding: EdgeInsets.only(
             top: MediaQuery.of(context).size.height * 0.12 * 0.1,
             bottom: MediaQuery.of(context).size.height * 0.12 * 0.1),
@@ -432,12 +453,14 @@ class SettingsPage extends StatelessWidget {
                 const url =
                     'https://marmalade-neptune-dbe.notion.site/Home-Page-7589a833b4f6482e90844b9fe49c8ae0';
                 if (await canLaunchUrl(Uri.parse(url))) {
-                  await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                  await launchUrl(Uri.parse(url),
+                      mode: LaunchMode.externalApplication);
                 }
               },
               child: Image.asset(
                 'assets/images/SIL_logo_h_xxhdpi.png',
-                height: MediaQuery.of(context).size.height * 0.045, // Adjust size as needed
+                height: MediaQuery.of(context).size.height *
+                    0.045, // Adjust size as needed
               ),
             ),
             SizedBox(height: MediaQuery.of(context).size.height * 0.12 * 0.1),
@@ -449,7 +472,8 @@ class SettingsPage extends StatelessWidget {
                     const url =
                         'https://sunnyinnolab.notion.site/Terms-and-Conditions-0601612ffa404317a4ddaf5a094e5471';
                     if (await canLaunchUrl(Uri.parse(url))) {
-                      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                      await launchUrl(Uri.parse(url),
+                          mode: LaunchMode.externalApplication);
                     }
                   },
                   child: Text(
@@ -461,7 +485,8 @@ class SettingsPage extends StatelessWidget {
                   ),
                 ),
                 const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0), // Space around the separator
+                  padding: EdgeInsets.symmetric(
+                      horizontal: 8.0), // Space around the separator
                   child: Text(
                     '|',
                     style: TextStyle(
@@ -475,7 +500,8 @@ class SettingsPage extends StatelessWidget {
                     const url =
                         'https://sunnyinnolab.notion.site/Privacy-Policy-2919720d6e7848669b9d5e1170c6cabc';
                     if (await canLaunchUrl(Uri.parse(url))) {
-                      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                      await launchUrl(Uri.parse(url),
+                          mode: LaunchMode.externalApplication);
                     }
                   },
                   child: Text(

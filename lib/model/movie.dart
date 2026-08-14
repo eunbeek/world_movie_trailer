@@ -97,39 +97,61 @@ class Movie extends HiveObject {
   @HiveField(30)
   String? weekEndDate;
 
-  Movie(
-      {required this.localTitle,
-      required this.posterUrl,
-      required this.trailerUrl,
-      required this.country,
-      required this.source,
-      required this.spec,
-      required this.releaseDate,
-      this.runtime,
-      this.credits,
-      this.status,
-      this.special, // special
-      this.year, // special
-      this.nameKR, // special
-      this.nameJP, // special
-      this.nameCH, // special
-      this.nameTW, // special
-      this.nameFR, // special
-      this.nameDE, // special
-      this.nameES, // special
-      this.nameHI, // special
-      this.nameTH, // special
-      this.isYoutube, // es
-      this.period, // special
-      this.rank, // box office
-      this.lastRank, // box office
-      this.totalGross, // box office
-      this.weeks, // box office
-      this.distributor, // box office
-      this.isNewThisWeek, // box office
-      this.weekStartDate, // box office
-      this.weekEndDate // box office
-      });
+  // Schema v2 fields. Existing Hive field numbers 0-30 must never change:
+  // bookmarks and memos created by v1 users are stored with those numbers.
+  @HiveField(31)
+  final String id;
+
+  @HiveField(32)
+  final String tid;
+
+  @HiveField(33)
+  final Map<String, dynamic> originSource;
+
+  @HiveField(34)
+  final Map<String, dynamic> translations;
+
+  @HiveField(35)
+  final Map<String, dynamic> metadata;
+
+  Movie({
+    required this.localTitle,
+    required this.posterUrl,
+    required this.trailerUrl,
+    required this.country,
+    required this.source,
+    required this.spec,
+    required this.releaseDate,
+    this.runtime,
+    this.credits,
+    this.status,
+    this.special, // special
+    this.year, // special
+    this.nameKR, // special
+    this.nameJP, // special
+    this.nameCH, // special
+    this.nameTW, // special
+    this.nameFR, // special
+    this.nameDE, // special
+    this.nameES, // special
+    this.nameHI, // special
+    this.nameTH, // special
+    this.isYoutube, // es
+    this.period, // special
+    this.rank, // box office
+    this.lastRank, // box office
+    this.totalGross, // box office
+    this.weeks, // box office
+    this.distributor, // box office
+    this.isNewThisWeek, // box office
+    this.weekStartDate, // box office
+    this.weekEndDate, // box office
+    this.id = '',
+    this.tid = '',
+    this.originSource = const {},
+    this.translations = const {},
+    this.metadata = const {},
+  });
 
   Map<String, dynamic> toJson() => {
         'localTitle': localTitle,
@@ -162,7 +184,12 @@ class Movie extends HiveObject {
         'distributor': distributor,
         'isNewThisWeek': isNewThisWeek,
         'weekStartDate': weekStartDate,
-        'weekEndDate': weekEndDate
+        'weekEndDate': weekEndDate,
+        'id': id,
+        'tid': tid,
+        'originSource': originSource,
+        'translations': translations,
+        'metadata': metadata,
       };
 
   factory Movie.fromJson(Map<dynamic, dynamic> json,
@@ -187,20 +214,31 @@ class Movie extends HiveObject {
     String localized(String key, String legacyKey) =>
         (selected[key] ?? origin[key] ?? json[legacyKey] ?? '').toString();
 
+    Map<String, dynamic> stringMap(Map<dynamic, dynamic> source) =>
+        source.map((key, value) => MapEntry(key.toString(), value));
+
+    Map<String, dynamic> creditsMap() {
+      final raw = json['credits'];
+      return raw is Map ? stringMap(Map<dynamic, dynamic>.from(raw)) : {};
+    }
+
     return Movie(
         localTitle: localized('title', 'localTitle'),
-        posterUrl: value('posterUrl'),
-        trailerUrl: value('trailerUrl'),
+        posterUrl: value('posterUrl').toString(),
+        trailerUrl: value('trailerUrl').toString(),
         country: localized('country', 'country'),
-        source: value('source'),
+        source: (value('source').toString().isNotEmpty
+                ? value('source')
+                : origin['credits'] ?? '')
+            .toString(),
         spec: localized('overview', 'spec'),
-        releaseDate: value('releaseDate'),
+        releaseDate: value('releaseDate').toString(),
         runtime: value('runtime', 0),
-        credits: value('credits', <String, dynamic>{}),
-        status: value('status'),
+        credits: creditsMap(),
+        status: value('status').toString(),
         special: (selected['concept'] ?? origin['concept'] ?? value('special'))
             .toString(),
-        year: value('year'),
+        year: value('year').toString(),
         nameKR: translations['ko']?['credits'] ?? json['NameKR'] ?? '',
         nameJP: translations['ja']?['credits'] ?? json['NameJP'] ?? '',
         nameCH: translations['cn']?['credits'] ?? json['NameCH'] ?? '',
@@ -212,13 +250,18 @@ class Movie extends HiveObject {
         nameTH: translations['th']?['credits'] ?? json['NameTH'] ?? '',
         isYoutube: value('isYoutube', true),
         period: int.tryParse(value('period', 0).toString()) ?? 0,
-        rank: value('rank'),
-        lastRank: value('lastRank'),
-        totalGross: value('totalGross'),
-        weeks: value('weeks'),
-        distributor: value('distributor'),
-        isNewThisWeek: value('isNewThisWeek', false),
-        weekStartDate: value('weekStartDate'),
-        weekEndDate: value('weekEndDate'));
+        rank: value('rank').toString(),
+        lastRank: value('lastRank').toString(),
+        totalGross: value('totalGross').toString(),
+        weeks: value('weeks').toString(),
+        distributor: value('distributor').toString(),
+        isNewThisWeek: value('isNewThisWeek', false) == true,
+        weekStartDate: value('weekStartDate').toString(),
+        weekEndDate: value('weekEndDate').toString(),
+        id: value('id').toString(),
+        tid: value('tid').toString(),
+        originSource: stringMap(origin),
+        translations: stringMap(translations),
+        metadata: stringMap(metadata));
   }
 }

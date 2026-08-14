@@ -94,10 +94,13 @@ async function processBatchForSpecial(country, moviesData, processedCount, start
       fetchedMovie = await searchSpecialMovieInfoByTid(movie);
 
       if (fetchedMovie) {
-        movie.posterUrl = `https://image.tmdb.org/t/p/w600_and_h900_bestv2${fetchedMovie.poster_path}`;
-        movie.spec = fetchedMovie.overview ? fetchedMovie.overview : "";
-        movie.releaseDate = fetchedMovie.release_date ? fetchedMovie.release_date : "";
-        movie.runtime = fetchedMovie.runtime ? fetchedMovie.runtime : "";
+        // SPECIAL_SOURCE is planner-owned and always wins. TMDB only fills
+        // fields that the source did not provide.
+        movie.posterUrl = movie.posterUrl || (fetchedMovie.poster_path ?
+          `https://image.tmdb.org/t/p/w600_and_h900_bestv2${fetchedMovie.poster_path}` : "");
+        movie.spec = movie.spec || fetchedMovie.overview || "";
+        movie.releaseDate = movie.releaseDate || fetchedMovie.release_date || "";
+        movie.runtime = movie.runtime || fetchedMovie.runtime || "";
         movie.credits = fetchedMovie.credits ? fetchedMovie.credits : {};
       }
 

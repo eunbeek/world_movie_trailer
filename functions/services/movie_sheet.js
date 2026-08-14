@@ -99,37 +99,6 @@ function buildMovieMetadata(movie) {
   }, {});
 }
 
-/** Keeps only TMDB person IDs and fields needed to render/link credits. */
-function buildLinkMetadata(movie) {
-  const credits = movie.credits || {};
-  const cast = Array.isArray(credits.cast) ? credits.cast.map((person) => ({
-    id: person && person.id || "",
-    name: person && person.name || "",
-    character: person && person.character || "",
-  })).filter((person) => person.id && person.name) : [];
-  const crew = Array.isArray(credits.crew) ? credits.crew.map((person) => ({
-    id: person && person.id || "",
-    name: person && person.name || "",
-    job: person && person.job || "",
-  })).filter((person) => person.id && person.name) : [];
-  return {cast, crew};
-}
-
-/** Parses a planner-visible link metadata JSON cell safely. */
-function parseLinkMetadata(value) {
-  if (!value) return {cast: [], crew: []};
-  try {
-    const parsed = typeof value === "string" ? JSON.parse(value) : value;
-    return {
-      cast: Array.isArray(parsed.cast) ? parsed.cast : [],
-      crew: Array.isArray(parsed.crew) ? parsed.crew : [],
-    };
-  } catch (error) {
-    console.error("Invalid LINK_METADATA JSON:", error.message);
-    return {cast: [], crew: []};
-  }
-}
-
 /** Converts one translated movie to the 52-column worksheet schema. */
 function buildSheetRow(movie) {
   const origin = movie.originSource || {};
@@ -284,7 +253,7 @@ async function readCountrySheet(country) {
   const sheets = google.sheets({version: "v4", auth});
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `'${sheetName}'!A4:AZ`,
+    range: `'${sheetName}'!A4:AY`,
   });
   return (response.data.values || [])
       .filter((row) => row[0] && row[3] && row[4])
@@ -302,7 +271,7 @@ async function readCountrySheet(country) {
           credits: row[10] || "",
         },
         translations: readTranslations(row, 11),
-        credits: parseLinkMetadata(row[51]),
+        credits: {cast: [], crew: []},
         metadata: {source: row[2] || ""},
       }));
 }
@@ -325,19 +294,9 @@ async function replaceCountrySheet(country, movies) {
     valueInputOption: "RAW",
     requestBody: {values},
   });
-  await sheets.spreadsheets.values.update({
-    spreadsheetId,
-    range: `'${sheetName}'!AZ3:AZ${movies.length + 3}`,
-    valueInputOption: "RAW",
-    requestBody: {values: [["LINK_METADATA"], ...movies.map((movie) => [JSON.stringify(buildLinkMetadata(movie))])]},
-  });
   await sheets.spreadsheets.values.clear({
     spreadsheetId,
     range: `'${sheetName}'!A${movies.length + 4}:K`,
-  });
-  await sheets.spreadsheets.values.clear({
-    spreadsheetId,
-    range: `'${sheetName}'!AZ${movies.length + 4}:AZ`,
   });
 
   console.log(`Google Sheet ${sheetName} input columns replaced with ${movies.length} movies.`);
@@ -359,19 +318,9 @@ async function replaceBoxOfficeSheet(sheetName, movies) {
     valueInputOption: "RAW",
     requestBody: {values: rows},
   });
-  await sheets.spreadsheets.values.update({
-    spreadsheetId,
-    range: `'${sheetName}'!BM3:BM${lastRow}`,
-    valueInputOption: "RAW",
-    requestBody: {values: [["LINK_METADATA"], ...movies.map((movie) => [JSON.stringify(buildLinkMetadata(movie))])]},
-  });
   await sheets.spreadsheets.values.clear({
     spreadsheetId,
     range: `'${sheetName}'!A${lastRow + 1}:X`,
-  });
-  await sheets.spreadsheets.values.clear({
-    spreadsheetId,
-    range: `'${sheetName}'!BM${lastRow + 1}:BM`,
   });
   console.log(`Google Sheet ${sheetName} inputs replaced with ${movies.length} movies.`);
 }
@@ -385,7 +334,7 @@ async function readBoxOfficeSheet(sheetName) {
   const sheets = google.sheets({version: "v4", auth});
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `'${sheetName}'!A4:BM`,
+    range: `'${sheetName}'!A4:BL`,
   });
   return (response.data.values || [])
       .filter((row) => row[0] && row[3] && row[4])
@@ -403,7 +352,7 @@ async function readBoxOfficeSheet(sheetName) {
           credits: row[23] || "",
         },
         translations: readTranslations(row, 24),
-        credits: parseLinkMetadata(row[64]),
+        credits: {cast: [], crew: []},
         metadata: {
           source: row[2] || "",
           rank: row[7] || "",
@@ -439,19 +388,9 @@ async function replaceSpecialDataSheet(movies) {
     valueInputOption: "RAW",
     requestBody: {values},
   });
-  await sheets.spreadsheets.values.update({
-    spreadsheetId,
-    range: `'${SPECIAL_DATA_SHEET}'!BL3:BL${lastRow}`,
-    valueInputOption: "RAW",
-    requestBody: {values: [["LINK_METADATA"], ...movies.map((movie) => [JSON.stringify(buildLinkMetadata(movie))])]},
-  });
   await sheets.spreadsheets.values.clear({
     spreadsheetId,
     range: `'${SPECIAL_DATA_SHEET}'!A${lastRow + 1}:M`,
-  });
-  await sheets.spreadsheets.values.clear({
-    spreadsheetId,
-    range: `'${SPECIAL_DATA_SHEET}'!BL${lastRow + 1}:BL`,
   });
   console.log(`Google Sheet ${SPECIAL_DATA_SHEET} inputs replaced with ${movies.length} movies.`);
 }
@@ -465,7 +404,7 @@ async function readSpecialDataSheet() {
   const sheets = google.sheets({version: "v4", auth});
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `'${SPECIAL_DATA_SHEET}'!A4:BL`,
+    range: `'${SPECIAL_DATA_SHEET}'!A4:BK`,
   });
   return (response.data.values || [])
       .filter((row) => row[0] && row[4] && row[5])
@@ -484,7 +423,7 @@ async function readSpecialDataSheet() {
           credits: row[12] || "",
         },
         translations: readTranslations(row, 13, 5),
-        credits: parseLinkMetadata(row[63]),
+        credits: {cast: [], crew: []},
         metadata: {
           period: row[2] || "",
           sourceType: row[3] || "",
@@ -498,14 +437,12 @@ module.exports = {
   BOX_OFFICE_USA_SHEET,
   COUNTRY_SHEETS,
   buildOriginSource,
-  buildLinkMetadata,
   buildBoxOfficeUsaRow,
   buildSpecialDataRow,
   buildMovieMetadata,
   buildSheetHeaders,
   buildSheetRow,
   hasCountrySheet,
-  parseLinkMetadata,
   readCountrySheet,
   readBoxOfficeSheet,
   readSpecialDataSheet,
