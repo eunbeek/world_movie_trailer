@@ -270,8 +270,8 @@ class _MyAppState extends State<MyApp>
         },
         themeMode:
             settingsProvider.isDarkTheme ? ThemeMode.dark : ThemeMode.light,
-        theme: ThemeData.light(),
-        darkTheme: ThemeData.dark(),
+        theme: _webTransitionTheme(ThemeData.light()),
+        darkTheme: _webTransitionTheme(ThemeData.dark()),
         debugShowCheckedModeBanner: false,
         home: _isAdDismissed
             ? CountryListPage(isInit: widget.isInitialSetting)
@@ -296,6 +296,38 @@ class _MyAppState extends State<MyApp>
               ),
       ),
     );
+  }
+}
+
+ThemeData _webTransitionTheme(ThemeData theme) {
+  if (!kIsWeb) return theme;
+
+  return theme.copyWith(
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: _NoPageTransitionsBuilder(),
+        TargetPlatform.iOS: _NoPageTransitionsBuilder(),
+        TargetPlatform.macOS: _NoPageTransitionsBuilder(),
+        TargetPlatform.windows: _NoPageTransitionsBuilder(),
+        TargetPlatform.linux: _NoPageTransitionsBuilder(),
+        TargetPlatform.fuchsia: _NoPageTransitionsBuilder(),
+      },
+    ),
+  );
+}
+
+class _NoPageTransitionsBuilder extends PageTransitionsBuilder {
+  const _NoPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return child;
   }
 }
 

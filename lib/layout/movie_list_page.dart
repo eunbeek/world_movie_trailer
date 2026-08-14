@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'package:world_movie_trailer/common/ad_manager/interstitial_ad_manager.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
@@ -44,7 +45,23 @@ class _MovieListPageState extends State<MovieListPage>
         length: 3,
         vsync: this,
         initialIndex: widget.country == special ? 0 : 1);
+    if (kIsWeb) {
+      _tabController.addListener(_refreshWebTab);
+    }
     _fetchMovies();
+  }
+
+  void _refreshWebTab() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    if (kIsWeb) {
+      _tabController.removeListener(_refreshWebTab);
+    }
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchMovies() async {
@@ -570,17 +587,31 @@ class _MovieListPageState extends State<MovieListPage>
                 SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                 fetchComplete
                     ? Expanded(
-                        child: TabBarView(
-                          controller: _tabController,
-                          children: [
-                            _buildMovieGrid(
-                                _getFilteredMovies(listFilterAll), 0),
-                            _buildMovieGrid(
-                                _getFilteredMovies(listFilterRunning), 1),
-                            _buildMovieGrid(
-                                _getFilteredMovies(listFilterUpcoming), 2),
-                          ],
-                        ),
+                        child: kIsWeb
+                            ? IndexedStack(
+                                index: _tabController.index,
+                                children: [
+                                  _buildMovieGrid(
+                                      _getFilteredMovies(listFilterAll), 0),
+                                  _buildMovieGrid(
+                                      _getFilteredMovies(listFilterRunning), 1),
+                                  _buildMovieGrid(
+                                      _getFilteredMovies(listFilterUpcoming),
+                                      2),
+                                ],
+                              )
+                            : TabBarView(
+                                controller: _tabController,
+                                children: [
+                                  _buildMovieGrid(
+                                      _getFilteredMovies(listFilterAll), 0),
+                                  _buildMovieGrid(
+                                      _getFilteredMovies(listFilterRunning), 1),
+                                  _buildMovieGrid(
+                                      _getFilteredMovies(listFilterUpcoming),
+                                      2),
+                                ],
+                              ),
                       )
                     : const Expanded(
                         child: Center(child: CircularProgressIndicator())),
