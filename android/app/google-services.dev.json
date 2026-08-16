@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1034047577753",
+    "project_id": "world-movie-trailer-v2",
+    "storage_bucket": "world-movie-trailer-v2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1034047577753:android:0b4015c6114e7468dfa208",
+        "android_client_info": {
+          "package_name": "com.sunnyinnolab.worldMovieTrailer.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5R97bRJpXoiL2lhAgi7h7KJDbgA1l_dE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

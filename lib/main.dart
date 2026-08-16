@@ -12,8 +12,9 @@ import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/services/alarm_service.dart';
 import 'package:world_movie_trailer/common/services/in_app_purchase_service.dart';
 import 'package:world_movie_trailer/firebase_options.dart';
+import 'package:world_movie_trailer/firebase_options_dev.dart';
 import 'package:world_movie_trailer/common/constants.dart';
-import 'package:world_movie_trailer/layout/country_list_page.dart';
+import 'package:world_movie_trailer/v2/home/home_shell.dart';
 import 'package:world_movie_trailer/model/movieByUser.dart';
 import 'package:world_movie_trailer/model/quote.dart';
 import 'package:world_movie_trailer/model/settings.dart';
@@ -23,7 +24,11 @@ import 'package:intl/date_symbol_data_local.dart';
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
-void main() => bootstrap(DefaultFirebaseOptions.currentPlatform);
+// `flutter run -d chrome` uses this entry point. Web currently exists only in
+// the V2/dev Firebase project, while native default builds retain V1/prod.
+void main() => bootstrap(kIsWeb
+    ? DevFirebaseOptions.currentPlatform
+    : DefaultFirebaseOptions.currentPlatform);
 
 Future<void> bootstrap(FirebaseOptions firebaseOptions) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,51 +39,54 @@ Future<void> bootstrap(FirebaseOptions firebaseOptions) async {
     DeviceOrientation.portraitDown,
   ]);
 
-  await Firebase.initializeApp(
-    options: firebaseOptions,
-  );
+  // Draw a Flutter frame before Firebase/Hive initialization. WebKit would
+  // otherwise keep showing the HTML loader forever when browser storage is
+  // slow or unavailable.
+  runApp(_BootstrapLoader(firebaseOptions: firebaseOptions));
+}
+
+Future<Widget> _initializeApplication(FirebaseOptions firebaseOptions) async {
+  if (!kIsWeb) {
+    await _runInitializationStage(
+        'Firebase', () => _initializeFirebase(firebaseOptions));
+  }
 
   if (!kIsWeb) {
     MobileAds.instance.initialize();
   }
 
-  await Hive.initFlutter();
+  await _runInitializationStage('Hive init', Hive.initFlutter);
   Hive.registerAdapter(MovieAdapter());
   Hive.registerAdapter(SettingsAdapter());
   Hive.registerAdapter(QuoteAdapter());
   Hive.registerAdapter(MovieByUserAdapter());
 
-  var settingsBox = await Hive.openBox<Settings>('settings');
-  Settings initSettings =
-      settingsBox.get('app_settings') ?? Settings.defaultSettings();
-  bool isInitialSetting = settingsBox.get('app_settings') == null;
-  bool hasBox = initSettings.countryOrder.contains('box');
-
-  //temporary for box
-  if (!hasBox) {
-    // Add 'box' to day 1
-    initSettings.countryOrder.insert(0, 'box');
-
-    // Save the updated settings
-    settingsBox.put('app_settings', initSettings);
+  Box<Settings> settingsBox;
+  try {
+    settingsBox = await Hive.openBox<Settings>('settings');
+  } catch (error) {
+    if (!kIsWeb) rethrow;
+    // Web storage can retain a partially written adapter record after a
+    // schema change. V2 web has no legacy user data to preserve yet.
+    await Hive.deleteBoxFromDisk('settings');
+    settingsBox = await Hive.openBox<Settings>('settings');
   }
-
-  // Move 'china' from Thursday (3) to Friday (4) if present
-  if (initSettings.isNewShown[3]?.containsKey('china') == true) {
-    final thursday = initSettings.isNewShown[3]!;
-    final friday = initSettings.isNewShown[4] ?? {};
-
-    // 복사 후 삭제
-    friday['china'] = thursday['china']!;
-    thursday.remove('china');
-
-    // 변경사항 반영
-    initSettings.isNewShown[3] = thursday;
-    initSettings.isNewShown[4] = friday;
-  }
-
-  if (!isInitialSetting) {
-    updateUserIdIfNeeded(); // 기존 사용자라면 userId를 새로 생성하여 저장
+  // V2 intentionally starts with a clean preference record. V1 data remains
+  // untouched for rollback, but is never loaded by the new application.
+  final v2Settings = await _runInitializationStage(
+      'Settings read', () async => settingsBox.get('app_settings_v2'));
+  final legacySettings = await _runInitializationStage(
+      'Legacy settings read', () async => settingsBox.get('app_settings'));
+  final bool isInitialSetting = v2Settings == null;
+  final Settings initSettings = v2Settings ??
+      await _runInitializationStage(
+          'Default settings', () async => Settings.defaultSettings());
+  if (isInitialSetting) {
+    // User content and UI state start clean in 2.0. Only the paid entitlement
+    // survives locally; StoreKit/Play Billing remains the source of truth.
+    initSettings.isAdsFree = legacySettings?.isAdsFree ?? false;
+    await _runInitializationStage('Settings write',
+        () => settingsBox.put('app_settings_v2', initSettings));
   }
 
   LogHelper();
@@ -88,7 +96,7 @@ Future<void> bootstrap(FirebaseOptions firebaseOptions) async {
     await alarmService.initialize();
   }
 
-  await initializeDateFormatting();
+  await _runInitializationStage('Date formatting', initializeDateFormatting);
 
   final settingsProviderInstance =
       SettingsProvider(initSettings, isInitialSetting);
@@ -99,17 +107,107 @@ Future<void> bootstrap(FirebaseOptions firebaseOptions) async {
 
   bool isAdsFree = settingsProviderInstance.isAdsFree;
 
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => settingsProviderInstance),
-      ],
-      child: MyApp(
-        isInitialSetting: isInitialSetting,
-        isAdsFree: isAdsFree,
-      ),
+  return MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (_) => settingsProviderInstance),
+    ],
+    child: MyApp(
+      isInitialSetting: isInitialSetting,
+      isAdsFree: isAdsFree,
     ),
   );
+}
+
+Future<T> _runInitializationStage<T>(
+    String stage, Future<T> Function() action) async {
+  try {
+    return await action();
+  } catch (error, stackTrace) {
+    debugPrint('App initialization failed at $stage: $error\n$stackTrace');
+    throw StateError('$stage: $error');
+  }
+}
+
+class _BootstrapLoader extends StatefulWidget {
+  final FirebaseOptions firebaseOptions;
+
+  const _BootstrapLoader({required this.firebaseOptions});
+
+  @override
+  State<_BootstrapLoader> createState() => _BootstrapLoaderState();
+}
+
+class _BootstrapLoaderState extends State<_BootstrapLoader> {
+  late final Future<Widget> _initialization;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialization = _initializeApplication(widget.firebaseOptions);
+    _initialization = kIsWeb
+        ? initialization.timeout(const Duration(seconds: 30))
+        : initialization;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Widget>(
+      future: _initialization,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) return snapshot.data!;
+        if (snapshot.hasError) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData.dark(),
+            home: Scaffold(
+              backgroundColor: Colors.black,
+              body: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    '앱 초기화에 실패했습니다.\n${snapshot.error}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData.dark(),
+          home: const Scaffold(
+            backgroundColor: Colors.black,
+            body: Center(
+              child: CircularProgressIndicator(color: Color(0xFFB12DDB)),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+Future<void> _initializeFirebase(FirebaseOptions options) async {
+  FirebaseApp app;
+  if (Firebase.apps.isEmpty) {
+    try {
+      app = await Firebase.initializeApp(options: options);
+    } on FirebaseException catch (error) {
+      if (error.code != 'duplicate-app') rethrow;
+      app = Firebase.app();
+    }
+  } else {
+    app = Firebase.app();
+  }
+
+  if (app.options.projectId != options.projectId) {
+    throw StateError(
+      'Firebase project mismatch: expected ${options.projectId}, '
+      'but ${app.options.projectId} is already initialized.',
+    );
+  }
 }
 
 class MyApp extends StatefulWidget {
@@ -158,7 +256,6 @@ class _MyAppState extends State<MyApp>
         await initializeAlarms(settingsProvider, widget.isInitialSetting);
       }
       settingsProvider.resetOpenCount();
-      settingsProvider.updateIsQuotes(!settingsProvider.isQuotes);
       _updateNewShownStatus(settingsProvider, widget.isInitialSetting);
     });
   }
@@ -248,33 +345,32 @@ class _MyAppState extends State<MyApp>
         title: appTitle,
         scaffoldMessengerKey: scaffoldMessengerKey,
         builder: (context, child) {
-          if (!kIsWeb || child == null) return child ?? const SizedBox.shrink();
-
-          final mediaQuery = MediaQuery.of(context);
-          final appWidth = mediaQuery.size.width.clamp(0.0, 500.0);
-          return ColoredBox(
-            color: const Color(0xFF111111),
-            child: Center(
-              child: SizedBox(
-                width: appWidth,
-                height: mediaQuery.size.height,
-                child: MediaQuery(
-                  data: mediaQuery.copyWith(
-                    size: Size(appWidth, mediaQuery.size.height),
-                  ),
-                  child: child,
-                ),
-              ),
-            ),
-          );
+          return child ?? const SizedBox.shrink();
         },
         themeMode:
             settingsProvider.isDarkTheme ? ThemeMode.dark : ThemeMode.light,
-        theme: _webTransitionTheme(ThemeData.light()),
-        darkTheme: _webTransitionTheme(ThemeData.dark()),
+        theme: _webTransitionTheme(ThemeData(
+          brightness: Brightness.light,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF9D00C6),
+            brightness: Brightness.light,
+          ),
+          scaffoldBackgroundColor: const Color(0xFFFAFAFA),
+          dividerColor: const Color(0xFFD8D8D8),
+        )),
+        darkTheme: _webTransitionTheme(ThemeData(
+          brightness: Brightness.dark,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF9D00C6),
+            brightness: Brightness.dark,
+            surface: Colors.black,
+          ),
+          scaffoldBackgroundColor: Colors.black,
+          dividerColor: const Color(0xFF303030),
+        )),
         debugShowCheckedModeBanner: false,
         home: _isAdDismissed
-            ? CountryListPage(isInit: widget.isInitialSetting)
+            ? const HomeShell()
             : Scaffold(
                 body: Stack(
                   children: [

@@ -10,22 +10,22 @@ import 'package:world_movie_trailer/common/constants.dart';
 class SettingsProvider with ChangeNotifier {
   final Settings _settings;
   final alarmService = AlarmService();
-  
-  SettingsProvider(Settings newSettings, bool isInitialSetting) 
-    : _settings = newSettings {
+
+  SettingsProvider(Settings newSettings, bool isInitialSetting)
+      : _settings = newSettings {
     if (isInitialSetting) _saveSettings();
   }
   // property & getter
   bool get isDarkTheme => _settings.theme == 'dark';
 
   String get language => _settings.language;
-  
+
   List<String> get countryOrder => getLocalizedCountryNames();
-  
+
   bool get isVibrate => _settings.isVibrate;
 
   bool get isCaptionOn => _settings.isCaptionOn;
-  
+
   bool get isQuotes => _settings.isQuotes;
 
   DateTime get startDate => _settings.startDate;
@@ -43,9 +43,9 @@ class SettingsProvider with ChangeNotifier {
   DateTime? get lastSpecialFetched => _settings.lastSpecialFetched;
 
   Map<int, Map<String, bool>> get isAlarmOn =>
-    _settings.isAlarmOn ?? _initializeAlarms();
+      _settings.isAlarmOn ?? _initializeAlarms();
 
-  bool get isDailyAlarmOn => _settings.isDailyAlarmOn ?? true; 
+  bool get isDailyAlarmOn => _settings.isDailyAlarmOn ?? true;
 
   bool get isBookmarkAlarmOn => _settings.isBookmarkAlarmOn ?? true;
 
@@ -70,7 +70,8 @@ class SettingsProvider with ChangeNotifier {
   // update & setter
   set language(String newLanguage) {
     print('updateLanguage');
-    _settings.language = supportedLanguages.contains(newLanguage) ? newLanguage : 'en';
+    _settings.language =
+        supportedLanguages.contains(newLanguage) ? newLanguage : 'en';
     _settings.countryOrder = getLocalizedCountryKeys();
     _saveSettings();
     notifyListeners();
@@ -86,12 +87,17 @@ class SettingsProvider with ChangeNotifier {
   void updateCountryOrder(List<String> newCountryOrder) {
     print('updateCountryOrder');
     // Convert localized country names to their keys
-    List<String> countryKeysToSave = newCountryOrder.map((localizedCountryName) {
-      String? key = localizedCountries[_settings.language]!.entries
-          .firstWhere((entry) => entry.value == localizedCountryName, orElse: () => MapEntry('', ''))
-          .key;
-      return key;
-    }).where((key) => key.isNotEmpty).toList();
+    List<String> countryKeysToSave = newCountryOrder
+        .map((localizedCountryName) {
+          String? key = localizedCountries[_settings.language]!
+              .entries
+              .firstWhere((entry) => entry.value == localizedCountryName,
+                  orElse: () => MapEntry('', ''))
+              .key;
+          return key;
+        })
+        .where((key) => key.isNotEmpty)
+        .toList();
     _settings.countryOrder = countryKeysToSave;
     _saveSettings();
     notifyListeners();
@@ -118,22 +124,22 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void updateOpenCount(){
+  void updateOpenCount() {
     _settings.openCount++;
     _settings.totalOpen++;
     _saveSettings();
     notifyListeners();
   }
 
-  void resetOpenCount(){
+  void resetOpenCount() {
     _settings.openCount = 0;
     _saveSettings();
     notifyListeners();
   }
 
-  void markIsNewShown(int day){
+  void markIsNewShown(int day) {
     print('markIsNewShown');
-    _settings.isNewShown[day]!.updateAll((key, value)=> true);
+    _settings.isNewShown[day]!.updateAll((key, value) => true);
     _saveSettings();
     notifyListeners();
   }
@@ -151,7 +157,7 @@ class SettingsProvider with ChangeNotifier {
     print('Country not found in any day');
   }
 
-  void markAllIsNewShown(){
+  void markAllIsNewShown() {
     print('markAllIsNewShown');
     _settings.isNewShown.forEach((day, countries) {
       countries.updateAll((key, value) => true);
@@ -160,7 +166,7 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void unmarkAllIsNewShown(){
+  void unmarkAllIsNewShown() {
     print('unmarkAllIsNewShown');
     _settings.isNewShown.forEach((day, countries) {
       countries.updateAll((key, value) => false);
@@ -170,22 +176,23 @@ class SettingsProvider with ChangeNotifier {
   }
 
   bool getCountryStatus(String country) {
-    return _settings.isNewShown.values.any((countries) => countries[country] == true);
+    return _settings.isNewShown.values
+        .any((countries) => countries[country] == true);
   }
 
-  void updateLastDate(DateTime openDate){
+  void updateLastDate(DateTime openDate) {
     _settings.lastDate = openDate;
     _saveSettings();
     notifyListeners();
   }
 
-  void updateLastSpecialNumber(int num){
+  void updateLastSpecialNumber(int num) {
     _settings.lastSpecialNumber = num;
     _saveSettings();
     notifyListeners();
   }
 
-  void updateLastSpecialFetched(DateTime lastFetched){
+  void updateLastSpecialFetched(DateTime lastFetched) {
     print('updateLastSpecialFetched');
     _settings.lastSpecialFetched = lastFetched;
     _saveSettings();
@@ -198,7 +205,7 @@ class SettingsProvider with ChangeNotifier {
     _settings.isAlarmOn ??= _initializeAlarms();
 
     _settings.isAlarmOn![1] ??= {};
-    
+
     _settings.isAlarmOn![1]!['box'] = true;
 
     await alarmService.registerDailyAlarms(this);
@@ -206,8 +213,9 @@ class SettingsProvider with ChangeNotifier {
     _saveSettings();
     notifyListeners();
   }
-  
-  Future<void> updateAlarmForCountryByDay(int day, String country, bool isOn) async {
+
+  Future<void> updateAlarmForCountryByDay(
+      int day, String country, bool isOn) async {
     print('updateAlarmForCountryByDay: $country : $isOn');
 
     _settings.isAlarmOn ??= _initializeAlarms();
@@ -243,12 +251,14 @@ class SettingsProvider with ChangeNotifier {
       bool hasPermission = await alarmService.hasNotificationPermission();
       if (!hasPermission) {
         bool granted = await alarmService.requestPermissionOnly(this);
-        if (!granted) return false; 
+        if (!granted) return false;
       }
 
       await alarmService.registerDailyAlarms(this);
-      if(isBookmarkAlarmOn) await alarmService.registerReleaseAlarmsFromList(this, true);
-      if(isMemoAlarmOn) await alarmService.registerReleaseAlarmsFromList(this, false);
+      if (isBookmarkAlarmOn)
+        await alarmService.registerReleaseAlarmsFromList(this, true);
+      if (isMemoAlarmOn)
+        await alarmService.registerReleaseAlarmsFromList(this, false);
     } else {
       await alarmService.cancelAllAlarms();
     }
@@ -260,7 +270,7 @@ class SettingsProvider with ChangeNotifier {
     print('updateIsBookmarkAlarmOn');
     _settings.isBookmarkAlarmOn = bookmarkAlarmOn;
     _saveSettings();
-  
+
     if (bookmarkAlarmOn) {
       await alarmService.registerReleaseAlarmsFromList(this, true);
     } else {
@@ -294,7 +304,7 @@ class SettingsProvider with ChangeNotifier {
   // save the setting change in hive
   void _saveSettings() {
     print('_saveSettings');
-    Hive.box<Settings>('settings').put('app_settings', _settings);
+    Hive.box<Settings>('settings').put('app_settings_v2', _settings);
   }
 
   List<String> getLocalizedCountryKeys() {
@@ -312,7 +322,8 @@ class SettingsProvider with ChangeNotifier {
   }
 
   Map<int, Map<String, bool>> _initializeAlarms() {
-    final defaultLanguageCountries = countryByLanguage[_settings.language] ?? [];
+    final defaultLanguageCountries =
+        countryByLanguage[_settings.language] ?? [];
     return _settings.isAlarmOn ??= countryByDay.map((day, countries) {
       return MapEntry(
         day,

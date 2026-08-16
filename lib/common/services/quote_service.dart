@@ -2,8 +2,30 @@ import 'package:world_movie_trailer/model/quote.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:hive/hive.dart';
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:http/http.dart' as http;
 
 class QuoteService {
+  static Future<List<int>> _readQuotesBytes() async {
+    if (!kIsWeb) {
+      final data = await FirebaseStorage.instance
+          .ref()
+          .child('quotes_special.json')
+          .getData();
+      if (data == null) throw StateError('quotes_special.json is empty');
+      return data;
+    }
+    final uri = Uri.https(
+        'firebasestorage.googleapis.com',
+        '/v0/b/world-movie-trailer-v2.firebasestorage.app/o/quotes_special.json',
+        {'alt': 'media'});
+    final response = await http.get(uri);
+    if (response.statusCode != 200) {
+      throw StateError('Quotes Storage HTTP ${response.statusCode}');
+    }
+    return response.bodyBytes;
+  }
+
   static Future<Box> _openBox() async {
     return await Hive.openBox<Quote>('quotesBox');
   }
@@ -68,9 +90,8 @@ class QuoteService {
   static Future<Map<String, dynamic>> readQuotesFromStorage() async {
     try {
       print('readQuotesFromStorage');
-      final ref = FirebaseStorage.instance.ref().child('quotes_special.json');
-      final data = await ref.getData();
-      final jsonString = utf8.decode(data!);
+      final data = await _readQuotesBytes();
+      final jsonString = utf8.decode(data);
 
       // Decode the JSON string into a List
       final Map<String, dynamic> jsonData = json.decode(jsonString);
@@ -114,5 +135,4 @@ class QuoteService {
       print('Error saving quotes to Hive: $err');
     }
   }
-
 }

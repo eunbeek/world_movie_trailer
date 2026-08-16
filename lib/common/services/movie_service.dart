@@ -5,10 +5,75 @@ import 'package:hive/hive.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:http/http.dart' as http;
 
 class MovieService {
+  static const String _webStorageBucket =
+      'world-movie-trailer-v2.firebasestorage.app';
+
+  static Future<List<int>> _readStorageObject(String fileName) async {
+    if (!kIsWeb) {
+      final ref = FirebaseStorage.instance.ref().child(fileName);
+      final data = await ref.getData();
+      if (data == null) throw StateError('Storage object is empty: $fileName');
+      return data;
+    }
+    final uri = Uri.https(
+        'firebasestorage.googleapis.com',
+        '/v0/b/$_webStorageBucket/o/${Uri.encodeComponent(fileName)}',
+        {'alt': 'media'});
+    final response = await http.get(uri);
+    if (response.statusCode != 200) {
+      throw StateError('Storage HTTP ${response.statusCode}: $fileName');
+    }
+    return response.bodyBytes;
+  }
+
   static Future<Box> _openBox() async {
-    return await Hive.openBox('moviesBox');
+    return await Hive.openBox('moviesBoxV2');
+  }
+
+  static const Set<String> storageCountryCodes = {
+    'kr',
+    'jp',
+    'ca',
+    'tw',
+    'fr',
+    'de',
+    'th',
+    'au',
+    'es',
+    'in',
+    'cn',
+    'us',
+    'box_office',
+    'box_office_kr',
+    'special',
+  };
+
+  /// V2 entry point. UI routes use stable Storage codes and never reverse-map
+  /// translated country labels back into API identifiers.
+  static Future<List<Movie>> fetchMovieByCode(
+      String countryCode, String languageCode) async {
+    if (!storageCountryCodes.contains(countryCode)) {
+      throw ArgumentError.value(
+          countryCode, 'countryCode', 'Unsupported movie feed');
+    }
+
+    final box = await _openBox();
+    final cacheKey =
+        'movies_v2_${countryCode}_${_translationKey(languageCode)}';
+    final cached = await _getMoviesFromHive(box, cacheKey);
+    final cachedAt = cached['cachedAt'] as String?;
+    if (cachedAt != null &&
+        !_isV2CacheOutdated(DateTime.tryParse(cachedAt) ?? DateTime(1970))) {
+      return (cached['movies'] as List?)?.whereType<Movie>().toList() ?? [];
+    }
+
+    final result = await readMoviesFromStorage(countryCode, languageCode);
+    result['cachedAt'] = DateTime.now().toIso8601String();
+    await _saveMoviesToHive(box, cacheKey, result);
+    return (result['movies'] as List?)?.whereType<Movie>().toList() ?? [];
   }
 
   static Future<List<Movie>> fetchMovie(
@@ -103,10 +168,8 @@ class MovieService {
       [String languageCode = 'en']) async {
     try {
       print('readMoviesFromStorage');
-      final ref =
-          FirebaseStorage.instance.ref().child('movies_$countryCode.json');
-      final data = await ref.getData();
-      final jsonString = utf8.decode(data!);
+      final data = await _readStorageObject('movies_$countryCode.json');
+      final jsonString = utf8.decode(data);
 
       // Decode the JSON string into a List
       final Map<String, dynamic> jsonData = json.decode(jsonString);
@@ -250,6 +313,7 @@ class MovieService {
 
         return {
           'timestamp': storedData["timestamp"] as String?,
+          'cachedAt': storedData["cachedAt"] as String?,
           'movies': movies,
         };
       }
@@ -270,6 +334,10 @@ class MovieService {
   static String _translationKey(String languageCode) {
     const aliases = {'zh': 'cn', 'hi': 'in'};
     return aliases[languageCode] ?? languageCode;
+  }
+
+  static bool _isV2CacheOutdated(DateTime lastFetched) {
+    return DateTime.now().difference(lastFetched).inHours >= 6;
   }
 
   static bool _isWebSafePoster(String url) {
@@ -321,9 +389,8 @@ class MovieService {
   static Future<String> fetchPromotionUrl() async {
     try {
       print('readMoviesFromStorage');
-      final ref = FirebaseStorage.instance.ref().child('promotion_url.json');
-      final data = await ref.getData();
-      final jsonString = utf8.decode(data!);
+      final data = await _readStorageObject('promotion_url.json');
+      final jsonString = utf8.decode(data);
 
       final Map<String, dynamic> jsonData = json.decode(jsonString);
       final String url = jsonData['url'];
@@ -339,9 +406,8 @@ class MovieService {
   static Future<bool> fetchHotFixMode() async {
     try {
       print('Fetching hotFixMode from Firebase Storage...');
-      final ref = FirebaseStorage.instance.ref().child('hotFixMode.json');
-      final data = await ref.getData();
-      final jsonString = utf8.decode(data!);
+      final data = await _readStorageObject('hotFixMode.json');
+      final jsonString = utf8.decode(data);
 
       final Map<String, dynamic> jsonData = json.decode(jsonString);
       final bool hotFixMode = jsonData['hotFixMode'] ?? false;

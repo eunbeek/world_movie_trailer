@@ -17,8 +17,9 @@ const {fetchMovieInSpecialSection} = require("./features/special/movies");
 const {fetchQuotesInSpecialSection} = require("./features/quote/special");
 const {fetchMovieListFromMojo} = require("./features/box_office/usa");
 const {fetchMovieListFromKobis} = require("./features/box_office/kr");
-const {processBatch, saveMoviesAsJson, saveQuotesAsJson, updatePromotionUrl, processBatchForSpecial} = require("./services/utils");
-const {publishSheetMovies} = require("./services/movie_publisher");
+const {processBatch, saveMoviesAsJson, saveQuotesAsJson, updatePromotionUrl, processBatchForSpecial, reuseExistingSpecialMovies, selectNextSpecialPeriod} = require("./services/utils");
+const {publishSheetMovies, writeMoviesToSheet} = require("./services/movie_publisher");
+const {readSpecialDataSheet} = require("./services/movie_sheet");
 
 admin.initializeApp();
 
@@ -40,12 +41,58 @@ const SHEET_SYNC_COUNTRIES = new Set([
 ]);
 
 /**
+ * Creates a scheduled Sheet-to-Storage publisher.
+ * @param {string} country Storage country/category key.
+ * @param {string} schedule Cloud Scheduler cron expression.
+ * @return {Function} Firebase scheduled function.
+ */
+function createScheduledStore(country, schedule) {
+  return functions.runWith({timeoutSeconds: 540})
+      .pubsub
+      .schedule(schedule)
+      .timeZone("America/Toronto")
+      .onRun(async () => {
+        const published = await publishSheetMovies(country);
+        console.log(`Stored ${published.movies.length} ${country} movies from Sheet.`);
+        return null;
+      });
+}
+
+/**
+ * Creates a manually invoked Sheet-to-Storage test publisher.
+ * @param {string} country Storage country/category key.
+ * @return {Function} Firebase HTTPS function.
+ */
+function createTestStore(country) {
+  return functions.runWith({timeoutSeconds: 540}).https.onRequest((req, res) => {
+    corsHandler(req, res, async () => {
+      try {
+        const published = await publishSheetMovies(country);
+        res.status(200).json({
+          success: true,
+          country,
+          timestamp: published.timestamp,
+          movieCount: published.movies.length,
+        });
+      } catch (error) {
+        console.error(`Error storing ${country} Sheet:`, error);
+        res.status(500).json({success: false, error: error.message});
+      }
+    });
+  });
+}
+
+/**
  * Restricts test endpoints so they cannot consume an entire API quota.
  * @param {Object} req HTTP request containing an optional limit query.
  * @param {Array} items Items returned by the source crawler.
+ * @param {boolean} allowUnlimited Whether limit=all may bypass the test cap.
  * @return {Array} At most the requested number of test items.
  */
-function limitTestItems(req, items) {
+function limitTestItems(req, items, allowUnlimited = false) {
+  if (allowUnlimited && String(req.query.limit).toLowerCase() === "all") {
+    return items;
+  }
   const requestedLimit = Number.parseInt(req.query.limit, 10);
   const limit = Number.isInteger(requestedLimit) ?
     Math.min(Math.max(requestedLimit, 1), MAX_TEST_LIMIT) : DEFAULT_TEST_LIMIT;
@@ -90,7 +137,7 @@ exports.fetchMovieListKR = functions
 
       const moviesWithDetails = await processBatch("ko-KR", allMovies, processedCount, startTime);
 
-      await saveMoviesAsJson("kr", moviesWithDetails);
+      await writeMoviesToSheet("kr", moviesWithDetails);
 
       const timestamp = new Date().toISOString();
       console.log(`Success: [${timestamp}] Country: KR, Movie Count: ${moviesWithDetails.length}`);
@@ -118,7 +165,7 @@ exports.fetchMovieListJP = functions
 
       const moviesWithTrailer = await processBatch("ja-JP", allMovies, processedCount, startTime);
 
-      await saveMoviesAsJson("jp", moviesWithTrailer);
+      await writeMoviesToSheet("jp", moviesWithTrailer);
 
       const timestamp = new Date().toISOString();
       console.log(`Success: [${timestamp}] Country: JP, Movie Count: ${moviesWithTrailer.length}`);
@@ -145,7 +192,7 @@ exports.fetchMovieListCA = functions
 
       const moviesWithDetails = await processBatch("en-CA", allMovies, processedCount, startTime);
 
-      await saveMoviesAsJson("ca", moviesWithDetails);
+      await writeMoviesToSheet("ca", moviesWithDetails);
 
       const timestamp = new Date().toISOString();
       console.log(`Success: [${timestamp}] Country: CA, Movie Count: ${moviesWithDetails.length}`);
@@ -170,7 +217,7 @@ exports.fetchMovieListTW = functions
       const allMovies = await fetchMovieListFromShowTime();
       const moviesWithDetails = await processBatch("zh-TW", allMovies, processedCount, startTime);
 
-      await saveMoviesAsJson("tw", moviesWithDetails);
+      await writeMoviesToSheet("tw", moviesWithDetails);
 
       const timestamp = new Date().toISOString();
       console.log(`Success: [${timestamp}] Country: TW, Movie Count: ${allMovies.length}`);
@@ -197,7 +244,7 @@ exports.fetchMovieListFR = functions
 
       const moviesWithDetails = await processBatch("fr-FR", allMovies, processedCount, startTime);
 
-      await saveMoviesAsJson("fr", moviesWithDetails);
+      await writeMoviesToSheet("fr", moviesWithDetails);
 
       const timestamp = new Date().toISOString();
       console.log(`Success: [${timestamp}] Country: FR, Movie Count: ${moviesWithDetails.length}`);
@@ -224,7 +271,7 @@ exports.fetchMovieListDE = functions
 
       const moviesWithDetails = await processBatch("de-DE", allMovies, processedCount, startTime, true);
 
-      await saveMoviesAsJson("de", moviesWithDetails);
+      await writeMoviesToSheet("de", moviesWithDetails);
 
       const timestamp = new Date().toISOString();
       console.log(`Success: [${timestamp}] Country: DE, Movie Count: ${moviesWithDetails.length}`);
@@ -251,7 +298,7 @@ exports.fetchMovieListUS = functions
 
       const moviesWithDetails = await processBatch("en-US", allMovies, processedCount, startTime, true);
 
-      await saveMoviesAsJson("us", moviesWithDetails);
+      await writeMoviesToSheet("us", moviesWithDetails);
 
       const timestamp = new Date().toISOString();
       console.log(`Success: [${timestamp}] Country: US, Movie Count: ${moviesWithDetails.length}`);
@@ -278,7 +325,7 @@ exports.fetchMovieListTH = functions
 
       const moviesWithDetails = await processBatch("th-TH", allMovies, processedCount, startTime, true);
 
-      await saveMoviesAsJson("th", moviesWithDetails);
+      await writeMoviesToSheet("th", moviesWithDetails);
 
       const timestamp = new Date().toISOString();
       console.log(`Success: [${timestamp}] Country: TH, Movie Count: ${moviesWithDetails.length}`);
@@ -305,7 +352,7 @@ exports.fetchMovieListAU = functions
 
       const moviesWithDetails = await processBatch("en-AU", allMovies, processedCount, startTime, true);
 
-      await saveMoviesAsJson("au", moviesWithDetails);
+      await writeMoviesToSheet("au", moviesWithDetails);
 
       const timestamp = new Date().toISOString();
       console.log(`Success: [${timestamp}] Country: AU, Movie Count: ${moviesWithDetails.length}`);
@@ -332,7 +379,7 @@ exports.fetchMovieListES = functions
 
       const moviesWithDetails = await processBatch("es-ES", allMovies, processedCount, startTime, true);
 
-      await saveMoviesAsJson("es", moviesWithDetails);
+      await writeMoviesToSheet("es", moviesWithDetails);
 
       const timestamp = new Date().toISOString();
       console.log(`Success: [${timestamp}] Country: ES, Movie Count: ${allMovies.length}`);
@@ -359,7 +406,7 @@ exports.fetchMovieListIN = functions
 
       const moviesWithDetails = await processBatch("hi-IN", allMovies, processedCount, startTime, true);
 
-      await saveMoviesAsJson("in", moviesWithDetails);
+      await writeMoviesToSheet("in", moviesWithDetails);
 
       const timestamp = new Date().toISOString();
       console.log(`Success: [${timestamp}] Country: IN, Movie Count: ${moviesWithDetails.length}`);
@@ -388,7 +435,7 @@ exports.fetchMovieListCN = functions
 
       const moviesWithDetails = await processBatch("zh-CN", allMovies, processedCount, startTime);
 
-      await saveMoviesAsJson("cn", moviesWithDetails);
+      await writeMoviesToSheet("cn", moviesWithDetails);
 
       const timestamp = new Date().toISOString();
       console.log(`Success: [${timestamp}] Country: cn, Movie Count: ${moviesWithDetails.length}`);
@@ -411,7 +458,10 @@ exports.fetchMovieListSpecial = functions
       const processedCount = 0;
       const startTime = Date.now();
 
-      const specialMovies = await fetchMovieInSpecialSection();
+      const specialMovies = selectNextSpecialPeriod(reuseExistingSpecialMovies(
+          await fetchMovieInSpecialSection(),
+          await readSpecialDataSheet(),
+      ));
 
       const moviesWithTrailer = await processBatchForSpecial("en-US", specialMovies, processedCount, startTime);
 
@@ -464,7 +514,7 @@ exports.fetchMovieListBoxOffice = functions
 
       const moviesWithDetails = await processBatch("en-US", allMovies, processedCount, startTime);
 
-      await saveMoviesAsJson("box_office", moviesWithDetails);
+      await writeMoviesToSheet("box_office", moviesWithDetails);
 
       const timestamp = new Date().toISOString();
       console.log(`Success: [${timestamp}] Country: Box-Office-USA, Movie Count: ${moviesWithDetails.length}`);
@@ -487,12 +537,28 @@ exports.fetchMovieListBoxOfficeKR = functions
       const allMovies = await fetchMovieListFromKobis();
       const moviesWithDetails = await processBatch("ko-KR", allMovies, processedCount, startTime);
 
-      await saveMoviesAsJson("box_office_kr", moviesWithDetails);
+      await writeMoviesToSheet("box_office_kr", moviesWithDetails);
 
       const timestamp = new Date().toISOString();
       console.log(`Success: [${timestamp}] Country: Box-Office-KR, Movie Count: ${moviesWithDetails.length}`);
       return null;
     });
+
+// Each Store runs in America/Toronto exactly 30 minutes after its Fetch.
+exports.storeMovieListKR = createScheduledStore("kr", "30 7 * * 1");
+exports.storeMovieListJP = createScheduledStore("jp", "30 9 * * 2");
+exports.storeMovieListCA = createScheduledStore("ca", "30 9 * * 3");
+exports.storeMovieListTW = createScheduledStore("tw", "30 9 * * 4");
+exports.storeMovieListFR = createScheduledStore("fr", "30 9 * * 5");
+exports.storeMovieListDE = createScheduledStore("de", "30 9 * * 6");
+exports.storeMovieListUS = createScheduledStore("us", "30 7 * * 3");
+exports.storeMovieListTH = createScheduledStore("th", "30 5 * * 7");
+exports.storeMovieListAU = createScheduledStore("au", "30 2 * * 7");
+exports.storeMovieListES = createScheduledStore("es", "30 5 * * 4");
+exports.storeMovieListIN = createScheduledStore("in", "30 3 * * 4");
+exports.storeMovieListCN = createScheduledStore("cn", "30 7 * * 5");
+exports.storeMovieListBoxOffice = createScheduledStore("box_office", "30 9 * * 1");
+exports.storeMovieListBoxOfficeKR = createScheduledStore("box_office_kr", "30 5 * * 1");
 
 /**
  * Test function for fetching and processing movie data from CGV and Lotte.
@@ -515,7 +581,7 @@ exports.testFetchMovieListKR = functions.runWith(movieRuntimeOptions).https.onRe
     console.log(`lotte: ${lotteMovies.length}, cgv: ${cgvMovies.length}, test limit: ${testMovies.length}`);
     const moviesWithTrailer = await processBatch("ko-KR", testMovies, processedCount, startTime);
 
-    await saveMoviesAsJson("kr", moviesWithTrailer);
+    await writeMoviesToSheet("kr", moviesWithTrailer);
 
     const timestamp = new Date().toISOString();
     console.log(`Success: [${timestamp}] Country: KR, Movie Count: ${moviesWithTrailer.length}`);
@@ -552,7 +618,7 @@ exports.testFetchMovieListJP = functions.runWith(movieRuntimeOptions).https.onRe
 
     const moviesWithTrailer = await processBatch("ja-JP", testMovies, processedCount, startTime);
 
-    await saveMoviesAsJson("jp", moviesWithTrailer);
+    await writeMoviesToSheet("jp", moviesWithTrailer);
 
     const timestamp = new Date().toISOString();
     console.log(`Success: [${timestamp}] Country: JP, Movie Count: ${moviesWithTrailer.length}`);
@@ -589,7 +655,7 @@ exports.testFetchMovieListCA = functions.runWith(movieRuntimeOptions).https.onRe
     console.log(`Cineplex Movies: ${allMovies.length}, test limit: ${testMovies.length}`);
     const moviesWithTrailer = await processBatch("en-CA", testMovies, processedCount, startTime);
 
-    await saveMoviesAsJson("ca", moviesWithTrailer);
+    await writeMoviesToSheet("ca", moviesWithTrailer);
 
     const timestamp = new Date().toISOString();
     console.log(`Success: [${timestamp}] Country: CA, Movie Count: ${moviesWithTrailer.length}`);
@@ -625,7 +691,7 @@ exports.testFetchMovieListTW = functions.runWith(movieRuntimeOptions).https.onRe
     console.log(`ShowTime Movies: ${allMovies.length}, test limit: ${testMovies.length}`);
 
     const moviesWithDetails = await processBatch("zh-TW", testMovies, processedCount, startTime);
-    await saveMoviesAsJson("tw", moviesWithDetails);
+    await writeMoviesToSheet("tw", moviesWithDetails);
 
     const timestamp = new Date().toISOString();
     console.log(`Success: [${timestamp}] Country: TW, Movie Count: ${testMovies.length}`);
@@ -662,7 +728,7 @@ exports.testFetchMovieListFR = functions.runWith(movieRuntimeOptions).https.onRe
     console.log(`UGA Movies: ${allMovies.length}, test limit: ${testMovies.length}`);
     const moviesWithTrailer = await processBatch("fr-FR", testMovies, processedCount, startTime);
 
-    await saveMoviesAsJson("fr", moviesWithTrailer);
+    await writeMoviesToSheet("fr", moviesWithTrailer);
 
     const timestamp = new Date().toISOString();
     console.log(`Success: [${timestamp}] Country: FR, Movie Count: ${moviesWithTrailer.length}`);
@@ -699,7 +765,7 @@ exports.testFetchMovieListDE = functions.runWith(movieRuntimeOptions).https.onRe
     console.log(`Traumpalast Movies: ${allMovies.length}, test limit: ${testMovies.length}`);
     const moviesWithTrailer = await processBatch("de-DE", testMovies, processedCount, startTime, true);
 
-    await saveMoviesAsJson("de", moviesWithTrailer);
+    await writeMoviesToSheet("de", moviesWithTrailer);
 
     const timestamp = new Date().toISOString();
     console.log(`Success: [${timestamp}] Country: DE, Movie Count: ${moviesWithTrailer.length}`);
@@ -736,7 +802,7 @@ exports.testFetchMovieListUS = functions.runWith(movieRuntimeOptions).https.onRe
     console.log(`TMDB US Movies: ${allMovies.length}, test limit: ${testMovies.length}`);
     const moviesWithTrailer = await processBatch("en-US", testMovies, processedCount, startTime, true);
 
-    await saveMoviesAsJson("us", moviesWithTrailer);
+    await writeMoviesToSheet("us", moviesWithTrailer);
 
     const timestamp = new Date().toISOString();
     console.log(`Success: [${timestamp}] Country: US, Movie Count: ${moviesWithTrailer.length}`);
@@ -773,7 +839,7 @@ exports.testFetchMovieListTH = functions.runWith(movieRuntimeOptions).https.onRe
     console.log(`SFCinema Movies: ${allMovies.length}, test limit: ${testMovies.length}`);
     const moviesWithTrailer = await processBatch("th-TH", testMovies, processedCount, startTime, true);
 
-    await saveMoviesAsJson("th", moviesWithTrailer);
+    await writeMoviesToSheet("th", moviesWithTrailer);
 
     const timestamp = new Date().toISOString();
     console.log(`Success: [${timestamp}] Country: TH, Movie Count: ${moviesWithTrailer.length}`);
@@ -810,7 +876,7 @@ exports.testFetchMovieListAU = functions.runWith(movieRuntimeOptions).https.onRe
     console.log(`TMDB AU Movies: ${allMovies.length}, test limit: ${testMovies.length}`);
     const moviesWithTrailer = await processBatch("en-AU", testMovies, processedCount, startTime, true);
 
-    await saveMoviesAsJson("au", moviesWithTrailer);
+    await writeMoviesToSheet("au", moviesWithTrailer);
 
     const timestamp = new Date().toISOString();
     console.log(`Success: [${timestamp}] Country: AU, Movie Count: ${moviesWithTrailer.length}`);
@@ -847,7 +913,7 @@ exports.testFetchMovieListES = functions.runWith(movieRuntimeOptions).https.onRe
     console.log(`TMDB ES Movies: ${allMovies.length}, test limit: ${testMovies.length}`);
     const moviesWithTrailer = await processBatch("es-ES", testMovies, processedCount, startTime, true);
 
-    await saveMoviesAsJson("es", moviesWithTrailer);
+    await writeMoviesToSheet("es", moviesWithTrailer);
 
     const timestamp = new Date().toISOString();
     console.log(`Success: [${timestamp}] Country: ES, Movie Count: ${moviesWithTrailer.length}`);
@@ -884,7 +950,7 @@ exports.testFetchMovieListIN = functions.runWith(movieRuntimeOptions).https.onRe
     console.log(`TMDB IN Movies: ${allMovies.length}, test limit: ${testMovies.length}`);
     const moviesWithTrailer = await processBatch("hi-IN", testMovies, processedCount, startTime, true);
 
-    await saveMoviesAsJson("in", moviesWithTrailer);
+    await writeMoviesToSheet("in", moviesWithTrailer);
 
     const timestamp = new Date().toISOString();
     console.log(`Success: [${timestamp}] Country: IN, Movie Count: ${moviesWithTrailer.length}`);
@@ -923,7 +989,7 @@ exports.testFetchMovieListCN = functions.runWith(movieRuntimeOptions).https.onRe
     console.log(`TMDB CN Movies: ${allMovies.length}, test limit: ${testMovies.length}`);
     const moviesWithTrailer = await processBatch("zh-CN", testMovies, processedCount, startTime);
 
-    await saveMoviesAsJson("cn", moviesWithTrailer);
+    await writeMoviesToSheet("cn", moviesWithTrailer);
 
     const timestamp = new Date().toISOString();
     console.log(`Success: [${timestamp}] Country: CN, Movie Count: ${moviesWithTrailer.length}`);
@@ -954,8 +1020,16 @@ exports.testFetchMovieListSpecial = functions.runWith(movieRuntimeOptions).https
     const processedCount = 0;
     const startTime = Date.now();
 
-    const specialMovies = await fetchMovieInSpecialSection();
-    const testMovies = limitTestItems(req, specialMovies);
+    const specialMovies = selectNextSpecialPeriod(reuseExistingSpecialMovies(
+        await fetchMovieInSpecialSection(),
+        await readSpecialDataSheet(),
+    ));
+    const newMovies = specialMovies.filter((movie) => !movie.batch);
+    const selectedNewMovies = limitTestItems(req, newMovies, true);
+    const selectedKeys = new Set(selectedNewMovies.map((movie) =>
+      `${movie.period}:${movie.tid}`));
+    const testMovies = specialMovies.filter((movie) =>
+      movie.batch || selectedKeys.has(`${movie.period}:${movie.tid}`));
 
     const moviesWithTrailer = await processBatchForSpecial("en-US", testMovies, processedCount, startTime);
 
@@ -1027,7 +1101,7 @@ exports.testFetchMovieListBoxOffice = functions.runWith(movieRuntimeOptions).htt
     console.log(`USA Box Office Movies: ${allMovies.length}, test limit: ${testMovies.length}`);
     const moviesWithTrailer = await processBatch("en-US", testMovies, processedCount, startTime);
 
-    await saveMoviesAsJson("box_office", moviesWithTrailer);
+    await writeMoviesToSheet("box_office", moviesWithTrailer);
 
     const timestamp = new Date().toISOString();
     console.log(`Success: [${timestamp}] Country: Box-Office-USA, Movie Count: ${moviesWithTrailer.length}`);
@@ -1060,7 +1134,7 @@ exports.testFetchMovieListBoxOfficeKR = functions.runWith(kobisRuntimeOptions).h
 
     console.log(`KOBIS Movies: ${allMovies.length}, test limit: ${testMovies.length}`);
     const moviesWithTrailer = await processBatch("ko-KR", testMovies, processedCount, startTime);
-    const published = await saveMoviesAsJson("box_office_kr", moviesWithTrailer);
+    await writeMoviesToSheet("box_office_kr", moviesWithTrailer);
 
     const timestamp = new Date().toISOString();
     console.log(`Success: [${timestamp}] Country: Box-Office-KR, Movie Count: ${moviesWithTrailer.length}`);
@@ -1068,14 +1142,30 @@ exports.testFetchMovieListBoxOfficeKR = functions.runWith(kobisRuntimeOptions).h
       success: true,
       timestamp,
       country: "Box-Office-KR",
-      movieCount: published && published.movies ? published.movies.length : moviesWithTrailer.length,
-      movies: published && published.movies ? published.movies : moviesWithTrailer,
+      movieCount: moviesWithTrailer.length,
+      movies: buildTestMoviePreview(moviesWithTrailer),
     });
   } catch (error) {
     console.error("Error fetching Korean box office:", error);
     res.status(500).json({success: false, error: error.message});
   }
 });
+
+// Manual Storage tests. Run the matching testFetch first, then invoke these.
+exports.testStoreMovieListKR = createTestStore("kr");
+exports.testStoreMovieListJP = createTestStore("jp");
+exports.testStoreMovieListCA = createTestStore("ca");
+exports.testStoreMovieListTW = createTestStore("tw");
+exports.testStoreMovieListFR = createTestStore("fr");
+exports.testStoreMovieListDE = createTestStore("de");
+exports.testStoreMovieListUS = createTestStore("us");
+exports.testStoreMovieListTH = createTestStore("th");
+exports.testStoreMovieListAU = createTestStore("au");
+exports.testStoreMovieListES = createTestStore("es");
+exports.testStoreMovieListIN = createTestStore("in");
+exports.testStoreMovieListCN = createTestStore("cn");
+exports.testStoreMovieListBoxOffice = createTestStore("box_office");
+exports.testStoreMovieListBoxOfficeKR = createTestStore("box_office_kr");
 
 /**
  * Republishes one finalized worksheet without crawling or calling TMDB/YouTube.

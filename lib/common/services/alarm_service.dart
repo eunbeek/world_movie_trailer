@@ -8,6 +8,7 @@ import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
 import 'package:world_movie_trailer/common/translate.dart';
 import 'package:world_movie_trailer/model/movieByUser.dart';
+import 'package:world_movie_trailer/model/movie.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class AlarmService {
@@ -17,14 +18,15 @@ class AlarmService {
   /// 초기화 메소드 (iOS와 Android 모두)
   Future<void> initialize() async {
     const DarwinInitializationSettings initializationSettingsDarwin =
-      DarwinInitializationSettings(
-        // onDidReceiveLocalNotification: onDidReceiveLocalNotification,
-      );
+        DarwinInitializationSettings(
+            // onDidReceiveLocalNotification: onDidReceiveLocalNotification,
+            );
 
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const InitializationSettings initializationSettings = InitializationSettings(
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
       iOS: initializationSettingsDarwin,
       android: initializationSettingsAndroid,
     );
@@ -108,7 +110,8 @@ class AlarmService {
           flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>();
 
-      final bool? exactAlarmGranted = await androidPlugin?.requestExactAlarmsPermission();
+      final bool? exactAlarmGranted =
+          await androidPlugin?.requestExactAlarmsPermission();
       if (exactAlarmGranted == true) {
         print('Android Exact Alarm Permission Granted');
         settingsProvider.updateIsDailyAlarmOn(true);
@@ -120,7 +123,7 @@ class AlarmService {
   }
 
   Future<bool> hasNotificationPermission() async {
-    if(Platform.isIOS){
+    if (Platform.isIOS) {
       // iOS specific notification permission
       final bool? granted = await FlutterLocalNotificationsPlugin()
           .resolvePlatformSpecificImplementation<
@@ -157,7 +160,8 @@ class AlarmService {
           flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>();
 
-      final bool? exactAlarmGranted = await androidPlugin?.requestExactAlarmsPermission();
+      final bool? exactAlarmGranted =
+          await androidPlugin?.requestExactAlarmsPermission();
       if (exactAlarmGranted == true) {
         print('Android Exact Alarm Permission Granted');
         return true;
@@ -172,7 +176,8 @@ class AlarmService {
   Future<bool> requestPermissionOnly(SettingsProvider settingsProvider) async {
     if (Platform.isIOS) {
       final bool? granted = await FlutterLocalNotificationsPlugin()
-          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+          .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(alert: true, badge: true, sound: true);
       return granted == true;
     } else {
@@ -186,15 +191,17 @@ class AlarmService {
     final now = tz.TZDateTime.now(tz.local);
     final daysToNext = (day - now.weekday + 7) % 7;
     final nextDate = now.add(Duration(days: daysToNext));
-    return tz.TZDateTime(tz.local, nextDate.year, nextDate.month, nextDate.day, 18, 00);
+    return tz.TZDateTime(
+        tz.local, nextDate.year, nextDate.month, nextDate.day, 18, 00);
   }
 
-    /// 다음 알람 시간 계산
+  /// 다음 알람 시간 계산
   tz.TZDateTime nextBoxOfficeInstanceOfDay(int day) {
     final now = tz.TZDateTime.now(tz.local);
     final daysToNext = (day - now.weekday + 7) % 7;
     final nextDate = now.add(Duration(days: daysToNext));
-    return tz.TZDateTime(tz.local, nextDate.year, nextDate.month, nextDate.day, 15, 00);
+    return tz.TZDateTime(
+        tz.local, nextDate.year, nextDate.month, nextDate.day, 15, 00);
   }
 
   /// register daily alarm for country update
@@ -225,13 +232,16 @@ class AlarmService {
         if (isOn) {
           // Cancel existing alarm before registering to avoid duplication
           await cancelAlarm(day, country);
-          
+
           // Register the new alarm
-          final nextNotificationTime = country == 'box' ? nextBoxOfficeInstanceOfDay(day) : nextInstanceOfDay(day);
+          final nextNotificationTime = country == 'box'
+              ? nextBoxOfficeInstanceOfDay(day)
+              : nextInstanceOfDay(day);
           await flutterLocalNotificationsPlugin.zonedSchedule(
             getAlarmId(day, country),
             getAlarmsLabel(settingsProvider.language, 'title'),
-            getAlarmsLabel(settingsProvider.language, 'country', localizedCountries[settingsProvider.language]?[country]),
+            getAlarmsLabel(settingsProvider.language, 'country',
+                localizedCountries[settingsProvider.language]?[country]),
             nextNotificationTime,
             platformChannel,
             // uiLocalNotificationDateInterpretation:
@@ -258,16 +268,19 @@ class AlarmService {
   }
 
   /// Register release alarms for all movies stored in the list(only 1 time for existing user)
-  Future<void> registerReleaseAlarmsFromList(SettingsProvider settingsProvider, bool isBookmark) async {
+  Future<void> registerReleaseAlarmsFromList(
+      SettingsProvider settingsProvider, bool isBookmark) async {
     // Fetch all movies based on the flag
     final movies = await MovieByUserService.getMoviesByFlag(isBookmark ? 3 : 4);
+    await cancelReleaseAlarmsByFlag(isBookmark);
 
     for (var movieByUser in movies) {
       final movie = movieByUser.movie;
 
       // Ensure releaseDate is not null or invalid
       if (movie.releaseDate == null || movie.releaseDate.isEmpty) {
-        print('Skipping movie "${movie.localTitle}" due to missing release date.');
+        print(
+            'Skipping movie "${movie.localTitle}" due to missing release date.');
         continue;
       }
 
@@ -276,7 +289,8 @@ class AlarmService {
 
         // Ensure the release date is in the future
         if (releaseDate.isBefore(DateTime.now())) {
-          print('Skipping movie "${movie.localTitle}" due to past release date.');
+          print(
+              'Skipping movie "${movie.localTitle}" due to past release date.');
           continue;
         }
 
@@ -307,10 +321,8 @@ class AlarmService {
           ),
         );
 
-        cancelReleaseAlarmsByFlag(isBookmark);
-
         await flutterLocalNotificationsPlugin.zonedSchedule(
-          getReleaseAlarmId(isBookmark, movie.trailerUrl),
+          getReleaseAlarmId(isBookmark, _notificationMovieKey(movie)),
           getAlarmsLabel(settingsProvider.language, 'title'),
           '${getAlarmsLabel(settingsProvider.language, isBookmark ? 'bookmark' : 'memo')} ${movie.localTitle} ${getAlarmsLabel(settingsProvider.language, 'release')}',
           scheduleTime,
@@ -328,12 +340,14 @@ class AlarmService {
   }
 
   // register release alarm by bookmark, memo
-  Future<void> registerReleaseAlarmForMovie(SettingsProvider settingsProvider, MovieByUser movieByUser, bool isBookmark) async {
+  Future<void> registerReleaseAlarmForMovie(SettingsProvider settingsProvider,
+      MovieByUser movieByUser, bool isBookmark) async {
     final movie = movieByUser.movie;
 
     // Ensure releaseDate is not null or invalid
     if (movie.releaseDate == null || movie.releaseDate.isEmpty) {
-      print('Skipping movie "${movie.localTitle}" due to missing release date.');
+      print(
+          'Skipping movie "${movie.localTitle}" due to missing release date.');
       return;
     }
 
@@ -364,16 +378,19 @@ class AlarmService {
 
       // 조건: 현재 시간이 하루 전날 오후 3시 이후라면 알람 등록 안 함
       if (now.isAfter(preReleaseAlarmTime)) {
-        print('Skipping alarm for "${movie.localTitle}" as it was bookmarked after 3 PM the day before.');
+        print(
+            'Skipping alarm for "${movie.localTitle}" as it was bookmarked after 3 PM the day before.');
         return;
       }
 
       // Generate unique alarm ID
-      final alarmId = getReleaseAlarmId(isBookmark, movie.trailerUrl);
+      final alarmId =
+          getReleaseAlarmId(isBookmark, _notificationMovieKey(movie));
 
       // Cancel existing alarm to avoid duplicates
       await flutterLocalNotificationsPlugin.cancel(alarmId);
-      print('Existing alarm canceled for "${movie.localTitle}" with ID: $alarmId');
+      print(
+          'Existing alarm canceled for "${movie.localTitle}" with ID: $alarmId');
 
       // Schedule the release alarm
       final platformChannel = NotificationDetails(
@@ -411,13 +428,17 @@ class AlarmService {
   }
 
   // create unique release alarm id
-  int getReleaseAlarmId(bool isBookmark, String trailer) {
-    return isBookmark.hashCode ^ trailer.hashCode;
+  String _notificationMovieKey(Movie movie) {
+    return movie.id.isNotEmpty ? movie.id : movie.trailerUrl;
+  }
+
+  int getReleaseAlarmId(bool isBookmark, String movieKey) {
+    return isBookmark.hashCode ^ movieKey.hashCode;
   }
 
   /// cancel release alarm
-  Future<void> cancelReleaseAlarm(bool isBookmark, String trailer) async {
-    final alarmId = getReleaseAlarmId(isBookmark, trailer);
+  Future<void> cancelReleaseAlarm(bool isBookmark, String movieKey) async {
+    final alarmId = getReleaseAlarmId(isBookmark, movieKey);
     await flutterLocalNotificationsPlugin.cancel(alarmId);
     print('Release alarm canceled for movie ID: $alarmId');
   }
@@ -431,9 +452,11 @@ class AlarmService {
 
       try {
         // 알람 ID 생성 및 삭제
-        final alarmId = getReleaseAlarmId(isBookmark, movie.trailerUrl);
+        final alarmId =
+            getReleaseAlarmId(isBookmark, _notificationMovieKey(movie));
         await flutterLocalNotificationsPlugin.cancel(alarmId);
-        print('Release alarm canceled for "${movie.localTitle}" with ID: $alarmId');
+        print(
+            'Release alarm canceled for "${movie.localTitle}" with ID: $alarmId');
       } catch (e) {
         print('Failed to cancel alarm for "${movie.localTitle}": $e');
       }

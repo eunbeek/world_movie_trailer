@@ -23,6 +23,9 @@ function isPublishableMovie(movie) {
 /** Builds a stable client ID without relying on worksheet row numbers. */
 function buildMovieId(country, movie) {
   const tmdbId = movie.tid || movie.tmdbId;
+  if (country === "special" && tmdbId && movie.period !== undefined) {
+    return `special:${movie.period}:tmdb:${tmdbId}`;
+  }
   if (tmdbId) return `${country}:tmdb:${tmdbId}`;
   const fallbackSource = [movie.source, movie.localTitle, movie.releaseDate]
       .map((value) => String(value || "").trim().toLowerCase())
@@ -81,6 +84,36 @@ async function readExistingCredits(fileName) {
   }
 }
 
+/** Reads TMDB person IDs staged by a Sheet-only Fetch function. */
+async function readStagedCredits(normalizedCountry) {
+  const fileName = `system/pending_credits_${normalizedCountry}.json`;
+  try {
+    const [buffer] = await admin.storage().bucket().file(fileName).download();
+    const data = JSON.parse(buffer.toString("utf8"));
+    return new Map((data.movies || []).map((movie) =>
+      [movieLookupKey(movie), compactCredits(movie.credits)])
+        .filter(([key, credits]) => key &&
+          (credits.cast.length > 0 || credits.crew.length > 0)));
+  } catch (error) {
+    if (error.code !== 404) console.warn(`Could not read staged credits for ${normalizedCountry}:`, error.message);
+    return new Map();
+  }
+}
+
+/** Stages only the person IDs needed by a later Storage publishing function. */
+async function stageCredits(normalizedCountry, movies) {
+  const stagedMovies = movies.map((movie) => ({
+    id: movie.id || "",
+    tid: movie.tid || movie.tmdbId || "",
+    credits: compactCredits(movie.credits),
+  }));
+  await admin.storage().bucket()
+      .file(`system/pending_credits_${normalizedCountry}.json`)
+      .save(JSON.stringify({timestamp: new Date().toISOString(), movies: stagedMovies}), {
+        metadata: {contentType: "application/json", cacheControl: "no-store"},
+      });
+}
+
 /** Reads finalized rows for a country/category directly from Google Sheets. */
 async function readFinalizedSheet(normalizedCountry) {
   if (normalizedCountry === "special") return await readSpecialDataSheet();
@@ -125,13 +158,18 @@ async function publishSheetMovies(normalizedCountry, processedMovies = []) {
   const sheetMovies = (await readFinalizedSheetAfterTranslations(normalizedCountry)).filter(isPublishableMovie);
   const fileName = `movies_${normalizedCountry}.json`;
   const existingCredits = await readExistingCredits(fileName);
-  const processedCredits = new Map(processedMovies.map((movie) =>
-    [movieLookupKey(movie), compactCredits(movie.credits)]).filter(([key]) => key));
+  const stagedCredits = await readStagedCredits(normalizedCountry);
+  const processedCredits = new Map(processedMovies.map((movie) => {
+    const credits = compactCredits(movie.credits);
+    return [movieLookupKey(movie), credits];
+  }).filter(([key, credits]) => key &&
+    (credits.cast.length > 0 || credits.crew.length > 0)));
   const storageMovies = sheetMovies.map((movie) => {
     const key = movieLookupKey(movie);
     return buildStorageMovie({
       ...movie,
-      credits: processedCredits.get(key) || existingCredits.get(key) || {cast: [], crew: []},
+      credits: processedCredits.get(key) || stagedCredits.get(key) ||
+        existingCredits.get(key) || {cast: [], crew: []},
     });
   });
   const dataToSave = {
@@ -152,8 +190,8 @@ async function publishSheetMovies(normalizedCountry, processedMovies = []) {
   return dataToSave;
 }
 
-/** Writes source data to Sheets, reads formula results, then publishes JSON. */
-async function publishMovies(country, movies) {
+/** Writes source data to Sheets without waiting for translation formulas. */
+async function writeMoviesToSheet(country, movies) {
   const normalizedCountry = BOX_OFFICE_USA_COUNTRIES.has(country) ? "box_office" :
     BOX_OFFICE_KR_COUNTRIES.has(country) ? "box_office_kr" : country;
   const publishableMovies = movies.filter(isPublishableMovie).map((movie) => ({
@@ -175,6 +213,16 @@ async function publishMovies(country, movies) {
   } else {
     throw new Error(`Sheet publishing is not configured for ${normalizedCountry}.`);
   }
+  await stageCredits(normalizedCountry, sheetInputMovies);
+  console.log(`Wrote ${sheetInputMovies.length} ${normalizedCountry} movies to Sheet; Storage publish deferred.`);
+  return sheetInputMovies;
+}
+
+/** Writes source data to Sheets, reads formula results, then publishes JSON. */
+async function publishMovies(country, movies) {
+  const normalizedCountry = BOX_OFFICE_USA_COUNTRIES.has(country) ? "box_office" :
+    BOX_OFFICE_KR_COUNTRIES.has(country) ? "box_office_kr" : country;
+  const sheetInputMovies = await writeMoviesToSheet(normalizedCountry, movies);
   return await publishSheetMovies(normalizedCountry, sheetInputMovies);
 }
 
@@ -186,4 +234,5 @@ module.exports = {
   isPublishableMovie,
   publishMovies,
   publishSheetMovies,
+  writeMoviesToSheet,
 };

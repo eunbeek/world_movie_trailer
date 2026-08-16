@@ -4,6 +4,67 @@ const {searchMovieInfoByTitle, searchMovieInfoByTid, searchSpecialMovieInfoByTid
 const {publishMovies} = require("./movie_publisher");
 
 /**
+ * Returns the PERIOD+TID identity of a Special movie.
+ * @param {Object} movie Special movie.
+ * @return {string} Composite identity.
+ */
+function specialMovieKey(movie) {
+  const period = movie.period || movie.metadata && movie.metadata.period || "";
+  const tid = String(movie.tid || "").trim();
+  return period !== "" && tid ? `${period}:${tid}` : "";
+}
+
+/**
+ * Reuses TMDB-derived Special fields already stored in SPECIAL_DATA.
+ * @param {Array} sourceMovies Movies read from SPECIAL_SOURCE.
+ * @param {Array} existingMovies Movies already finalized in SPECIAL_DATA.
+ * @return {Array} Source movies marked for reuse or TMDB processing.
+ */
+function reuseExistingSpecialMovies(sourceMovies, existingMovies) {
+  const existingByKey = new Map(existingMovies
+      .map((movie) => [specialMovieKey(movie), movie])
+      .filter(([key]) => key));
+
+  let reusedCount = 0;
+  const movies = sourceMovies.map((movie) => {
+    const existing = existingByKey.get(specialMovieKey(movie));
+    if (!existing) return movie;
+
+    reusedCount += 1;
+    return {
+      ...movie,
+      // Rebuild IDs as special:{period}:tmdb:{tid}; older IDs used TID only.
+      id: "",
+      posterUrl: existing.posterUrl || movie.posterUrl || "",
+      trailerUrl: movie.trailerUrl || existing.trailerUrl || "",
+      runtime: existing.runtime || movie.runtime || "",
+      spec: existing.originSource && existing.originSource.overview || movie.spec || "",
+      credits: existing.credits || movie.credits || {},
+      batch: true,
+    };
+  });
+
+  console.log(`Reused ${reusedCount} Special movies by PERIOD+TID; ${movies.length - reusedCount} are new.`);
+  return movies;
+}
+
+/**
+ * Keeps cached rows plus one incomplete period so translation work is bounded.
+ * @param {Array} movies Reused and pending Special movies.
+ * @return {Array} Cached movies and the earliest incomplete period.
+ */
+function selectNextSpecialPeriod(movies) {
+  const pending = movies.filter((movie) => !movie.batch);
+  if (pending.length === 0) return movies;
+  const targetPeriod = Math.min(...pending.map((movie) =>
+    Number.parseInt(movie.period, 10)).filter(Number.isFinite));
+  const selected = movies.filter((movie) => movie.batch ||
+    Number.parseInt(movie.period, 10) === targetPeriod);
+  console.log(`Processing Special PERIOD ${targetPeriod}; ${pending.length} total rows remain.`);
+  return selected;
+}
+
+/**
  * Processes a batch of movies to fetch trailers and updates the list.
  *
  * @param {string} country - The country code for the movies.
@@ -199,6 +260,8 @@ async function updatePromotionUrl(newUrl) {
 module.exports = {
   processBatch,
   processBatchForSpecial,
+  reuseExistingSpecialMovies,
+  selectNextSpecialPeriod,
   saveMoviesAsJson,
   saveQuotesAsJson,
   updatePromotionUrl,

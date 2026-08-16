@@ -8,12 +8,12 @@ String getLanguageName(String languageCode) {
 }
 
 // setting label
-String getSettingsLabel(String languageCode, String field){
+String getSettingsLabel(String languageCode, String field) {
   return settingLabel[languageCode.toLowerCase()]?[field] ?? '';
 }
 
-String getOtherAppName(String languageCode, String field){
-  return otherAppName[field]?[languageCode.toLowerCase()]?? field;
+String getOtherAppName(String languageCode, String field) {
+  return otherAppName[field]?[languageCode.toLowerCase()] ?? field;
 }
 
 String getAlarmsLabel(String languageCode, String field, [String? country]) {
@@ -30,44 +30,52 @@ String getAlarmsLabel(String languageCode, String field, [String? country]) {
 String getAppBarTitle(String languageCode) {
   return countryAppBars[languageCode.toUpperCase()] ?? countryAppBars['EN']!;
 }
+
 // useless
-String getAppBarCountry(String languageCode, String country){
-  final appbarTitle = countryAppBarNameByCountry[languageCode.toLowerCase()] ?? 'Trailer in ';
+String getAppBarCountry(String languageCode, String country) {
+  final appbarTitle =
+      countryAppBarNameByCountry[languageCode.toLowerCase()] ?? 'Trailer in ';
   return appbarTitle + country;
 }
+
 // Country list - special section
-String getSpecialLable(Movie specialSection, String languageCode){
-   // Fetch the 'Special' label in the desired language, if it exists
-  final specialPrefix = specialLabelTranslations['Special']?[languageCode] ?? 'Special';
-  
+String getSpecialLable(Movie specialSection, String languageCode) {
+  // Fetch the 'Special' label in the desired language, if it exists
+  final specialPrefix =
+      specialLabelTranslations['Special']?[languageCode] ?? 'Special';
+
   // Fetch the specific label for the current special, if it exists
-  final specialTranslation = specialLabelTranslations[specialSection.special]?[languageCode] ?? specialSection.special;
+  final specialTranslation = specialLabelTranslations[specialSection.special]
+          ?[languageCode] ??
+      specialSection.special;
 
   return '$specialPrefix - $specialTranslation';
 }
 
 String getMenuItemTitle(String languageCode, String menuItem) {
-  return menuTranslations[languageCode]?[menuItem] ?? menuTranslations['en']![menuItem]!;
+  return menuTranslations[languageCode]?[menuItem] ??
+      menuTranslations['en']![menuItem]!;
 }
 
 String getMessage(String languageCode, String key) {
   // Use the provided language or fall back to 'en' if the languageCode is missing or invalid
-  Map<String, String>? messages = messageTranslations[languageCode] ?? messageTranslations['en'];
+  Map<String, String>? messages =
+      messageTranslations[languageCode] ?? messageTranslations['en'];
 
   // Return the message for the key or a default message if the key is not found
   return messages?[key] ?? 'Message not found';
 }
 
-
 // Country list - special section
-String getSpecialQuoteLable(String languageCode){
-  final specialPrefix = specialLabelTranslations['Special']?[languageCode] ?? 'Special';
+String getSpecialQuoteLable(String languageCode) {
+  final specialPrefix =
+      specialLabelTranslations['Special']?[languageCode] ?? 'Special';
 
   return specialPrefix;
 }
 
 // Country list - special section
-String getSpecialQuoteSource(String languageCode){
+String getSpecialQuoteSource(String languageCode) {
   final specialSource = movieQuoteTranslations[languageCode] ?? 'Movie Quotes';
 
   return specialSource;
@@ -76,39 +84,48 @@ String getSpecialQuoteSource(String languageCode){
 String getNameBySpecialSource(Movie specialSection, String languageCode) {
   switch (languageCode) {
     case 'ko':
-      return (specialSection.nameKR != null && specialSection.nameKR!.isNotEmpty) 
+      return (specialSection.nameKR != null &&
+              specialSection.nameKR!.isNotEmpty)
           ? specialSection.nameKR!
           : specialSection.source;
     case 'ja':
-      return (specialSection.nameJP != null && specialSection.nameJP!.isNotEmpty) 
+      return (specialSection.nameJP != null &&
+              specialSection.nameJP!.isNotEmpty)
           ? specialSection.nameJP!
           : specialSection.source;
     case 'zh':
-      return (specialSection.nameCH != null && specialSection.nameCH!.isNotEmpty) 
+      return (specialSection.nameCH != null &&
+              specialSection.nameCH!.isNotEmpty)
           ? specialSection.nameCH!
           : specialSection.source;
     case 'tw':
-      return (specialSection.nameTW != null && specialSection.nameTW!.isNotEmpty) 
+      return (specialSection.nameTW != null &&
+              specialSection.nameTW!.isNotEmpty)
           ? specialSection.nameTW!
           : specialSection.source;
     case 'fr':
-      return (specialSection.nameFR != null && specialSection.nameFR!.isNotEmpty) 
+      return (specialSection.nameFR != null &&
+              specialSection.nameFR!.isNotEmpty)
           ? specialSection.nameFR!
           : specialSection.source;
     case 'de':
-      return (specialSection.nameDE != null && specialSection.nameDE!.isNotEmpty) 
+      return (specialSection.nameDE != null &&
+              specialSection.nameDE!.isNotEmpty)
           ? specialSection.nameDE!
           : specialSection.source;
     case 'es':
-      return (specialSection.nameES != null && specialSection.nameES!.isNotEmpty) 
+      return (specialSection.nameES != null &&
+              specialSection.nameES!.isNotEmpty)
           ? specialSection.nameES!
           : specialSection.source;
     case 'hi':
-      return (specialSection.nameHI != null && specialSection.nameHI!.isNotEmpty) 
+      return (specialSection.nameHI != null &&
+              specialSection.nameHI!.isNotEmpty)
           ? specialSection.nameHI!
           : specialSection.source;
     case 'th':
-      return (specialSection.nameTH != null && specialSection.nameTH!.isNotEmpty) 
+      return (specialSection.nameTH != null &&
+              specialSection.nameTH!.isNotEmpty)
           ? specialSection.nameTH!
           : specialSection.source;
     default:
@@ -118,27 +135,67 @@ String getNameBySpecialSource(Movie specialSection, String languageCode) {
 
 // Movie list - filter
 String getFilterLabel(int index, String languageCode) {
-    switch (languageCode) {
-      case 'ko':
-        return index == 0 ? labelFilterAllKR : index == 1 ? labelFilterRunningKR : labelFilterUpcomingKR;
-      case 'ja':
-        return index == 0 ? labelFilterAllJP : index == 1 ? labelFilterRunningJP : labelFilterUpcomingJP;
-      case 'zh':
-        return index == 0 ? labelFilterAllZH : index == 1 ? labelFilterRunningZH : labelFilterUpcomingZH;
-      case 'tw':
-        return index == 0 ? labelFilterAllTW : index == 1 ? labelFilterRunningTW : labelFilterUpcomingTW;
-      case 'fr':
-        return index == 0 ? labelFilterAllFR : index == 1 ? labelFilterRunning : labelFilterUpcoming;
-      case 'de':
-        return index == 0 ? labelFilterAllDE : index == 1 ? labelFilterRunning : labelFilterUpcoming;
-      case 'es':
-        return index == 0 ? labelFilterAllES : index == 1 ? labelFilterRunning : labelFilterUpcoming;
-      case 'hi':
-        return index == 0 ? labelFilterAllHI : index == 1 ? labelFilterRunning : labelFilterUpcoming;
-      case 'th':
-        return index == 0 ? labelFilterAllTH : index == 1 ? labelFilterRunningTH : labelFilterUpcomingTH;
-      default:
-        return index == 0 ? labelFilterAll : index == 1 ? labelFilterRunning : labelFilterUpcoming;
+  switch (languageCode) {
+    case 'ko':
+      return index == 0
+          ? labelFilterAllKR
+          : index == 1
+              ? labelFilterRunningKR
+              : labelFilterUpcomingKR;
+    case 'ja':
+      return index == 0
+          ? labelFilterAllJP
+          : index == 1
+              ? labelFilterRunningJP
+              : labelFilterUpcomingJP;
+    case 'zh':
+      return index == 0
+          ? labelFilterAllZH
+          : index == 1
+              ? labelFilterRunningZH
+              : labelFilterUpcomingZH;
+    case 'tw':
+      return index == 0
+          ? labelFilterAllTW
+          : index == 1
+              ? labelFilterRunningTW
+              : labelFilterUpcomingTW;
+    case 'fr':
+      return index == 0
+          ? labelFilterAllFR
+          : index == 1
+              ? labelFilterRunningFR
+              : labelFilterUpcomingFR;
+    case 'de':
+      return index == 0
+          ? labelFilterAllDE
+          : index == 1
+              ? labelFilterRunningDE
+              : labelFilterUpcomingDE;
+    case 'es':
+      return index == 0
+          ? labelFilterAllES
+          : index == 1
+              ? labelFilterRunningES
+              : labelFilterUpcomingES;
+    case 'hi':
+      return index == 0
+          ? labelFilterAllHI
+          : index == 1
+              ? labelFilterRunningHI
+              : labelFilterUpcomingHI;
+    case 'th':
+      return index == 0
+          ? labelFilterAllTH
+          : index == 1
+              ? labelFilterRunningTH
+              : labelFilterUpcomingTH;
+    default:
+      return index == 0
+          ? labelFilterAll
+          : index == 1
+              ? labelFilterRunning
+              : labelFilterUpcoming;
   }
 }
 
@@ -152,33 +209,33 @@ String getBoxOfficeLabel(String languageCode, String field) {
 
 // Movie list - poster release
 String getReleaseLabel(String languageCode) {
-    switch (languageCode) {
-      case 'ko':
-        return labelReleaseKR;
-      case 'ja':
-        return labelReleaseJP;
-      case 'zh':
-        return labelReleaseZH;
-      case 'tw':
-        return labelReleaseTW;
-      case 'fr':
-        return labelReleaseFR;
-      case 'de':
-        return labelRelease;
-      case 'es':
-        return labelReleaseES;
-      case 'hi':
-        return labelReleaseHI;
-      case 'th':
-        return labelReleaseTH;
-      default:
-        return labelRelease;
+  switch (languageCode) {
+    case 'ko':
+      return labelReleaseKR;
+    case 'ja':
+      return labelReleaseJP;
+    case 'zh':
+      return labelReleaseZH;
+    case 'tw':
+      return labelReleaseTW;
+    case 'fr':
+      return labelReleaseFR;
+    case 'de':
+      return labelRelease;
+    case 'es':
+      return labelReleaseES;
+    case 'hi':
+      return labelReleaseHI;
+    case 'th':
+      return labelReleaseTH;
+    default:
+      return labelRelease;
   }
 }
 
 // Movie List - Error Message
-String getErrorMessage(String languageCode){
-    switch (languageCode) {
+String getErrorMessage(String languageCode) {
+  switch (languageCode) {
     case 'ko':
       return labelNetworkErrorKR;
     case 'ja':
@@ -199,7 +256,7 @@ String getErrorMessage(String languageCode){
       return labelNetworkErrorTH;
     default:
       return labelNetworkErrorEN;
-    }
+  }
 }
 
 String getErrorByUserMessage(String languageCode) {
@@ -227,9 +284,10 @@ String getErrorByUserMessage(String languageCode) {
   }
 }
 
-// Movie detail - info 
+// Movie detail - info
 String? getTranslatedDetail(String detailKey, String languageCode) {
-  return movieDetailTranslations[detailKey]?[languageCode] ?? movieDetailTranslations[detailKey]?['en'];
+  return movieDetailTranslations[detailKey]?[languageCode] ??
+      movieDetailTranslations[detailKey]?['en'];
 }
 
 String convertCountryCodeToName(String code) {
@@ -238,15 +296,15 @@ String convertCountryCodeToName(String code) {
 
 String getDonationLabel(String languageCode, String field) {
   return donateLabels[languageCode.toLowerCase()]?[field] ??
-         donateLabels['en']?[field] ??
-         field; 
+      donateLabels['en']?[field] ??
+      field;
 }
 
-String getPermissionLabel(String languageCode, String field){
+String getPermissionLabel(String languageCode, String field) {
   print(languageCode);
   return permissionLabels[field]?[languageCode.toLowerCase()] ??
-         permissionLabels[field]?['en'] ??
-         field; 
+      permissionLabels[field]?['en'] ??
+      field;
 }
 
 String getHotFixLabel(String language) {

@@ -4,24 +4,25 @@ import 'package:world_movie_trailer/common/services/alarm_service.dart';
 import 'package:world_movie_trailer/model/movieByUser.dart';
 
 class MovieByUserService {
-  static final String _boxNameBookmark = 'movieByUserBoxForBookmark';
-  static final String _boxNameMemo = 'movieByUserBoxForMemo';
+  static final String _boxNameBookmark = 'movieByUserBoxForBookmarkV2';
+  static final String _boxNameMemo = 'movieByUserBoxForMemoV2';
   static final alarmService = AlarmService();
 
   // Open the box (this should be called during initialization)
   static Future<Box<MovieByUser>> _openBox(int flag) async {
-    switch (flag){
-      case 3: 
+    switch (flag) {
+      case 3:
         return await Hive.openBox<MovieByUser>(_boxNameBookmark);
-      case 4: 
-        return await Hive.openBox<MovieByUser>(_boxNameMemo); 
+      case 4:
+        return await Hive.openBox<MovieByUser>(_boxNameMemo);
       default:
         return await Hive.openBox<MovieByUser>(_boxNameBookmark);
     }
   }
 
   // Add a movie with a flag (like, dislike, bookmark)
-  static Future<void> addMovie(int flag, MovieByUser movieByUser, SettingsProvider settingsProvider) async {
+  static Future<void> addMovie(int flag, MovieByUser movieByUser,
+      SettingsProvider settingsProvider) async {
     final box = await _openBox(flag);
 
     // Fetch current movies
@@ -32,10 +33,12 @@ class MovieByUserService {
     if (settingsProvider.isDailyAlarmOn) {
       if (flag == 3 && settingsProvider.isBookmarkAlarmOn) {
         // 북마크 알람 등록
-        await alarmService.registerReleaseAlarmForMovie(settingsProvider, movieByUser, true);
+        await alarmService.registerReleaseAlarmForMovie(
+            settingsProvider, movieByUser, true);
       } else if (flag == 4 && settingsProvider.isMemoAlarmOn) {
         // 메모 알람 등록
-        await alarmService.registerReleaseAlarmForMovie(settingsProvider, movieByUser, false);
+        await alarmService.registerReleaseAlarmForMovie(
+            settingsProvider, movieByUser, false);
       }
     }
 
@@ -45,18 +48,22 @@ class MovieByUserService {
   }
 
   // Update a movie by index
-  static Future<void> updateMovie(int flag, int index, MovieByUser updatedMovie) async {
+  static Future<void> updateMovie(
+      int flag, int index, MovieByUser updatedMovie) async {
     final box = await _openBox(flag);
     await box.putAt(index, updatedMovie); // 해당 인덱스의 영화를 업데이트
   }
-  
+
   // Delete a movie by index
   static Future<void> deleteMovie(int flag, int index) async {
     final box = await _openBox(flag);
     final movieToDelete = box.getAt(index);
     if (movieToDelete != null) {
       // Cancel the alarm for the movie
-      await alarmService.cancelReleaseAlarm(flag == 3, movieToDelete.movie.trailerUrl);
+      final movieKey = movieToDelete.movie.id.isNotEmpty
+          ? movieToDelete.movie.id
+          : movieToDelete.movie.trailerUrl;
+      await alarmService.cancelReleaseAlarm(flag == 3, movieKey);
 
       // Delete the movie from the box
       await box.deleteAt(index);
@@ -76,18 +83,21 @@ class MovieByUserService {
   }
 
   // Get the length of movies in each box
-  static Future<bool> getIsAvailable(int flag, SettingsProvider settingsProvider) async {
+  static Future<bool> getIsAvailable(
+      int flag, SettingsProvider settingsProvider) async {
     final box = await _openBox(flag);
     return settingsProvider.isAdsFree || box.length < 30;
   }
 
   // Get the unique in flag
-  static Future<bool> getIsUnique(int flag, String title) async {
+  static Future<bool> getIsUnique(int flag, String movieKey) async {
     final box = await _openBox(flag);
-    
-    // Check if any movie in the box has the same localTitle
-    final exists = box.values.any((item) => item.movie.localTitle == title);
-    
+    final exists = box.values.any((item) {
+      final storedKey =
+          item.movie.id.isNotEmpty ? item.movie.id : item.movie.localTitle;
+      return storedKey == movieKey;
+    });
+
     // Return the opposite since you want to check uniqueness
     return !exists;
   }
@@ -103,14 +113,15 @@ class MovieByUserService {
     }
   }
 
-   // Update a movie memo by searching for its title
+  // Update a movie memo by searching for its title
   static Future<void> updateMovieMemo(MovieByUser updatedMovie) async {
     final box = await _openBox(4);
-    final index = box.values.toList().indexWhere((movie) => movie.movie.localTitle == updatedMovie.movie.localTitle);
+    final index = box.values.toList().indexWhere(
+        (movie) => movie.movie.localTitle == updatedMovie.movie.localTitle);
 
     if (index != -1) {
-      await box.putAt(index, updatedMovie); // Update the movie memo at the found index
+      await box.putAt(
+          index, updatedMovie); // Update the movie memo at the found index
     }
   }
-
 }
