@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "917295366628",
-    "project_id": "world-movie-trailer",
-    "storage_bucket": "world-movie-trailer.appspot.com"
+    "project_number": "1034047577753",
+    "project_id": "world-movie-trailer-v2",
+    "storage_bucket": "world-movie-trailer-v2.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:917295366628:android:a8b49633b9b83a870cc7f1",
+        "mobilesdk_app_id": "1:1034047577753:android:7ae2c8f1676bc413dfa208",
         "android_client_info": {
           "package_name": "com.sunnyinnolab.worldMovieTrailer"
         }
@@ -15,7 +15,26 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCK6OJdTlKcu-lQ0WVX8lw3Zs8RZeP_Xg0"
+          "current_key": "AIzaSyB5R97bRJpXoiL2lhAgi7h7KJDbgA1l_dE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1034047577753:android:0b4015c6114e7468dfa208",
+        "android_client_info": {
+          "package_name": "com.sunnyinnolab.worldMovieTrailer.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5R97bRJpXoiL2lhAgi7h7KJDbgA1l_dE"
         }
       ],
       "services": {

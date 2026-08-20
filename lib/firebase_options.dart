@@ -29,19 +29,19 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyA323GF95NhZ7QjhMZKit5uF1IJaVeTgY8',
-    appId: '1:917295366628:ios:9d8fac6dab626ddc0cc7f1',
-    messagingSenderId: '917295366628',
-    projectId: 'world-movie-trailer',
-    storageBucket: 'world-movie-trailer.appspot.com',
+    apiKey: 'AIzaSyBIZsSc5DbyW2ZIXzOKmV8wuO7xa89Z5mU',
+    appId: '1:1034047577753:ios:01c81d69567105c2dfa208',
+    messagingSenderId: '1034047577753',
+    projectId: 'world-movie-trailer-v2',
+    storageBucket: 'world-movie-trailer-v2.firebasestorage.app',
     iosBundleId: 'com.sunnyinnolab.worldMovieTrailer',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCK6OJdTlKcu-lQ0WVX8lw3Zs8RZeP_Xg0',
-    appId: '1:917295366628:android:a8b49633b9b83a870cc7f1',
-    messagingSenderId: '917295366628',
-    projectId: 'world-movie-trailer',
-    storageBucket: 'world-movie-trailer.appspot.com',
+    apiKey: 'AIzaSyB5R97bRJpXoiL2lhAgi7h7KJDbgA1l_dE',
+    appId: '1:1034047577753:android:7ae2c8f1676bc413dfa208',
+    messagingSenderId: '1034047577753',
+    projectId: 'world-movie-trailer-v2',
+    storageBucket: 'world-movie-trailer-v2.firebasestorage.app',
   );
 }

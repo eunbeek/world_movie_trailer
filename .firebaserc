@@ -1,7 +1,6 @@
 {
   "projects": {
     "default": "world-movie-trailer-v2",
-    "wmt_v1": "world-movie-trailer",
     "wmt_v2": "world-movie-trailer-v2"
   }
 }
