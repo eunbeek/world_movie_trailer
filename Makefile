@@ -13,3 +13,5 @@ release-android:
 # TestFlight artifact: build/ios/ipa/*.ipa
 release-ios:
 	flutter build ipa --release --flavor prod --target lib/main_prod.dart
+	/usr/libexec/PlistBuddy -c "Set :Name World Movie Trailer" build/ios/archive/Runner.xcarchive/Info.plist
+	/usr/libexec/PlistBuddy -c "Set :SchemeName World Movie Trailer" build/ios/archive/Runner.xcarchive/Info.plist
