@@ -44,23 +44,11 @@ android {
 
     defaultConfig {
         applicationId "com.sunnyinnolab.worldMovieTrailer"
+        resValue "string", "app_name", "World Movie Trailer"
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-    }
-
-    flavorDimensions "environment"
-    productFlavors {
-        dev {
-            dimension "environment"
-            applicationIdSuffix ".dev"
-            resValue "string", "app_name", "World Movie Trailer Dev"
-        }
-        prod {
-            dimension "environment"
-            resValue "string", "app_name", "World Movie Trailer"
-        }
     }
 
     signingConfigs {

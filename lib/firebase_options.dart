@@ -2,7 +2,7 @@
 // ignore_for_file: type=lint
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, TargetPlatform;
+    show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -16,6 +16,7 @@ import 'package:flutter/foundation.dart'
 /// ```
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
+    if (kIsWeb) return web;
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
@@ -27,6 +28,15 @@ class DefaultFirebaseOptions {
         );
     }
   }
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyA924nFJzSoWNA5xIH1bBa4gBzwLrQVX0E',
+    appId: '1:1034047577753:web:657588d7cc33d4d0dfa208',
+    messagingSenderId: '1034047577753',
+    projectId: 'world-movie-trailer-v2',
+    authDomain: 'world-movie-trailer-v2.firebaseapp.com',
+    storageBucket: 'world-movie-trailer-v2.firebasestorage.app',
+  );
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBIZsSc5DbyW2ZIXzOKmV8wuO7xa89Z5mU',
