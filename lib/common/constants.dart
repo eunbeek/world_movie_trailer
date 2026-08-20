@@ -558,7 +558,7 @@ Map<String, Map<String, String>> donateLabels = {
 };
 
 final Map<int, List<String>> countryByDay = {
-  1: ['box', 'korea'], // Monday
+  1: ['box_us', 'box_kr', 'korea'], // Monday
   2: ['japan'], // Tuesday
   3: ['usa', 'canada'], // Wednesday
   4: ['india', 'spain', 'taiwan'], // Thursday
@@ -568,16 +568,16 @@ final Map<int, List<String>> countryByDay = {
 };
 
 final Map<String, List<String>> countryByLanguage = {
-  'ko': ['korea', 'usa', 'box'],
-  'ja': ['japan', 'usa', 'box'],
-  'zh': ['china', 'taiwan', 'usa', 'box'],
-  'tw': ['taiwan', 'china', 'usa', 'box'],
-  'fr': ['france', 'usa', 'box'],
-  'de': ['germany', 'usa', 'box'],
-  'es': ['spain', 'usa', 'box'],
-  'hi': ['india', 'usa', 'box'],
-  'th': ['thailand', 'usa', 'box'],
-  'en': ['usa', 'canada', 'autralia', 'box'],
+  'ko': ['korea', 'usa', 'box_us', 'box_kr'],
+  'ja': ['japan', 'usa', 'box_us', 'box_kr'],
+  'zh': ['china', 'taiwan', 'usa', 'box_us', 'box_kr'],
+  'tw': ['taiwan', 'china', 'usa', 'box_us', 'box_kr'],
+  'fr': ['france', 'usa', 'box_us', 'box_kr'],
+  'de': ['germany', 'usa', 'box_us', 'box_kr'],
+  'es': ['spain', 'usa', 'box_us', 'box_kr'],
+  'hi': ['india', 'usa', 'box_us', 'box_kr'],
+  'th': ['thailand', 'usa', 'box_us', 'box_kr'],
+  'en': ['usa', 'canada', 'australia', 'box_us', 'box_kr'],
 };
 
 Map<String, Map<String, String>> countryNameByLan = {

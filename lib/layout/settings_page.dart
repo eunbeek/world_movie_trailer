@@ -50,13 +50,6 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  String _formatHoursMinutes(double totalHours) {
-    int hours = totalHours.floor(); // Get the whole number part as hours
-    int minutes = ((totalHours - hours) * 60)
-        .round(); // Get the decimal part and convert to minutes
-    return '$hours hours $minutes minutes';
-  }
-
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);

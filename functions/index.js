@@ -125,7 +125,7 @@ function buildTestMoviePreview(movies) {
 exports.fetchMovieListKR = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 7 * * 1")
+    .schedule("0 3 * * 1")
     .timeZone("America/Toronto") // Adjust if the timezone should be KST
     .onRun(async () => {
       const processedCount = 0;
@@ -154,7 +154,7 @@ exports.fetchMovieListKR = functions
 exports.fetchMovieListJP = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 9 * * 2")
+    .schedule("0 3 * * 2")
     .timeZone("America/Toronto") // Adjust if the timezone should be JST
     .onRun(async () => {
       const processedCount = 0;
@@ -182,7 +182,7 @@ exports.fetchMovieListJP = functions
 exports.fetchMovieListCA = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 9 * * 3")
+    .schedule("0 4 * * 3")
     .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
@@ -209,7 +209,7 @@ exports.fetchMovieListCA = functions
 exports.fetchMovieListTW = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 9 * * 4")
+    .schedule("0 5 * * 4")
     .timeZone("America/Toronto") // Adjust if the timezone should be CST
     .onRun(async () => {
       const processedCount = 0;
@@ -234,7 +234,7 @@ exports.fetchMovieListTW = functions
 exports.fetchMovieListFR = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 9 * * 5")
+    .schedule("0 4 * * 5")
     .timeZone("America/Toronto") // Adjust if the timezone should be CET
     .onRun(async () => {
       const processedCount = 0;
@@ -261,7 +261,7 @@ exports.fetchMovieListFR = functions
 exports.fetchMovieListDE = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 9 * * 6")
+    .schedule("0 3 * * 6")
     .timeZone("America/Toronto") // Adjust if the timezone should be CET
     .onRun(async () => {
       const processedCount = 0;
@@ -288,7 +288,7 @@ exports.fetchMovieListDE = functions
 exports.fetchMovieListUS = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 7 * * 3")
+    .schedule("0 3 * * 3")
     .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
@@ -315,7 +315,7 @@ exports.fetchMovieListUS = functions
 exports.fetchMovieListTH = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 5 * * 7")
+    .schedule("0 4 * * 7")
     .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
@@ -342,7 +342,7 @@ exports.fetchMovieListTH = functions
 exports.fetchMovieListAU = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 2 * * 7")
+    .schedule("0 3 * * 7")
     .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
@@ -369,7 +369,7 @@ exports.fetchMovieListAU = functions
 exports.fetchMovieListES = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 5 * * 4")
+    .schedule("0 4 * * 4")
     .timeZone("America/Toronto") // Adjust if the timezone should be CST
     .onRun(async () => {
       const processedCount = 0;
@@ -423,7 +423,7 @@ exports.fetchMovieListIN = functions
 exports.fetchMovieListCN = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 7 * * 5")
+    .schedule("0 3 * * 5")
     .timeZone("America/Toronto") // Adjust if the timezone should be JST
     .onRun(async () => {
       const processedCount = 0;
@@ -504,7 +504,7 @@ exports.fetchQuoteListSpecial = functions
 exports.fetchMovieListBoxOffice = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 9 * * 1")
+    .schedule("0 5 * * 1")
     .timeZone("America/Toronto") // Adjust if the timezone should be CET
     .onRun(async () => {
       const processedCount = 0;
@@ -529,7 +529,7 @@ exports.fetchMovieListBoxOffice = functions
 exports.fetchMovieListBoxOfficeKR = functions
     .runWith(kobisRuntimeOptions)
     .pubsub
-    .schedule("0 5 * * 1")
+    .schedule("0 4 * * 1")
     .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
@@ -544,21 +544,21 @@ exports.fetchMovieListBoxOfficeKR = functions
       return null;
     });
 
-// Each Store runs in America/Toronto exactly 30 minutes after its Fetch.
-exports.storeMovieListKR = createScheduledStore("kr", "30 7 * * 1");
-exports.storeMovieListJP = createScheduledStore("jp", "30 9 * * 2");
-exports.storeMovieListCA = createScheduledStore("ca", "30 9 * * 3");
-exports.storeMovieListTW = createScheduledStore("tw", "30 9 * * 4");
-exports.storeMovieListFR = createScheduledStore("fr", "30 9 * * 5");
-exports.storeMovieListDE = createScheduledStore("de", "30 9 * * 6");
-exports.storeMovieListUS = createScheduledStore("us", "30 7 * * 3");
-exports.storeMovieListTH = createScheduledStore("th", "30 5 * * 7");
-exports.storeMovieListAU = createScheduledStore("au", "30 2 * * 7");
-exports.storeMovieListES = createScheduledStore("es", "30 5 * * 4");
-exports.storeMovieListIN = createScheduledStore("in", "30 3 * * 4");
-exports.storeMovieListCN = createScheduledStore("cn", "30 7 * * 5");
-exports.storeMovieListBoxOffice = createScheduledStore("box_office", "30 9 * * 1");
-exports.storeMovieListBoxOfficeKR = createScheduledStore("box_office_kr", "30 5 * * 1");
+// Stores run after Sheet translation formulas have had roughly two hours.
+exports.storeMovieListKR = createScheduledStore("kr", "10 5 * * 1");
+exports.storeMovieListJP = createScheduledStore("jp", "0 5 * * 2");
+exports.storeMovieListCA = createScheduledStore("ca", "0 6 * * 3");
+exports.storeMovieListTW = createScheduledStore("tw", "0 7 * * 4");
+exports.storeMovieListFR = createScheduledStore("fr", "0 6 * * 5");
+exports.storeMovieListDE = createScheduledStore("de", "0 5 * * 6");
+exports.storeMovieListUS = createScheduledStore("us", "0 5 * * 3");
+exports.storeMovieListTH = createScheduledStore("th", "0 6 * * 7");
+exports.storeMovieListAU = createScheduledStore("au", "0 5 * * 7");
+exports.storeMovieListES = createScheduledStore("es", "0 6 * * 4");
+exports.storeMovieListIN = createScheduledStore("in", "10 5 * * 4");
+exports.storeMovieListCN = createScheduledStore("cn", "0 5 * * 5");
+exports.storeMovieListBoxOffice = createScheduledStore("box_office", "0 7 * * 1");
+exports.storeMovieListBoxOfficeKR = createScheduledStore("box_office_kr", "0 6 * * 1");
 
 /**
  * Test function for fetching and processing movie data from CGV and Lotte.

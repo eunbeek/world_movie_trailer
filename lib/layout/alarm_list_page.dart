@@ -108,7 +108,7 @@ class _AlarmListPageState extends State<AlarmListPage> {
             delegate: SliverChildListDelegate([
               const Divider(),
               _buildAllAlarmOn(context, settingsProvider),
-              _buildBookmarkAndMemoGroup(context, settingsProvider),
+              _buildBookmarkAlarm(context, settingsProvider),
               const Divider(height: 20),
               ..._buildCountryList(context, settingsProvider),
             ]),
@@ -154,48 +154,25 @@ class _AlarmListPageState extends State<AlarmListPage> {
     );
   }
 
-  Widget _buildBookmarkAndMemoGroup(
+  Widget _buildBookmarkAlarm(
       BuildContext context, SettingsProvider settingsProvider) {
-    return Column(
-      children: [
-        ListTile(
-          title: Text(
-            getMenuItemTitle(settingsProvider.language, 'Bookmark'),
-            style: TextStyle(
-              fontSize: MediaQuery.of(context).size.height * 0.02,
-            ),
-          ),
-          trailing: Switch(
-            value: !settingsProvider.isDailyAlarmOn
-                ? false
-                : settingsProvider.isBookmarkAlarmOn,
-            onChanged: (bool value) {
-              if (settingsProvider.isDailyAlarmOn) {
-                settingsProvider.updateIsBookmarkAlarmOn(value);
-              }
-            },
-          ),
+    return ListTile(
+      title: Text(
+        getMenuItemTitle(settingsProvider.language, 'Bookmark'),
+        style: TextStyle(
+          fontSize: MediaQuery.of(context).size.height * 0.02,
         ),
-        Divider(color: Colors.grey[700], thickness: 0.2),
-        ListTile(
-          title: Text(
-            getMenuItemTitle(settingsProvider.language, 'Memo'),
-            style: TextStyle(
-              fontSize: MediaQuery.of(context).size.height * 0.02,
-            ),
-          ),
-          trailing: Switch(
-            value: !settingsProvider.isDailyAlarmOn
-                ? false
-                : settingsProvider.isMemoAlarmOn,
-            onChanged: (bool value) {
-              if (settingsProvider.isDailyAlarmOn) {
-                settingsProvider.updateIsMemoAlarmOn(value);
-              }
-            },
-          ),
-        ),
-      ],
+      ),
+      trailing: Switch(
+        value: !settingsProvider.isDailyAlarmOn
+            ? false
+            : settingsProvider.isBookmarkAlarmOn,
+        onChanged: (bool value) {
+          if (settingsProvider.isDailyAlarmOn) {
+            settingsProvider.updateIsBookmarkAlarmOn(value);
+          }
+        },
+      ),
     );
   }
 
@@ -218,12 +195,14 @@ class _AlarmListPageState extends State<AlarmListPage> {
 
   Widget _buildCountryListTile(BuildContext context,
       SettingsProvider settingsProvider, String countryKey) {
-    final localizedCountryName = localizedCountries[settingsProvider.language]
-            ?[countryKey] ??
-        countryKey;
+    final localizedCountryName = countryKey == 'box_us'
+        ? getBoxOfficeLabel(settingsProvider.language, 'box_usa')
+        : countryKey == 'box_kr'
+            ? '${localizedCountries[settingsProvider.language]?['korea'] ?? 'Korea'} ${getBoxOfficeLabel(settingsProvider.language, 'box')}'
+            : localizedCountries[settingsProvider.language]?[countryKey] ??
+                countryKey;
     bool isSwitchValue = settingsProvider.isAlarmOn.values
-            .any((countryMap) => countryMap[countryKey] == true) ??
-        false;
+        .any((countryMap) => countryMap[countryKey] == true);
     return ListTile(
       title: Text(
         localizedCountryName,

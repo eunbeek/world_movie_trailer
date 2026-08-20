@@ -17,24 +17,18 @@ class MovieByUserAdapter extends TypeAdapter<MovieByUser> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return MovieByUser(
-      flag: fields[0] as int,
-      movie: fields[2] as Movie,
-      memo: fields[3] as String?,
-      savedDate: fields[4] as DateTime?,
+      movie: fields[0] as Movie,
+      savedDate: fields[1] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, MovieByUser obj) {
     writer
-      ..writeByte(4)
-      ..writeByte(0)
-      ..write(obj.flag)
       ..writeByte(2)
+      ..writeByte(0)
       ..write(obj.movie)
-      ..writeByte(3)
-      ..write(obj.memo)
-      ..writeByte(4)
+      ..writeByte(1)
       ..write(obj.savedDate);
   }
 

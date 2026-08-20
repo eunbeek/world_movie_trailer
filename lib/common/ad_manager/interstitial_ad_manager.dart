@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:world_movie_trailer/common/ad_helper.dart';
@@ -39,6 +41,7 @@ class InterstitialAdManager {
     }
     if (isShowingAd) {
       print('Ad is already being shown.');
+      onAdDismissed();
       return;
     }
     if (interstitialAd == null) {
@@ -58,15 +61,13 @@ class InterstitialAdManager {
           'timestamp': DateTime.now().toIso8601String(),
         });
         isShowingAd = true;
-        Future.delayed(Duration(seconds: 1), () {
-          onAdDismissed();
-        });
       },
       onAdDismissedFullScreenContent: (ad) {
         print('interstitial Ad dismissed');
         isShowingAd = false;
         ad.dispose();
         interstitialAd = null;
+        onAdDismissed();
         loadAd(
           onAdLoaded: () => {},
           onAdFailed: () => {},
@@ -82,5 +83,18 @@ class InterstitialAdManager {
     );
 
     interstitialAd!.show();
+  }
+
+  Future<void> showAdIfAvailableAsync() {
+    final completer = Completer<void>();
+    showAdIfAvailable(() {
+      if (!completer.isCompleted) completer.complete();
+    });
+    return completer.future;
+  }
+
+  void dispose() {
+    interstitialAd?.dispose();
+    interstitialAd = null;
   }
 }

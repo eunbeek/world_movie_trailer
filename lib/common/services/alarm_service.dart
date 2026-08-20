@@ -234,14 +234,19 @@ class AlarmService {
           await cancelAlarm(day, country);
 
           // Register the new alarm
-          final nextNotificationTime = country == 'box'
+          final isBoxOffice = country == 'box_us' || country == 'box_kr';
+          final nextNotificationTime = isBoxOffice
               ? nextBoxOfficeInstanceOfDay(day)
               : nextInstanceOfDay(day);
+          final displayName = country == 'box_us'
+              ? getBoxOfficeLabel(settingsProvider.language, 'box_usa')
+              : country == 'box_kr'
+                  ? '${localizedCountries[settingsProvider.language]?['korea'] ?? 'Korea'} ${getBoxOfficeLabel(settingsProvider.language, 'box')}'
+                  : localizedCountries[settingsProvider.language]?[country];
           await flutterLocalNotificationsPlugin.zonedSchedule(
             getAlarmId(day, country),
             getAlarmsLabel(settingsProvider.language, 'title'),
-            getAlarmsLabel(settingsProvider.language, 'country',
-                localizedCountries[settingsProvider.language]?[country]),
+            getAlarmsLabel(settingsProvider.language, 'country', displayName),
             nextNotificationTime,
             platformChannel,
             // uiLocalNotificationDateInterpretation:
@@ -252,14 +257,12 @@ class AlarmService {
         }
       }
     }
-    print(settingsProvider.isAlarmOn);
   }
 
   /// cancel one daily alarm
   Future<void> cancelAlarm(int day, String country) async {
     final alarmId = getAlarmId(day, country);
     await flutterLocalNotificationsPlugin.cancel(alarmId);
-    print('Alarm canceled for $country on day $day');
   }
 
   /// create unique daily alarm id for country update
@@ -269,18 +272,15 @@ class AlarmService {
 
   /// Register release alarms for all movies stored in the list(only 1 time for existing user)
   Future<void> registerReleaseAlarmsFromList(
-      SettingsProvider settingsProvider, bool isBookmark) async {
-    // Fetch all movies based on the flag
-    final movies = await MovieByUserService.getMoviesByFlag(isBookmark ? 3 : 4);
-    await cancelReleaseAlarmsByFlag(isBookmark);
+      SettingsProvider settingsProvider) async {
+    final movies = await MovieByUserService.getBookmarks();
+    await cancelReleaseAlarms();
 
     for (var movieByUser in movies) {
       final movie = movieByUser.movie;
 
       // Ensure releaseDate is not null or invalid
-      if (movie.releaseDate == null || movie.releaseDate.isEmpty) {
-        print(
-            'Skipping movie "${movie.localTitle}" due to missing release date.');
+      if (movie.releaseDate.isEmpty) {
         continue;
       }
 
@@ -289,8 +289,6 @@ class AlarmService {
 
         // Ensure the release date is in the future
         if (releaseDate.isBefore(DateTime.now())) {
-          print(
-              'Skipping movie "${movie.localTitle}" due to past release date.');
           continue;
         }
 
@@ -322,32 +320,28 @@ class AlarmService {
         );
 
         await flutterLocalNotificationsPlugin.zonedSchedule(
-          getReleaseAlarmId(isBookmark, _notificationMovieKey(movie)),
+          getReleaseAlarmId(_notificationMovieKey(movie)),
           getAlarmsLabel(settingsProvider.language, 'title'),
-          '${getAlarmsLabel(settingsProvider.language, isBookmark ? 'bookmark' : 'memo')} ${movie.localTitle} ${getAlarmsLabel(settingsProvider.language, 'release')}',
+          '${getAlarmsLabel(settingsProvider.language, 'bookmark')} ${movie.localTitle} ${getAlarmsLabel(settingsProvider.language, 'release')}',
           scheduleTime,
           platformChannel,
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
           // uiLocalNotificationDateInterpretation:
           //     UILocalNotificationDateInterpretation.wallClockTime,
         );
-
-        print('Release alarm set for "${movie.localTitle}" on $scheduleTime');
       } catch (e) {
         print('Failed to schedule alarm for "${movie.localTitle}": $e');
       }
     }
   }
 
-  // register release alarm by bookmark, memo
-  Future<void> registerReleaseAlarmForMovie(SettingsProvider settingsProvider,
-      MovieByUser movieByUser, bool isBookmark) async {
+  // Register a release alarm for a bookmarked movie.
+  Future<void> registerReleaseAlarmForMovie(
+      SettingsProvider settingsProvider, MovieByUser movieByUser) async {
     final movie = movieByUser.movie;
 
     // Ensure releaseDate is not null or invalid
-    if (movie.releaseDate == null || movie.releaseDate.isEmpty) {
-      print(
-          'Skipping movie "${movie.localTitle}" due to missing release date.');
+    if (movie.releaseDate.isEmpty) {
       return;
     }
 
@@ -378,19 +372,14 @@ class AlarmService {
 
       // 조건: 현재 시간이 하루 전날 오후 3시 이후라면 알람 등록 안 함
       if (now.isAfter(preReleaseAlarmTime)) {
-        print(
-            'Skipping alarm for "${movie.localTitle}" as it was bookmarked after 3 PM the day before.');
         return;
       }
 
       // Generate unique alarm ID
-      final alarmId =
-          getReleaseAlarmId(isBookmark, _notificationMovieKey(movie));
+      final alarmId = getReleaseAlarmId(_notificationMovieKey(movie));
 
       // Cancel existing alarm to avoid duplicates
       await flutterLocalNotificationsPlugin.cancel(alarmId);
-      print(
-          'Existing alarm canceled for "${movie.localTitle}" with ID: $alarmId');
 
       // Schedule the release alarm
       final platformChannel = NotificationDetails(
@@ -413,15 +402,13 @@ class AlarmService {
       await flutterLocalNotificationsPlugin.zonedSchedule(
         alarmId,
         getAlarmsLabel(settingsProvider.language, 'title'),
-        '${getAlarmsLabel(settingsProvider.language, isBookmark ? 'bookmark' : 'memo')} ${movie.localTitle} ${getAlarmsLabel(settingsProvider.language, 'release')}',
+        '${getAlarmsLabel(settingsProvider.language, 'bookmark')} ${movie.localTitle} ${getAlarmsLabel(settingsProvider.language, 'release')}',
         releaseAlarmTime,
         platformChannel,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         // uiLocalNotificationDateInterpretation:
         //     UILocalNotificationDateInterpretation.wallClockTime,
       );
-
-      print('Release alarm set for "${movie.localTitle}" on $releaseAlarmTime');
     } catch (e) {
       print('Failed to schedule alarm for "${movie.localTitle}": $e');
     }
@@ -432,31 +419,24 @@ class AlarmService {
     return movie.id.isNotEmpty ? movie.id : movie.trailerUrl;
   }
 
-  int getReleaseAlarmId(bool isBookmark, String movieKey) {
-    return isBookmark.hashCode ^ movieKey.hashCode;
-  }
+  int getReleaseAlarmId(String movieKey) => movieKey.hashCode;
 
   /// cancel release alarm
-  Future<void> cancelReleaseAlarm(bool isBookmark, String movieKey) async {
-    final alarmId = getReleaseAlarmId(isBookmark, movieKey);
+  Future<void> cancelReleaseAlarm(String movieKey) async {
+    final alarmId = getReleaseAlarmId(movieKey);
     await flutterLocalNotificationsPlugin.cancel(alarmId);
-    print('Release alarm canceled for movie ID: $alarmId');
   }
 
-  Future<void> cancelReleaseAlarmsByFlag(bool isBookmark) async {
-    // 북마크된 모든 영화 가져오기
-    final movies = await MovieByUserService.getMoviesByFlag(isBookmark ? 3 : 4);
+  Future<void> cancelReleaseAlarms() async {
+    final movies = await MovieByUserService.getBookmarks();
 
     for (var movieByUser in movies) {
       final movie = movieByUser.movie;
 
       try {
         // 알람 ID 생성 및 삭제
-        final alarmId =
-            getReleaseAlarmId(isBookmark, _notificationMovieKey(movie));
+        final alarmId = getReleaseAlarmId(_notificationMovieKey(movie));
         await flutterLocalNotificationsPlugin.cancel(alarmId);
-        print(
-            'Release alarm canceled for "${movie.localTitle}" with ID: $alarmId');
       } catch (e) {
         print('Failed to cancel alarm for "${movie.localTitle}": $e');
       }
@@ -465,7 +445,6 @@ class AlarmService {
 
   Future<void> cancelAllAlarms() async {
     await flutterLocalNotificationsPlugin.cancelAll();
-    print('All alarms have been canceled.');
   }
 
   void debugTimezones() {

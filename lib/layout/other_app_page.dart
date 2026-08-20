@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -11,8 +10,10 @@ class AppListPage extends StatelessWidget {
   final String appDFName = "Dual Flashlight";
   final String appSPName = "Sky Peacemaker";
 
-  final String appFFAndroidLink = "https://play.google.com/store/apps/details?id=com.mwm.findfour.gg&pcampaignid=web_share";
-  final String appFFIosLink = "https://apps.apple.com/ca/app/find-four-find-4-differences/id6478101361";
+  final String appFFAndroidLink =
+      "https://play.google.com/store/apps/details?id=com.mwm.findfour.gg&pcampaignid=web_share";
+  final String appFFIosLink =
+      "https://apps.apple.com/ca/app/find-four-find-4-differences/id6478101361";
   final String appDFLink = "https://dualflashlig.onelink.me/Wccx/qnv6yh8s";
   final String appFFLink = "https://findfour.onelink.me/vurA/0tfteiuf";
   final String appTwoLink = "https://jaemitree.com/game/wangza";
@@ -32,9 +33,10 @@ class AppListPage extends StatelessWidget {
             leading: GestureDetector(
               onTap: () => Navigator.of(context).pop(),
               child: Padding(
-                padding: const EdgeInsets.only(top: 10.0), // Adjust padding to move the arrow down
+                padding: const EdgeInsets.only(
+                    top: 10.0), // Adjust padding to move the arrow down
                 child: Icon(
-                  Icons.arrow_back, 
+                  Icons.arrow_back,
                   size: MediaQuery.of(context).size.height * 0.03,
                 ),
               ),
@@ -46,15 +48,18 @@ class AppListPage extends StatelessWidget {
                   titlePadding: const EdgeInsets.only(bottom: 13),
                   centerTitle: true,
                   title: AnimatedOpacity(
-                    opacity: top < MediaQuery.of(context).size.height * 0.1 ? 1.0 : 0.0,
+                    opacity: top < MediaQuery.of(context).size.height * 0.1
+                        ? 1.0
+                        : 0.0,
                     duration: const Duration(milliseconds: 500),
                     child: Text(
                       getSettingsLabel(settingsProvider.language, "other"),
                       style: TextStyle(
-                        fontSize: MediaQuery.of(context).size.height * 0.010,
-                        fontWeight: FontWeight.bold,
-                        color: settingsProvider.isDarkTheme ? Colors.white : Colors.black
-                      ),
+                          fontSize: MediaQuery.of(context).size.height * 0.010,
+                          fontWeight: FontWeight.bold,
+                          color: settingsProvider.isDarkTheme
+                              ? Colors.white
+                              : Colors.black),
                     ),
                   ),
                   background: Container(
@@ -74,7 +79,8 @@ class AppListPage extends StatelessWidget {
                         Text(
                           getSettingsLabel(settingsProvider.language, "other"),
                           style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.height * 0.025,
+                            fontSize:
+                                MediaQuery.of(context).size.height * 0.025,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -86,24 +92,28 @@ class AppListPage extends StatelessWidget {
             ),
           ),
           SliverList(
-            delegate: SliverChildListDelegate(
-              [
-                const Divider(),
-                _buildAppListTile(context, settingsProvider, appSPName, appSPLink, 'assets/images/Sky_Peacemaker.png'),
-                const Divider(),
-                _buildAppListTile(context, settingsProvider, appDFName, appDFLink, 'assets/images/Dual Flashlight_icon_1024.png'),
-                const Divider(),
-                _buildAppListTile(context, settingsProvider, appFFName, appFFLink, 'assets/images/Find_Four_Icon.png'),
-                const Divider(),
-                _buildAppListTile(context, settingsProvider, appEWName, appTwoLink, 'assets/images/English_WangZa_Icon.png'),
-              ]
-            ),
+            delegate: SliverChildListDelegate([
+              const Divider(),
+              _buildAppListTile(context, settingsProvider, appSPName, appSPLink,
+                  'assets/images/Sky_Peacemaker.png'),
+              const Divider(),
+              _buildAppListTile(context, settingsProvider, appDFName, appDFLink,
+                  'assets/images/Dual Flashlight_icon_1024.png'),
+              const Divider(),
+              _buildAppListTile(context, settingsProvider, appFFName, appFFLink,
+                  'assets/images/Find_Four_Icon.png'),
+              const Divider(),
+              _buildAppListTile(context, settingsProvider, appEWName,
+                  appTwoLink, 'assets/images/English_WangZa_Icon.png'),
+            ]),
           ),
         ],
       ),
       bottomNavigationBar: Container(
         height: MediaQuery.of(context).size.height * 0.12,
-        color: settingsProvider.isDarkTheme ? const Color(0xff3c3c3c) : const Color(0xff435555),
+        color: settingsProvider.isDarkTheme
+            ? const Color(0xff3c3c3c)
+            : const Color(0xff435555),
         padding: EdgeInsets.only(
             top: MediaQuery.of(context).size.height * 0.12 * 0.1,
             bottom: MediaQuery.of(context).size.height * 0.12 * 0.1),
@@ -115,12 +125,14 @@ class AppListPage extends StatelessWidget {
                 const url =
                     'https://marmalade-neptune-dbe.notion.site/Home-Page-7589a833b4f6482e90844b9fe49c8ae0';
                 if (await canLaunchUrl(Uri.parse(url))) {
-                  await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                  await launchUrl(Uri.parse(url),
+                      mode: LaunchMode.externalApplication);
                 }
               },
               child: Image.asset(
                 'assets/images/SIL_logo_h_xxhdpi.png',
-                height: MediaQuery.of(context).size.height * 0.045, // Adjust size as needed
+                height: MediaQuery.of(context).size.height *
+                    0.045, // Adjust size as needed
               ),
             ),
             SizedBox(height: MediaQuery.of(context).size.height * 0.12 * 0.1),
@@ -132,7 +144,8 @@ class AppListPage extends StatelessWidget {
                     const url =
                         'https://sunnyinnolab.notion.site/Terms-and-Conditions-0601612ffa404317a4ddaf5a094e5471';
                     if (await canLaunchUrl(Uri.parse(url))) {
-                      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                      await launchUrl(Uri.parse(url),
+                          mode: LaunchMode.externalApplication);
                     }
                   },
                   child: Text(
@@ -144,7 +157,8 @@ class AppListPage extends StatelessWidget {
                   ),
                 ),
                 const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0), // Space around the separator
+                  padding: EdgeInsets.symmetric(
+                      horizontal: 8.0), // Space around the separator
                   child: Text(
                     '|',
                     style: TextStyle(
@@ -158,7 +172,8 @@ class AppListPage extends StatelessWidget {
                     const url =
                         'https://sunnyinnolab.notion.site/Privacy-Policy-2919720d6e7848669b9d5e1170c6cabc';
                     if (await canLaunchUrl(Uri.parse(url))) {
-                      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                      await launchUrl(Uri.parse(url),
+                          mode: LaunchMode.externalApplication);
                     }
                   },
                   child: Text(
@@ -177,7 +192,12 @@ class AppListPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAppListTile(BuildContext context, SettingsProvider settingsProvider, String appName, String appLink, String logoPath) {
+  Widget _buildAppListTile(
+      BuildContext context,
+      SettingsProvider settingsProvider,
+      String appName,
+      String appLink,
+      String logoPath) {
     return ListTile(
       leading: Image.asset(
         logoPath,
@@ -193,7 +213,8 @@ class AppListPage extends StatelessWidget {
       trailing: GestureDetector(
         onTap: () async {
           if (await canLaunchUrl(Uri.parse(appLink))) {
-            await launchUrl(Uri.parse(appLink), mode: LaunchMode.externalApplication);
+            await launchUrl(Uri.parse(appLink),
+                mode: LaunchMode.externalApplication);
           }
         },
         child: Text(

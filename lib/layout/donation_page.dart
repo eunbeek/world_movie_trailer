@@ -58,8 +58,9 @@ class _DonationPageState extends State<DonationPage> {
       _isLoading = true;
     });
 
-    await IapHelper.fetchProductPrice(context);
+    await IapHelper.fetchProductPrice();
 
+    if (!mounted) return;
     setState(() {
       _isLoading = false;
     });

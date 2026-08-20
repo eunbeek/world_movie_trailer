@@ -27,7 +27,7 @@ class QuoteService {
   }
 
   static Future<Box> _openBox() async {
-    return await Hive.openBox<Quote>('quotesBox');
+    return await Hive.openBox<Quote>('quote_cache');
   }
 
   // Fetch quotes from Hive or Firebase and filter already shown quotes

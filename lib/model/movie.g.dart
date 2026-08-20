@@ -48,11 +48,11 @@ class MovieAdapter extends TypeAdapter<Movie> {
       isNewThisWeek: fields[28] as bool?,
       weekStartDate: fields[29] as String?,
       weekEndDate: fields[30] as String?,
-      id: fields[31] as String? ?? '',
-      tid: fields[32] as String? ?? '',
-      originSource: (fields[33] as Map?)?.cast<String, dynamic>() ?? const {},
-      translations: (fields[34] as Map?)?.cast<String, dynamic>() ?? const {},
-      metadata: (fields[35] as Map?)?.cast<String, dynamic>() ?? const {},
+      id: fields[31] as String,
+      tid: fields[32] as String,
+      originSource: (fields[33] as Map).cast<String, dynamic>(),
+      translations: (fields[34] as Map).cast<String, dynamic>(),
+      metadata: (fields[35] as Map).cast<String, dynamic>(),
     );
   }
 

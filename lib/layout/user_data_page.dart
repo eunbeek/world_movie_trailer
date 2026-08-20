@@ -20,9 +20,10 @@ class UserData extends StatelessWidget {
             leading: GestureDetector(
               onTap: () => Navigator.of(context).pop(),
               child: Padding(
-                padding: const EdgeInsets.only(top: 10.0), // Adjust padding to move the arrow down
+                padding: const EdgeInsets.only(
+                    top: 10.0), // Adjust padding to move the arrow down
                 child: Icon(
-                  Icons.arrow_back, 
+                  Icons.arrow_back,
                   size: MediaQuery.of(context).size.height * 0.03,
                 ),
               ),
@@ -34,15 +35,18 @@ class UserData extends StatelessWidget {
                   titlePadding: const EdgeInsets.only(bottom: 13),
                   centerTitle: true,
                   title: AnimatedOpacity(
-                    opacity: top < MediaQuery.of(context).size.height * 0.1 ? 1.0 : 0.0,
+                    opacity: top < MediaQuery.of(context).size.height * 0.1
+                        ? 1.0
+                        : 0.0,
                     duration: const Duration(milliseconds: 500),
                     child: Text(
                       getSettingsLabel(settingsProvider.language, "userdata"),
                       style: TextStyle(
-                        fontSize: MediaQuery.of(context).size.height * 0.02,
-                        fontWeight: FontWeight.bold,
-                        color: settingsProvider.isDarkTheme ? Colors.white : Colors.black
-                      ),
+                          fontSize: MediaQuery.of(context).size.height * 0.02,
+                          fontWeight: FontWeight.bold,
+                          color: settingsProvider.isDarkTheme
+                              ? Colors.white
+                              : Colors.black),
                     ),
                   ),
                   background: Container(
@@ -60,7 +64,8 @@ class UserData extends StatelessWidget {
                         ),
                         const SizedBox(width: 20),
                         Text(
-                          getSettingsLabel(settingsProvider.language, "userdata"),
+                          getSettingsLabel(
+                              settingsProvider.language, "userdata"),
                           style: TextStyle(
                             fontSize: MediaQuery.of(context).size.height * 0.03,
                             fontWeight: FontWeight.bold,
@@ -74,46 +79,46 @@ class UserData extends StatelessWidget {
             ),
           ),
           SliverList(
-            delegate: SliverChildListDelegate(
-              [
-                const Divider(),
-                 ListTile(
-                  title: Text(
-                    getSettingsLabel(settingsProvider.language, "initdate"),
-                    style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.height * 0.02,
-                    ),
-                  ),
-                  trailing: Text(
-                    DateFormat('yyyy-MM-dd').format(settingsProvider.startDate),
-                    style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.height * 0.02,
-                    ),
+            delegate: SliverChildListDelegate([
+              const Divider(),
+              ListTile(
+                title: Text(
+                  getSettingsLabel(settingsProvider.language, "initdate"),
+                  style: TextStyle(
+                    fontSize: MediaQuery.of(context).size.height * 0.02,
                   ),
                 ),
-                const Divider(),
-                ListTile(
-                  title: Text(
-                    getSettingsLabel(settingsProvider.language, "totalOpen"),
-                    style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.height * 0.02,
-                    ),
-                  ),
-                  trailing: Text(
-                    '${settingsProvider.totalOpen} ${getSettingsLabel(settingsProvider.language, "views")}',
-                    style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.height * 0.02,
-                    ),
+                trailing: Text(
+                  DateFormat('yyyy-MM-dd').format(settingsProvider.startDate),
+                  style: TextStyle(
+                    fontSize: MediaQuery.of(context).size.height * 0.02,
                   ),
                 ),
-              ]
-            ),
+              ),
+              const Divider(),
+              ListTile(
+                title: Text(
+                  getSettingsLabel(settingsProvider.language, "totalOpen"),
+                  style: TextStyle(
+                    fontSize: MediaQuery.of(context).size.height * 0.02,
+                  ),
+                ),
+                trailing: Text(
+                  '${settingsProvider.totalOpen} ${getSettingsLabel(settingsProvider.language, "views")}',
+                  style: TextStyle(
+                    fontSize: MediaQuery.of(context).size.height * 0.02,
+                  ),
+                ),
+              ),
+            ]),
           ),
         ],
       ),
       bottomNavigationBar: Container(
         height: MediaQuery.of(context).size.height * 0.12,
-        color: settingsProvider.isDarkTheme ? const Color(0xff3c3c3c) : const Color(0xff435555),
+        color: settingsProvider.isDarkTheme
+            ? const Color(0xff3c3c3c)
+            : const Color(0xff435555),
         padding: EdgeInsets.only(
             top: MediaQuery.of(context).size.height * 0.12 * 0.1,
             bottom: MediaQuery.of(context).size.height * 0.12 * 0.1),
@@ -125,12 +130,14 @@ class UserData extends StatelessWidget {
                 const url =
                     'https://marmalade-neptune-dbe.notion.site/Home-Page-7589a833b4f6482e90844b9fe49c8ae0';
                 if (await canLaunchUrl(Uri.parse(url))) {
-                  await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                  await launchUrl(Uri.parse(url),
+                      mode: LaunchMode.externalApplication);
                 }
               },
               child: Image.asset(
                 'assets/images/SIL_logo_h_xxhdpi.png',
-                height: MediaQuery.of(context).size.height * 0.045, // Adjust size as needed
+                height: MediaQuery.of(context).size.height *
+                    0.045, // Adjust size as needed
               ),
             ),
             SizedBox(height: MediaQuery.of(context).size.height * 0.12 * 0.1),
@@ -142,7 +149,8 @@ class UserData extends StatelessWidget {
                     const url =
                         'https://sunnyinnolab.notion.site/Terms-and-Conditions-0601612ffa404317a4ddaf5a094e5471';
                     if (await canLaunchUrl(Uri.parse(url))) {
-                      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                      await launchUrl(Uri.parse(url),
+                          mode: LaunchMode.externalApplication);
                     }
                   },
                   child: Text(
@@ -154,7 +162,8 @@ class UserData extends StatelessWidget {
                   ),
                 ),
                 const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0), // Space around the separator
+                  padding: EdgeInsets.symmetric(
+                      horizontal: 8.0), // Space around the separator
                   child: Text(
                     '|',
                     style: TextStyle(
@@ -168,7 +177,8 @@ class UserData extends StatelessWidget {
                     const url =
                         'https://sunnyinnolab.notion.site/Privacy-Policy-2919720d6e7848669b9d5e1170c6cabc';
                     if (await canLaunchUrl(Uri.parse(url))) {
-                      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                      await launchUrl(Uri.parse(url),
+                          mode: LaunchMode.externalApplication);
                     }
                   },
                   child: Text(

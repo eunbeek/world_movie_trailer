@@ -1,113 +1,110 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:simple_animations/animation_builder/loop_animation_builder.dart';
-import 'package:simple_animations/simple_animations.dart';
-import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 
+/// Legacy world-map background, adapted to tile across wide web viewports.
 class BackgroundWidget extends StatefulWidget {
+  const BackgroundWidget({
+    super.key,
+    required this.isPausePage,
+    required this.isTapeExist,
+  });
+
   final bool isPausePage;
   final bool isTapeExist;
-  const BackgroundWidget({super.key, required this.isPausePage, required this.isTapeExist});
 
   @override
-  _BackgroundWidgetState createState() => _BackgroundWidgetState();
+  State<BackgroundWidget> createState() => _BackgroundWidgetState();
 }
 
-class _BackgroundWidgetState extends State<BackgroundWidget> with SingleTickerProviderStateMixin {
+class _BackgroundWidgetState extends State<BackgroundWidget>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 50),
+    );
+    if (!widget.isPausePage) _controller.repeat();
   }
 
+  @override
+  void didUpdateWidget(covariant BackgroundWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isPausePage) {
+      _controller.stop();
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
+  }
 
- @override
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final settingsProvider = Provider.of<SettingsProvider>(context);
-    bool shouldApplyColorFilter = !widget.isTapeExist && settingsProvider.isDarkTheme;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final viewportWidth = MediaQuery.sizeOf(context).width;
+    final reelWidth = viewportWidth >= 700
+        ? (viewportWidth * 0.32).clamp(320.0, 520.0)
+        : viewportWidth * 0.67;
+    final mapAsset = dark
+        ? 'assets/images/dark/deco_world_map_DT_xxhdpi.png'
+        : 'assets/images/light/deco_world_map_LT_xxhdpi.png';
+    final reelAsset = dark
+        ? 'assets/images/dark/deco_film_reel_DT_xxhdpi.png'
+        : 'assets/images/light/deco_film_reel_LT_xxhdpi.png';
 
-    return Container(
-      color: settingsProvider.isDarkTheme ? Color(0x00232323) : Color(0xFFF2F3EC),
+    return ColoredBox(
+      color: dark ? const Color(0xFF000000) : const Color(0xFFF2F3EC),
       child: Stack(
+        fit: StackFit.expand,
         children: [
-          Positioned.fill(
-            child: ClipRect(
-              child: Stack(
-                children: [
-                  LoopAnimationBuilder(
-                    duration: const Duration(seconds: 50),
-                    tween: Tween(begin: 0.0, end: -1300),
-                    builder: (context, value, _) {
-                      return Transform.translate(
-                        offset: widget.isPausePage ? Offset.zero : Offset(value.toDouble(), 0),
-                        child: OverflowBox(
-                          maxWidth: 1300,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: AssetImage(
-                                  settingsProvider.isDarkTheme
-                                    ? "assets/images/dark/deco_world_map_DT_xxhdpi.png"
-                                    : "assets/images/light/deco_world_map_LT_xxhdpi.png",
-                                ),
-                                colorFilter: shouldApplyColorFilter
-                                  ? ColorFilter.mode(
-                                      Colors.black.withOpacity(0.3),
-                                      BlendMode.dstATop,
-                                    )
-                                  : null, 
-                              ),
-                            ),
-                          ),
-                        )
-                      );
-                    },
+          ClipRect(
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) => Transform.translate(
+                offset: Offset(-1300 * _controller.value, 0),
+                child: OverflowBox(
+                  alignment: Alignment.centerLeft,
+                  minWidth: 3900,
+                  maxWidth: 3900,
+                  child: Row(
+                    children: List.generate(
+                      3,
+                      (_) => SizedBox(
+                        width: 1300,
+                        height: MediaQuery.sizeOf(context).height,
+                        child: Image.asset(
+                          mapAsset,
+                          fit: BoxFit.cover,
+                          color: dark && !widget.isTapeExist
+                              ? Colors.black.withValues(alpha: 0.3)
+                              : null,
+                          colorBlendMode: BlendMode.dstATop,
+                        ),
+                      ),
+                    ),
                   ),
-                  LoopAnimationBuilder(
-                    duration: const Duration(seconds: 50),
-                    tween: Tween(begin: 1300, end: 0.0),
-                    builder: (context, value, _) {
-                      return Transform.translate(
-                        offset: widget.isPausePage ? Offset.zero : Offset(value.toDouble(), 0),
-                        child: OverflowBox(
-                          maxWidth: 1300,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: AssetImage(
-                                  settingsProvider.isDarkTheme
-                                    ? "assets/images/dark/deco_world_map_DT_xxhdpi.png"
-                                    : "assets/images/light/deco_world_map_LT_xxhdpi.png",
-                                ),
-                                colorFilter: shouldApplyColorFilter
-                                  ? ColorFilter.mode(
-                                      Colors.black.withOpacity(0.3),
-                                      BlendMode.dstATop,
-                                    )
-                                  : null, 
-                              ),
-                            ),
-                          ),
-                        )
-                      );
-                    },
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-
-          // Film reel background on the left
-          if(widget.isTapeExist)
+          if (widget.isTapeExist)
             Positioned(
-              bottom: 0,
               left: 0,
-              right: MediaQuery.of(context).size.width / 3, // Occupy half the screen width
-              child: Image.asset(
-                settingsProvider.isDarkTheme
-                    ? 'assets/images/dark/deco_film_reel_DT_xxhdpi.png'
-                    : 'assets/images/light/deco_film_reel_LT_xxhdpi.png',
-                fit: BoxFit.contain, // Maintain aspect ratio and fit within half the screen width
+              bottom: 0,
+              width: reelWidth,
+              child: IgnorePointer(
+                child: Image.asset(
+                  reelAsset,
+                  fit: BoxFit.contain,
+                  alignment: Alignment.bottomLeft,
+                ),
               ),
             ),
         ],
@@ -115,4 +112,3 @@ class _BackgroundWidgetState extends State<BackgroundWidget> with SingleTickerPr
     );
   }
 }
-

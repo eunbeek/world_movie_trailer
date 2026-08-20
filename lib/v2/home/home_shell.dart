@@ -4,12 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:world_movie_trailer/common/background.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
+import 'package:world_movie_trailer/common/premium_translation_prompt.dart';
+import 'package:world_movie_trailer/common/ad_manager/interstitial_ad_manager.dart';
+import 'package:world_movie_trailer/common/ad_manager/detail_ad_policy.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
 import 'package:world_movie_trailer/common/services/movie_service.dart';
 import 'package:world_movie_trailer/common/services/quote_service.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/common/translate.dart';
+import 'package:world_movie_trailer/common/translation_access.dart';
 import 'package:world_movie_trailer/layout/movie_detail_page.dart';
 import 'package:world_movie_trailer/layout/settings_page.dart';
 import 'package:world_movie_trailer/model/movie.dart';
@@ -89,6 +94,8 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
+  static const double _desktopBreakpoint = 1040;
+  final InterstitialAdManager _detailAd = InterstitialAdManager();
   static const _defaultCountryByLanguage = <String, String>{
     'en': 'us',
     'ko': 'kr',
@@ -120,7 +127,7 @@ class _HomeShellState extends State<HomeShell> {
   int _movieFilter = 1;
   String _countryCode = 'us';
   String _boxOfficeCode = 'box_office';
-  bool _showEnglish = true;
+  bool _showEnglish = false;
   bool _loading = true;
   Object? _error;
   List<Movie> _movies = const [];
@@ -129,6 +136,7 @@ class _HomeShellState extends State<HomeShell> {
   String _bookmarkQuery = '';
   _BookmarkSort _bookmarkSort = _BookmarkSort.recent;
   String? _lastLanguage;
+  bool _translationPreferenceInitialized = false;
   late final ScrollController _countryScrollController;
   bool _countryScrollPositioned = false;
 
@@ -136,11 +144,18 @@ class _HomeShellState extends State<HomeShell> {
   void initState() {
     super.initState();
     _countryScrollController = ScrollController();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _load();
+      final settings = context.read<SettingsProvider>();
+      if (!settings.isAdsFree && !kIsWeb) {
+        _detailAd.loadAd(onAdLoaded: () {}, onAdFailed: () {});
+      }
+    });
   }
 
   @override
   void dispose() {
+    _detailAd.dispose();
     _countryScrollController.dispose();
     super.dispose();
   }
@@ -148,6 +163,12 @@ class _HomeShellState extends State<HomeShell> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final settings = context.watch<SettingsProvider>();
+    if (!_translationPreferenceInitialized) {
+      _translationPreferenceInitialized = true;
+      _showEnglish =
+          TranslationAccess.defaultToTranslation(isPremium: settings.isAdsFree);
+    }
     if (!_countryScrollPositioned && MediaQuery.sizeOf(context).width < 700) {
       _countryScrollPositioned = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -156,7 +177,7 @@ class _HomeShellState extends State<HomeShell> {
         }
       });
     }
-    final language = context.watch<SettingsProvider>().language;
+    final language = settings.language;
     if (_lastLanguage == null) {
       _countryCode = _defaultCountryByLanguage[language] ?? 'us';
     } else if (_lastLanguage != language) {
@@ -291,7 +312,7 @@ class _HomeShellState extends State<HomeShell> {
     });
     try {
       if (_section == 2) {
-        _bookmarks = await MovieByUserService.getMoviesByFlag(3);
+        _bookmarks = await MovieByUserService.getBookmarks();
       } else if (_section == 4) {
         _quotes = await QuoteService.fetchQuote();
       } else {
@@ -337,6 +358,15 @@ class _HomeShellState extends State<HomeShell> {
 
   Future<void> _openMovie(Movie movie) async {
     final settings = context.read<SettingsProvider>();
+    if (!settings.isAdsFree && !kIsWeb) {
+      settings.updateOpenCount();
+      if (DetailAdPolicy.shouldShow(settings.openCount)) {
+        settings.resetOpenCount();
+        await _detailAd.showAdIfAvailableAsync();
+      }
+    }
+
+    if (!mounted) return;
     await Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => MovieDetailPageYouTube(
         movie: movie,
@@ -353,45 +383,64 @@ class _HomeShellState extends State<HomeShell> {
   Widget build(BuildContext context) {
     final language = context.watch<SettingsProvider>().language;
     final navigation = _navigationLabels[language] ?? _navigationLabels['en']!;
+    final compact = MediaQuery.sizeOf(context).width < _desktopBreakpoint;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _Header(
-              title: getAppBarTitle(language).replaceAll('\n', ' '),
-              navigationLabels: navigation,
-              section: _section,
-              onSectionChanged: _selectSection,
-              onTitleTap: () => _selectSection(0),
-              languageLabel: countryNameByLan['ko']?[language] ?? 'English',
-              originalLabel: _originalLabels[language] ?? 'Original',
-              showEnglish: _showEnglish,
-              onLanguageChanged: (value) {
-                setState(() => _showEnglish = value);
-                _load();
-              },
-              onSettings: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const SettingsPage()),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          BackgroundWidget(
+            isPausePage: false,
+            isTapeExist: true,
+          ),
+          SafeArea(
+            child: Column(children: [
+              _Header(
+                title: getAppBarTitle(language).replaceAll('\n', ' '),
+                navigationLabels: navigation,
+                section: _section,
+                onSectionChanged: _selectSection,
+                onTitleTap: () => _selectSection(0),
+                languageLabel: countryNameByLan['ko']?[language] ?? 'English',
+                originalLabel: _originalLabels[language] ?? 'Original',
+                showEnglish: _showEnglish,
+                onLanguageChanged: (value) async {
+                  final settings = context.read<SettingsProvider>();
+                  if (value &&
+                      !TranslationAccess.canTranslate(
+                          isPremium: settings.isAdsFree)) {
+                    await showPremiumTranslationPrompt(
+                      context,
+                      settings.language,
+                    );
+                    return;
+                  }
+                  setState(() => _showEnglish = value);
+                  _load();
+                },
+                onSettings: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SettingsPage()),
+                ),
               ),
-            ),
-            if (_section == 0 || _section == 3) _countrySelector(),
-            if (_section == 1) _boxOfficeSelector(),
-            if (_section == 0) _filterSelector(),
-            if (_section == 1) _weekTitle(),
-            if (_section == 3) _specialTitle(),
-            Expanded(child: _body()),
-          ],
-        ),
+              if (_section == 0 || _section == 3) _countrySelector(),
+              if (_section == 1) _boxOfficeSelector(),
+              if (_section == 0) _filterSelector(),
+              if (_section == 1) _weekTitle(),
+              if (_section == 3) _specialTitle(),
+              Expanded(child: _body()),
+            ]),
+          ),
+        ],
       ),
-      bottomNavigationBar: kIsWeb ? null : _bottomNavigation(),
+      bottomNavigationBar: compact ? _bottomNavigation() : null,
     );
   }
 
   Widget _countrySelector() {
     final countries = _countryKeys.entries.toList(growable: false);
     final itemCount = countries.length + 1;
-    final infiniteScroll = MediaQuery.sizeOf(context).width < 700;
+    final infiniteScroll =
+        MediaQuery.sizeOf(context).width < _desktopBreakpoint;
     return SizedBox(
       height: 42,
       child: ListView.builder(
@@ -422,29 +471,48 @@ class _HomeShellState extends State<HomeShell> {
 
           final entry = countries[itemIndex];
           final selected = _section == 0 && entry.key == _countryCode;
-          return TextButton(
-            onPressed: () {
-              if (selected) return;
-              setState(() {
-                _section = 0;
-                _countryCode = entry.key;
-              });
-              _load();
-            },
-            child: Text(
-              localizedCountries[context.read<SettingsProvider>().language]
-                      ?[entry.value] ??
-                  entry.value,
-              style: TextStyle(
-                color: selected
-                    ? Theme.of(context).colorScheme.onSurface
-                    : Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.65),
-                fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+          final settings = context.watch<SettingsProvider>();
+          final hasUpdate = settings.hasContentUpdate(entry.key);
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              TextButton(
+                onPressed: () {
+                  settings.acknowledgeContentUpdate(entry.key);
+                  if (selected) return;
+                  setState(() {
+                    _section = 0;
+                    _countryCode = entry.key;
+                  });
+                  _load();
+                },
+                child: Text(
+                  localizedCountries[settings.language]?[entry.value] ??
+                      entry.value,
+                  style: TextStyle(
+                    color: selected
+                        ? Theme.of(context).colorScheme.onSurface
+                        : Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.65),
+                    fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+                  ),
+                ),
               ),
-            ),
+              if (hasUpdate)
+                const Positioned(
+                  left: 3,
+                  top: 3,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Color(0xFFE53935),
+                      shape: BoxShape.circle,
+                    ),
+                    child: SizedBox(width: 8, height: 8),
+                  ),
+                ),
+            ],
           );
         },
       ),
@@ -583,28 +651,81 @@ class _HomeShellState extends State<HomeShell> {
             : getErrorMessage(context.read<SettingsProvider>().language),
       );
     }
-    return RefreshIndicator(
+    return _responsiveMovieList(
+      movies: movies,
+      boxOffice: _section == 1,
       onRefresh: _load,
-      child: ListView.separated(
-        itemCount: movies.length,
-        separatorBuilder: (_, __) =>
-            Divider(height: 1, color: Theme.of(context).dividerColor),
-        itemBuilder: (_, index) => _MovieRow(
-          movie: movies[index],
-          index: index,
-          boxOffice: _section == 1,
-          displayTitle: _displayMovieField(
-            movies[index],
-            'title',
-            movies[index].localTitle,
-          ),
-          onTap: () => _openMovie(movies[index]),
-        ),
-      ),
     );
   }
 
+  Widget _responsiveMovieList({
+    required List<Movie> movies,
+    required bool boxOffice,
+    required Future<void> Function() onRefresh,
+    bool showCountry = false,
+  }) {
+    return LayoutBuilder(builder: (context, constraints) {
+      final wide = constraints.maxWidth >= 900;
+      Widget row(int index) => _MovieRow(
+            movie: movies[index],
+            index: index,
+            boxOffice: boxOffice,
+            displayTitle: _displayMovieField(
+              movies[index],
+              'title',
+              movies[index].localTitle,
+            ),
+            displayCountry: showCountry
+                ? _displayMovieField(
+                    movies[index],
+                    'country',
+                    movies[index].country,
+                  )
+                : null,
+            onTap: () => _openMovie(movies[index]),
+          );
+
+      return RefreshIndicator(
+        onRefresh: onRefresh,
+        child: wide
+            ? GridView.builder(
+                padding: EdgeInsets.symmetric(
+                  horizontal:
+                      (constraints.maxWidth * 0.025).clamp(20, 42).toDouble(),
+                  vertical: 12,
+                ),
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 620,
+                  mainAxisExtent: 150,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 12,
+                ),
+                itemCount: movies.length,
+                itemBuilder: (_, index) => DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Theme.of(context).dividerColor),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: row(index),
+                  ),
+                ),
+              )
+            : ListView.separated(
+                itemCount: movies.length,
+                separatorBuilder: (_, __) => Divider(
+                  height: 1,
+                  color: Theme.of(context).dividerColor,
+                ),
+                itemBuilder: (_, index) => row(index),
+              ),
+      );
+    });
+  }
+
   Widget _quoteBody() {
+    final desktop = MediaQuery.sizeOf(context).width >= _desktopBreakpoint;
     final language = context.read<SettingsProvider>().language;
     final navigation = _navigationLabels[language] ?? _navigationLabels['en']!;
     if (_quotes.isEmpty) {
@@ -628,8 +749,8 @@ class _HomeShellState extends State<HomeShell> {
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.symmetric(
-          horizontal: kIsWeb ? 80 : 22,
-          vertical: kIsWeb ? 54 : 32,
+          horizontal: desktop ? 80 : 22,
+          vertical: desktop ? 54 : 32,
         ),
         children: [
           Text(
@@ -653,6 +774,7 @@ class _HomeShellState extends State<HomeShell> {
   }
 
   Widget _quoteCard(Quote quote, String language) {
+    final desktop = MediaQuery.sizeOf(context).width >= _desktopBreakpoint;
     final quoteText = !_showEnglish
         ? quote.quoteEN
         : language == 'ko'
@@ -674,8 +796,8 @@ class _HomeShellState extends State<HomeShell> {
         child: Container(
           width: double.infinity,
           padding: EdgeInsets.symmetric(
-            horizontal: kIsWeb ? 56 : 25,
-            vertical: kIsWeb ? 42 : 32,
+            horizontal: desktop ? 56 : 25,
+            vertical: desktop ? 42 : 32,
           ),
           decoration: BoxDecoration(
             color: Theme.of(context)
@@ -695,7 +817,7 @@ class _HomeShellState extends State<HomeShell> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurface,
-                  fontSize: kIsWeb ? 22 : 19,
+                  fontSize: desktop ? 22 : 19,
                   fontWeight: FontWeight.w700,
                   height: 1.5,
                 ),
@@ -722,6 +844,7 @@ class _HomeShellState extends State<HomeShell> {
   }
 
   Widget _bookmarkBody() {
+    final desktop = MediaQuery.sizeOf(context).width >= _desktopBreakpoint;
     final language = context.read<SettingsProvider>().language;
     final labels = _bookmarkLabels[language] ?? _bookmarkLabels['en']!;
     final query = _bookmarkQuery.trim().toLowerCase();
@@ -759,7 +882,7 @@ class _HomeShellState extends State<HomeShell> {
       children: [
         Padding(
           padding:
-              EdgeInsets.fromLTRB(kIsWeb ? 40 : 16, 22, kIsWeb ? 40 : 16, 18),
+              EdgeInsets.fromLTRB(desktop ? 40 : 16, 22, desktop ? 40 : 16, 18),
           child: Column(
             children: [
               Row(
@@ -767,7 +890,7 @@ class _HomeShellState extends State<HomeShell> {
                   Text(labels['title']!,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurface,
-                        fontSize: kIsWeb ? 28 : 23,
+                        fontSize: desktop ? 28 : 23,
                         fontWeight: FontWeight.w800,
                       )),
                   const Spacer(),
@@ -836,7 +959,7 @@ class _HomeShellState extends State<HomeShell> {
                         children: [
                           const Icon(Icons.swap_vert_rounded,
                               color: Color(0xFF9D00C6)),
-                          if (kIsWeb) ...[
+                          if (desktop) ...[
                             const SizedBox(width: 5),
                             Text(_bookmarkSortLabel(labels),
                                 style: const TextStyle(
@@ -865,30 +988,7 @@ class _HomeShellState extends State<HomeShell> {
                       ? labels['emptyDescription']!
                       : labels['tryAgain']!,
                 )
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: ListView.separated(
-                    itemCount: items.length,
-                    separatorBuilder: (_, __) => Divider(
-                        height: 1, color: Theme.of(context).dividerColor),
-                    itemBuilder: (_, index) => _MovieRow(
-                      movie: items[index].movie,
-                      displayTitle: _displayMovieField(
-                        items[index].movie,
-                        'title',
-                        items[index].movie.localTitle,
-                      ),
-                      displayCountry: _displayMovieField(
-                        items[index].movie,
-                        'country',
-                        items[index].movie.country,
-                      ),
-                      index: index,
-                      boxOffice: false,
-                      onTap: () => _openMovie(items[index].movie),
-                    ),
-                  ),
-                ),
+              : _responsiveBookmarkList(items),
         ),
       ],
     );
@@ -900,6 +1000,16 @@ class _HomeShellState extends State<HomeShell> {
         _BookmarkSort.title => labels['titleSort']!,
         _BookmarkSort.releaseDate => labels['releaseSort']!,
       };
+
+  Widget _responsiveBookmarkList(List<MovieByUser> items) {
+    final movies = items.map((item) => item.movie).toList(growable: false);
+    return _responsiveMovieList(
+      movies: movies,
+      boxOffice: false,
+      onRefresh: _load,
+      showCountry: true,
+    );
+  }
 
   Widget _bottomNavigation() {
     final language = context.read<SettingsProvider>().language;
@@ -953,79 +1063,83 @@ class _Header extends StatelessWidget {
   final VoidCallback onSettings;
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(18, 10, 8, 6),
-        child: Row(
-          crossAxisAlignment:
-              kIsWeb ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-          children: [
-            if (kIsWeb)
-              InkWell(
-                onTap: onTitleTap,
-                borderRadius: BorderRadius.circular(6),
-                child: SizedBox(
-                  height: 52,
-                  child: Center(child: _title(context)),
-                ),
-              )
-            else
-              Expanded(child: _title(context)),
-            if (kIsWeb) ...[
-              const SizedBox(width: 30),
-              _WebNavigationItem(
-                label: navigationLabels['countries']!,
-                selected: section == 0 || section == 3,
-                onTap: () => onSectionChanged(0),
-              ),
-              _WebNavigationItem(
-                label: navigationLabels['boxOffice']!,
-                selected: section == 1,
-                onTap: () => onSectionChanged(1),
-              ),
-              _WebNavigationItem(
-                label: navigationLabels['bookmarks']!,
-                selected: section == 2,
-                onTap: () => onSectionChanged(2),
-              ),
-            ],
-            if (kIsWeb) const Spacer(),
-            if (kIsWeb)
-              SizedBox(
+  Widget build(BuildContext context) {
+    final desktop = MediaQuery.sizeOf(context).width >= 1040;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(desktop ? 24 : 14, 10, 8, 6),
+      child: Row(
+        crossAxisAlignment:
+            desktop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+        children: [
+          if (desktop)
+            InkWell(
+              onTap: onTitleTap,
+              borderRadius: BorderRadius.circular(6),
+              child: SizedBox(
                 height: 52,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const _StoreBadge.apple(),
-                    const SizedBox(width: 5),
-                    const _StoreBadge.googlePlay(),
-                    const SizedBox(width: 14),
-                    _languageSwitch(),
-                    _settingsButton(context),
-                  ],
-                ),
-              )
-            else ...[
-              _languageSwitch(),
-              _settingsButton(context),
-            ],
+                child: Center(child: _title(context)),
+              ),
+            )
+          else
+            Expanded(child: _title(context)),
+          if (desktop) ...[
+            const SizedBox(width: 30),
+            _WebNavigationItem(
+              label: navigationLabels['countries']!,
+              selected: section == 0 || section == 3,
+              onTap: () => onSectionChanged(0),
+            ),
+            _WebNavigationItem(
+              label: navigationLabels['boxOffice']!,
+              selected: section == 1,
+              onTap: () => onSectionChanged(1),
+            ),
+            _WebNavigationItem(
+              label: navigationLabels['bookmarks']!,
+              selected: section == 2,
+              onTap: () => onSectionChanged(2),
+            ),
           ],
-        ),
-      );
+          if (desktop) const Spacer(),
+          if (desktop)
+            SizedBox(
+              height: 52,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const _StoreBadge.apple(),
+                  const SizedBox(width: 5),
+                  const _StoreBadge.googlePlay(),
+                  const SizedBox(width: 14),
+                  _languageSwitch(),
+                  _settingsButton(context),
+                ],
+              ),
+            )
+          else ...[
+            _languageSwitch(),
+            _settingsButton(context),
+          ],
+        ],
+      ),
+    );
+  }
 
   Widget _title(BuildContext context) {
+    final desktop = MediaQuery.sizeOf(context).width >= 1040;
     final titleText = Text(
       title,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: TextStyle(
-        color: kIsWeb
+        color: desktop
             ? const Color(0xFFB12DDB)
             : Theme.of(context).colorScheme.onSurface,
         fontSize: 21,
         fontWeight: FontWeight.w800,
       ),
     );
-    if (!kIsWeb) return titleText;
+    if (!desktop) return titleText;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

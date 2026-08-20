@@ -10,20 +10,19 @@ class IapHelper {
   static final _iap = InAppPurchase.instance;
   static bool _isPending = false;
 
-  static String get _productId =>
-      Platform.isIOS
-          ? 'com.sunnyinnolab.worldMovieTrailer.ads_free'
-          : 'com.sunnyinnolab.worldmovietrailer.ads_free';
+  static String get _productId => Platform.isIOS
+      ? 'com.sunnyinnolab.worldMovieTrailer.ads_free'
+      : 'com.sunnyinnolab.worldmovietrailer.ads_free';
 
   // 추가된 가격 변수
   static String _price = '';
   static String _currency = '';
 
-  static String get price => _price; 
+  static String get price => _price;
   static String get currency => _currency;
 
   // 가격을 업데이트하는 메서드
-  static Future<void> fetchProductPrice(BuildContext context) async {
+  static Future<void> fetchProductPrice() async {
     final response = await _iap.queryProductDetails({_productId});
 
     if (response.notFoundIDs.isNotEmpty) {
@@ -34,18 +33,16 @@ class IapHelper {
     final product = response.productDetails.first;
     _price = product.price;
     _currency = product.currencyCode;
-
-    // UI 업데이트를 위해 상태 변경
-    Provider.of<SettingsProvider>(context, listen: false).notifyListeners();
   }
 
   static Future<void> buyProduct(BuildContext context) async {
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final settingsProvider =
+        Provider.of<SettingsProvider>(context, listen: false);
 
     if (_isPending) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(getDonationLabel(settingsProvider.language, "pending")))
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content:
+              Text(getDonationLabel(settingsProvider.language, "pending"))));
       return;
     }
 
@@ -71,9 +68,8 @@ class IapHelper {
         'reason': e.toString(),
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(getDonationLabel(settingsProvider.language, "retry")))
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(getDonationLabel(settingsProvider.language, "retry"))));
     }
   }
 
@@ -89,13 +85,14 @@ class IapHelper {
 
   static void listenToPurchases(BuildContext context) {
     _iap.purchaseStream.listen((purchases) async {
-      final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+      final settingsProvider =
+          Provider.of<SettingsProvider>(context, listen: false);
 
       if (purchases.isEmpty) {
         debugPrint("사용자가 결제창 닫음 (status 없음)");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(getDonationLabel(settingsProvider.language, "cancelDonation")))
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(getDonationLabel(
+                settingsProvider.language, "cancelDonation"))));
         return;
       }
 
@@ -138,9 +135,9 @@ class IapHelper {
               'reason': purchase.error?.message ?? 'User canceled or unknown',
             });
 
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(getDonationLabel(settingsProvider.language, "retry")))
-            );
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(
+                    getDonationLabel(settingsProvider.language, "retry"))));
             break;
 
           default:

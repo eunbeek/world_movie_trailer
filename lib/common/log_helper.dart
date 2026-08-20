@@ -1,7 +1,5 @@
 import 'package:amplitude_flutter/amplitude.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:world_movie_trailer/model/settings.dart';
 
 class LogHelper {
   static final LogHelper _instance = LogHelper._internal();
@@ -23,10 +21,6 @@ class LogHelper {
 
   // Unified logEvent method for both Google Analytics and Amplitude
   void logEvent(String eventName, {Map<String, dynamic>? parameters}) {
-    // Fetch userId from Hive
-    String userId = _getUserIdFromHive();
-    _amplitude?.setUserId(userId);
-
     _amplitude?.logEvent(eventName, eventProperties: parameters);
   }
 
@@ -36,11 +30,5 @@ class LogHelper {
 
   void setUserProperties(Map<String, dynamic> properties) {
     _amplitude?.setUserProperties(properties);
-  }
-
-  String _getUserIdFromHive() {
-    var settingsBox = Hive.box<Settings>('settings');
-    Settings? currentSettings = settingsBox.get('app_settings');
-    return currentSettings?.userId ?? '';
   }
 }

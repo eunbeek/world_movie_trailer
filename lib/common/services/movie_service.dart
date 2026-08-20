@@ -30,7 +30,7 @@ class MovieService {
   }
 
   static Future<Box> _openBox() async {
-    return await Hive.openBox('moviesBoxV2');
+    return await Hive.openBox('movie_cache');
   }
 
   static const Set<String> storageCountryCodes = {
@@ -78,7 +78,6 @@ class MovieService {
 
   static Future<List<Movie>> fetchMovie(
       String country, String languageCode) async {
-    print('fetchMovie');
     Box box = await _openBox();
     String countryCode;
     String? countryName = country == special
@@ -167,7 +166,6 @@ class MovieService {
   static Future<Map<String, dynamic>> readMoviesFromStorage(String countryCode,
       [String languageCode = 'en']) async {
     try {
-      print('readMoviesFromStorage');
       final data = await _readStorageObject('movies_$countryCode.json');
       final jsonString = utf8.decode(data);
 
@@ -275,12 +273,9 @@ class MovieService {
   static Future<void> _saveMoviesToHive(
       Box box, String cacheKey, Map<String, dynamic> newUpdate) async {
     try {
-      print('_saveMoviesToHive');
-
       Map<String, dynamic> dataToSave = newUpdate;
 
       await box.put(cacheKey, dataToSave);
-      print('Movies saved to Hive successfully');
     } catch (err) {
       print('Error saving movies to Hive: $err');
     }
@@ -288,7 +283,6 @@ class MovieService {
 
   static Future<Map<String, dynamic>> _getMoviesFromHive(
       Box box, String cacheKey) async {
-    print('_getMoviesFromHive');
     try {
       // Retrieve data as dynamic first
       final dynamic cached = box.get(cacheKey);
@@ -351,7 +345,6 @@ class MovieService {
   static bool _isDataOutdated(DateTime lastFetched, bool isSpecial,
       {String? country}) {
     final now = DateTime.now();
-    print('_isDataOutdated');
     if (isSpecial) {
       // For special sections, check if the year and month are the same
       return now.difference(lastFetched).inDays > 30;
@@ -388,7 +381,6 @@ class MovieService {
 
   static Future<String> fetchPromotionUrl() async {
     try {
-      print('readMoviesFromStorage');
       final data = await _readStorageObject('promotion_url.json');
       final jsonString = utf8.decode(data);
 
@@ -405,7 +397,6 @@ class MovieService {
 
   static Future<bool> fetchHotFixMode() async {
     try {
-      print('Fetching hotFixMode from Firebase Storage...');
       final data = await _readStorageObject('hotFixMode.json');
       final jsonString = utf8.decode(data);
 

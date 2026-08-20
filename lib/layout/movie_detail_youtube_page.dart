@@ -1,15 +1,17 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:world_movie_trailer/common/background.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:world_movie_trailer/common/ad_manager/interstitial_ad_manager.dart';
+import 'package:world_movie_trailer/common/premium_translation_prompt.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
 import 'package:world_movie_trailer/common/translate.dart';
-import 'package:world_movie_trailer/main.dart';
+import 'package:world_movie_trailer/common/translation_access.dart';
+import 'package:world_movie_trailer/app/world_movie_trailer_app.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/model/movieByUser.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
@@ -22,7 +24,6 @@ class MovieDetailPageYouTube extends StatefulWidget {
     required this.captionLan,
     required this.isCustomized,
     this.initialShowOriginal = false,
-    this.flag,
     this.cIdx,
   });
 
@@ -31,7 +32,6 @@ class MovieDetailPageYouTube extends StatefulWidget {
   final String captionLan;
   final bool isCustomized;
   final bool initialShowOriginal;
-  final int? flag;
   final int? cIdx;
 
   @override
@@ -40,7 +40,6 @@ class MovieDetailPageYouTube extends StatefulWidget {
 
 class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   YoutubePlayerController? _controller;
-  final InterstitialAdManager _translationAd = InterstitialAdManager();
   bool _isBookmarked = false;
   bool _showOriginal = false;
 
@@ -49,7 +48,8 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   @override
   void initState() {
     super.initState();
-    _showOriginal = widget.initialShowOriginal;
+    _showOriginal = widget.initialShowOriginal ||
+        !TranslationAccess.defaultToTranslation(isPremium: _settings.isAdsFree);
     if (widget.movie.trailerUrl.isNotEmpty) {
       _controller = YoutubePlayerController(
         initialVideoId: widget.movie.trailerUrl,
@@ -69,9 +69,6 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
     ]);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkBookmark();
-      if (!_settings.isAdsFree) {
-        _translationAd.loadAd(onAdLoaded: () {}, onAdFailed: () {});
-      }
     });
     LogHelper().logEvent('trailer_watched', parameters: {
       'movie': widget.movie.localTitle,
@@ -116,12 +113,12 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   Future<void> _checkBookmark() async {
     final key =
         widget.movie.id.isNotEmpty ? widget.movie.id : widget.movie.localTitle;
-    final unique = await MovieByUserService.getIsUnique(3, key);
+    final unique = await MovieByUserService.getIsUnique(key);
     if (mounted) setState(() => _isBookmarked = !unique);
   }
 
   Future<void> _toggleBookmark() async {
-    final items = await MovieByUserService.getMoviesByFlag(3);
+    final items = await MovieByUserService.getBookmarks();
     final key =
         widget.movie.id.isNotEmpty ? widget.movie.id : widget.movie.localTitle;
     final index = items.indexWhere((item) {
@@ -130,16 +127,15 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
       return storedKey == key;
     });
     if (_isBookmarked && index >= 0) {
-      await MovieByUserService.deleteMovie(3, index);
+      await MovieByUserService.deleteMovie(index);
       _message('movieDeleted');
     } else if (!_isBookmarked) {
-      if (!await MovieByUserService.getIsAvailable(3, _settings)) {
+      if (!await MovieByUserService.getIsAvailable(_settings)) {
         _message('maxMoviesReached');
         return;
       }
       await MovieByUserService.addMovie(
-        3,
-        MovieByUser(flag: 3, movie: widget.movie),
+        MovieByUser(movie: widget.movie, savedDate: DateTime.now()),
         _settings,
       );
       _message('addToBookmark');
@@ -154,16 +150,16 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
     ));
   }
 
-  void _translate() {
+  Future<void> _translate() async {
     void toggle() {
       if (mounted) setState(() => _showOriginal = !_showOriginal);
     }
 
-    if (_settings.isAdsFree) {
-      toggle();
-    } else {
-      _translationAd.showAdIfAvailable(toggle);
+    if (!TranslationAccess.canTranslate(isPremium: _settings.isAdsFree)) {
+      await showPremiumTranslationPrompt(context, _settings.language);
+      return;
     }
+    toggle();
   }
 
   void _share() {
@@ -206,28 +202,37 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
 
   Widget _page(Widget player) => Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: SafeArea(
-          child: Column(
-            children: [
-              _header(),
-              Divider(height: 1, color: Theme.of(context).dividerColor),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      player,
-                      if (!widget.isCustomized) _actions(),
-                      Divider(height: 1, color: Theme.of(context).dividerColor),
-                      _metadata(),
-                      Divider(height: 1, color: Theme.of(context).dividerColor),
-                      _overviewSection(),
-                      Divider(height: 1, color: Theme.of(context).dividerColor),
-                    ],
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            const BackgroundWidget(isPausePage: true, isTapeExist: true),
+            SafeArea(
+              child: Column(
+                children: [
+                  _header(),
+                  Divider(height: 1, color: Theme.of(context).dividerColor),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          player,
+                          if (!widget.isCustomized) _actions(),
+                          Divider(
+                              height: 1, color: Theme.of(context).dividerColor),
+                          _metadata(),
+                          Divider(
+                              height: 1, color: Theme.of(context).dividerColor),
+                          _overviewSection(),
+                          Divider(
+                              height: 1, color: Theme.of(context).dividerColor),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
 
