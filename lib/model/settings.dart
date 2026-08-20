@@ -60,41 +60,37 @@ class Settings extends HiveObject {
   bool? isBookmarkAlarmOn;
 
   @HiveField(17)
-  bool? isMemoAlarmOn;
-
-  @HiveField(18)
   bool? isAdsFree;
 
-  @HiveField(19)
+  @HiveField(18)
   String? userId;
 
-  Settings({
-    required this.language,
-    required this.theme,
-    required this.countryOrder,
-    required this.isVibrate,
-    required this.isCaptionOn,
-    required this.isQuotes,
-    required this.startDate,
-    required this.totalOpen,
-    required this.openCount,
-    required this.specialPeriod,
-    required this.isNewShown,
-    required this.lastDate,
-    this.lastSpecialNumber = 0, 
-    required this.lastSpecialFetched,
-    this.isAlarmOn,   // Future: Alarm
-    this.isDailyAlarmOn,
-    this.isBookmarkAlarmOn,
-    this.isMemoAlarmOn,
-    this.isAdsFree,
-    this.userId
-  });
+  Settings(
+      {required this.language,
+      required this.theme,
+      required this.countryOrder,
+      required this.isVibrate,
+      required this.isCaptionOn,
+      required this.isQuotes,
+      required this.startDate,
+      required this.totalOpen,
+      required this.openCount,
+      required this.specialPeriod,
+      required this.isNewShown,
+      required this.lastDate,
+      this.lastSpecialNumber = 0,
+      required this.lastSpecialFetched,
+      this.isAlarmOn, // Future: Alarm
+      this.isDailyAlarmOn,
+      this.isBookmarkAlarmOn,
+      this.isAdsFree,
+      this.userId});
 
   // Factory constructor to create default settings
   factory Settings.defaultSettings() {
     final String newLanguage = PlatformDispatcher.instance.locale.languageCode;
-    final String deviceLanguage = supportedLanguages.contains(newLanguage) ? newLanguage : 'en';
+    final String deviceLanguage =
+        supportedLanguages.contains(newLanguage) ? newLanguage : 'en';
 
     // Country order based on the selected language
     List<String> getLocalizedCountryKeys(String lcode) {
@@ -105,55 +101,47 @@ class Settings extends HiveObject {
       }
     }
 
-    // 현재 요일을 기반으로 초기화
-    int currentWeekday = DateTime.now().weekday - 1;
     Map<int, Map<String, bool>> defaultNewShown = {
-      0: {'korea': false, 'box': false},                // Monday
-      1: {'japan': false},                // Tuesday
+      0: {'korea': false}, // Monday
+      1: {'japan': false}, // Tuesday
       2: {'usa': false, 'canada': false}, // Wednesday
       3: {'india': false, 'spain': false, 'taiwan': false}, // Thursday
-      4: {'france': false, 'china': false},               // Friday
-      5: {'germany': false},              // Saturday
+      4: {'france': false, 'china': false}, // Friday
+      5: {'germany': false}, // Saturday
       6: {'australia': false, 'thailand': false}, // Sunday
     };
-
-    // 현재 요일에 해당하는 국가들의 상태를 모두 true로 설정
-    if (defaultNewShown.containsKey(currentWeekday)) {
-      defaultNewShown[currentWeekday]!.updateAll((key, value) => true);
-    }
 
     // Future: Alarm
     final defaultAlarmByLan = countryByLanguage[deviceLanguage];
     final defaultIsAlarmOn = countryByDay.map((day, countries) {
       return MapEntry(day, {
-        for (var country in countries) country: defaultAlarmByLan?.contains(country) ?? false,
+        for (var country in countries)
+          country: defaultAlarmByLan?.contains(country) ?? false,
       });
     });
 
     // UUID 생성 (앱 실행 시마다 새로 생성)
     var uuid = Uuid();
-    String generatedUuid = uuid.v4();  // 새로운 UUID 생성
-    
+    String generatedUuid = uuid.v4(); // 새로운 UUID 생성
+
     return Settings(
-      language: deviceLanguage,
-      theme: 'dark',
-      countryOrder: getLocalizedCountryKeys(deviceLanguage),
-      isVibrate: true,
-      isCaptionOn: false,
-      isQuotes: true,
-      startDate: DateTime.now(),
-      totalOpen: 0,
-      openCount: 0,
-      specialPeriod: '',
-      isNewShown: defaultNewShown,
-      lastDate: DateTime.now(),
-      lastSpecialFetched: DateTime.now(),
-      isAlarmOn: defaultIsAlarmOn,
-      isDailyAlarmOn: true,
-      isBookmarkAlarmOn: true,
-      isMemoAlarmOn: true,
-      isAdsFree: false,
-      userId: generatedUuid
-    );
+        language: deviceLanguage,
+        theme: 'dark',
+        countryOrder: getLocalizedCountryKeys(deviceLanguage),
+        isVibrate: true,
+        isCaptionOn: false,
+        isQuotes: true,
+        startDate: DateTime.now(),
+        totalOpen: 0,
+        openCount: 0,
+        specialPeriod: '',
+        isNewShown: defaultNewShown,
+        lastDate: DateTime.now(),
+        lastSpecialFetched: DateTime.now(),
+        isAlarmOn: defaultIsAlarmOn,
+        isDailyAlarmOn: true,
+        isBookmarkAlarmOn: true,
+        isAdsFree: false,
+        userId: generatedUuid);
   }
 }

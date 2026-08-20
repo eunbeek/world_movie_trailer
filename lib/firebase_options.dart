@@ -27,6 +27,7 @@ class DefaultFirebaseOptions {
         );
     }
   }
+
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyA323GF95NhZ7QjhMZKit5uF1IJaVeTgY8',
     appId: '1:917295366628:ios:9d8fac6dab626ddc0cc7f1',
@@ -43,5 +44,4 @@ class DefaultFirebaseOptions {
     projectId: 'world-movie-trailer',
     storageBucket: 'world-movie-trailer.appspot.com',
   );
-
 }

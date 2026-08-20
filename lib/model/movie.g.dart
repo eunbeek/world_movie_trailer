@@ -48,13 +48,18 @@ class MovieAdapter extends TypeAdapter<Movie> {
       isNewThisWeek: fields[28] as bool?,
       weekStartDate: fields[29] as String?,
       weekEndDate: fields[30] as String?,
+      id: fields[31] as String,
+      tid: fields[32] as String,
+      originSource: (fields[33] as Map).cast<String, dynamic>(),
+      translations: (fields[34] as Map).cast<String, dynamic>(),
+      metadata: (fields[35] as Map).cast<String, dynamic>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, Movie obj) {
     writer
-      ..writeByte(31)
+      ..writeByte(36)
       ..writeByte(0)
       ..write(obj.localTitle)
       ..writeByte(1)
@@ -116,7 +121,17 @@ class MovieAdapter extends TypeAdapter<Movie> {
       ..writeByte(29)
       ..write(obj.weekStartDate)
       ..writeByte(30)
-      ..write(obj.weekEndDate);
+      ..write(obj.weekEndDate)
+      ..writeByte(31)
+      ..write(obj.id)
+      ..writeByte(32)
+      ..write(obj.tid)
+      ..writeByte(33)
+      ..write(obj.originSource)
+      ..writeByte(34)
+      ..write(obj.translations)
+      ..writeByte(35)
+      ..write(obj.metadata);
   }
 
   @override

@@ -1,10 +1,9 @@
 import 'package:hive/hive.dart';
 
-part 'quote.g.dart'; 
+part 'quote.g.dart';
 
 @HiveType(typeId: 2)
 class Quote extends HiveObject {
-  
   @HiveField(0)
   final String quoteEN;
 
@@ -59,16 +58,17 @@ class Quote extends HiveObject {
   }
 
   factory Quote.fromJson(Map<String, dynamic> json) {
+    String text(String key) => (json[key] ?? '').toString();
     return Quote(
-      quoteEN: json['quoteEN'] as String,
-      movieEN: json['movieEN'] as String,
-      quoteKR: json['quoteKR'] as String,
-      movieKR: json['movieKR'] as String,
-      quoteJP: json['quoteJP'] as String,
-      movieJP: json['movieJP'] as String,
-      isShowed: json['isShowed'] ?? false,
-      quoteKey: int.parse(json['quoteKey']),
-      timestamp: json['timestamp'] as String,
+      quoteEN: text('quoteEN'),
+      movieEN: text('movieEN'),
+      quoteKR: text('quoteKR'),
+      movieKR: text('movieKR'),
+      quoteJP: text('quoteJP'),
+      movieJP: text('movieJP'),
+      isShowed: json['isShowed'] == true,
+      quoteKey: int.tryParse(text('quoteKey')) ?? 0,
+      timestamp: text('timestamp'),
     );
   }
 }

@@ -97,6 +97,23 @@ class Movie extends HiveObject {
   @HiveField(30)
   String? weekEndDate;
 
+  // Schema v2 fields. Existing Hive field numbers 0-30 must never change:
+  // bookmarks and memos created by v1 users are stored with those numbers.
+  @HiveField(31)
+  final String id;
+
+  @HiveField(32)
+  final String tid;
+
+  @HiveField(33)
+  final Map<String, dynamic> originSource;
+
+  @HiveField(34)
+  final Map<String, dynamic> translations;
+
+  @HiveField(35)
+  final Map<String, dynamic> metadata;
+
   Movie({
     required this.localTitle,
     required this.posterUrl,
@@ -128,76 +145,123 @@ class Movie extends HiveObject {
     this.distributor, // box office
     this.isNewThisWeek, // box office
     this.weekStartDate, // box office
-    this.weekEndDate // box office
+    this.weekEndDate, // box office
+    this.id = '',
+    this.tid = '',
+    this.originSource = const {},
+    this.translations = const {},
+    this.metadata = const {},
   });
 
   Map<String, dynamic> toJson() => {
-    'localTitle': localTitle,
-    'posterUrl': posterUrl,
-    'trailerUrl': trailerUrl,
-    'country': country,
-    'source': source,
-    'spec': spec,
-    'releaseDate': releaseDate,
-    'runtime': runtime,
-    'credits': credits,
-    'status': status,
-    'special': special,
-    'year': year,
-    'nameKR': nameKR,
-    'nameJP': nameJP,
-    'nameCH': nameCH,
-    'nameTW': nameTW,
-    'nameFR': nameFR,
-    'nameDE': nameDE,
-    'nameES': nameES,
-    'nameHI': nameHI,
-    'nameTH': nameTH,
-    'isYoutube': isYoutube,
-    'period': period,
-    'rank': rank,
-    'lastRank': lastRank,
-    'totalGross': totalGross,
-    'weeks': weeks,
-    'distributor': distributor,
-    'isNewThisWeek': isNewThisWeek,
-    'weekStartDate': weekStartDate,
-    'weekEndDate': weekEndDate
-  };
+        'localTitle': localTitle,
+        'posterUrl': posterUrl,
+        'trailerUrl': trailerUrl,
+        'country': country,
+        'source': source,
+        'spec': spec,
+        'releaseDate': releaseDate,
+        'runtime': runtime,
+        'credits': credits,
+        'status': status,
+        'special': special,
+        'year': year,
+        'nameKR': nameKR,
+        'nameJP': nameJP,
+        'nameCH': nameCH,
+        'nameTW': nameTW,
+        'nameFR': nameFR,
+        'nameDE': nameDE,
+        'nameES': nameES,
+        'nameHI': nameHI,
+        'nameTH': nameTH,
+        'isYoutube': isYoutube,
+        'period': period,
+        'rank': rank,
+        'lastRank': lastRank,
+        'totalGross': totalGross,
+        'weeks': weeks,
+        'distributor': distributor,
+        'isNewThisWeek': isNewThisWeek,
+        'weekStartDate': weekStartDate,
+        'weekEndDate': weekEndDate,
+        'id': id,
+        'tid': tid,
+        'originSource': originSource,
+        'translations': translations,
+        'metadata': metadata,
+      };
 
-  factory Movie.fromJson(Map<dynamic, dynamic> json) {
+  factory Movie.fromJson(Map<dynamic, dynamic> json,
+      {String languageCode = 'en'}) {
+    final origin = json['originSource'] is Map
+        ? Map<dynamic, dynamic>.from(json['originSource'])
+        : <dynamic, dynamic>{};
+    final metadata = json['metadata'] is Map
+        ? Map<dynamic, dynamic>.from(json['metadata'])
+        : <dynamic, dynamic>{};
+    final translations = json['translations'] is Map
+        ? Map<dynamic, dynamic>.from(json['translations'])
+        : <dynamic, dynamic>{};
+    const translationKeys = {'zh': 'cn', 'hi': 'in'};
+    final translationKey = translationKeys[languageCode] ?? languageCode;
+    final selected = translations[translationKey] is Map
+        ? Map<dynamic, dynamic>.from(translations[translationKey])
+        : <dynamic, dynamic>{};
+
+    dynamic value(String key, [dynamic fallback = '']) =>
+        json[key] ?? metadata[key] ?? fallback;
+    String localized(String key, String legacyKey) =>
+        (selected[key] ?? origin[key] ?? json[legacyKey] ?? '').toString();
+
+    Map<String, dynamic> stringMap(Map<dynamic, dynamic> source) =>
+        source.map((key, value) => MapEntry(key.toString(), value));
+
+    Map<String, dynamic> creditsMap() {
+      final raw = json['credits'];
+      return raw is Map ? stringMap(Map<dynamic, dynamic>.from(raw)) : {};
+    }
+
     return Movie(
-      localTitle: json['localTitle'] ?? '',
-      posterUrl: json['posterUrl'] ?? '',
-      trailerUrl: json['trailerUrl'] ?? '',
-      country: json['country'] ?? '',
-      source: json['source'] ?? '',
-      spec: json['spec'] ?? '',
-      releaseDate: json['releaseDate'] ?? '',
-      runtime: json['runtime'] ?? 0,
-      credits: json['credits'] ?? {},
-      status: json['status'] ?? '',
-      special: json['special'] ?? '',
-      year: json['year'] ?? '', 
-      nameKR: json['NameKR'] ?? '', 
-      nameJP: json['NameJP'] ?? '', 
-      nameCH: json['NameCH'] ?? '', 
-      nameTW: json['NameTW'] ?? '', 
-      nameFR: json['NameFR'] ?? '', 
-      nameDE: json['NameDE'] ?? '', 
-      nameES: json['NameES'] ?? '', 
-      nameHI: json['NameHI'] ?? '', 
-      nameTH: json['NameTH'] ?? '', 
-      isYoutube: json['isYoutube'] ??  true,
-      period: int.tryParse(json['period']?.toString() ?? '0') ?? 0,
-      rank: json['rank'] ?? '',
-      lastRank: json['lastRank'] ?? '',
-      totalGross: json['totalGross'] ?? '',
-      weeks: json['weeks'] ?? '',
-      distributor: json['distributor'] ?? '',
-      isNewThisWeek: json['isNewThisWeek'] ?? false,
-      weekStartDate: json['weekStartDate'] ?? '',
-      weekEndDate: json['weekEndDate'] ?? ''
-    );
+        localTitle: localized('title', 'localTitle'),
+        posterUrl: value('posterUrl').toString(),
+        trailerUrl: value('trailerUrl').toString(),
+        country: localized('country', 'country'),
+        source: (value('source').toString().isNotEmpty
+                ? value('source')
+                : origin['credits'] ?? '')
+            .toString(),
+        spec: localized('overview', 'spec'),
+        releaseDate: value('releaseDate').toString(),
+        runtime: value('runtime', 0),
+        credits: creditsMap(),
+        status: value('status').toString(),
+        special: (selected['concept'] ?? origin['concept'] ?? value('special'))
+            .toString(),
+        year: value('year').toString(),
+        nameKR: translations['ko']?['credits'] ?? json['NameKR'] ?? '',
+        nameJP: translations['ja']?['credits'] ?? json['NameJP'] ?? '',
+        nameCH: translations['cn']?['credits'] ?? json['NameCH'] ?? '',
+        nameTW: translations['tw']?['credits'] ?? json['NameTW'] ?? '',
+        nameFR: translations['fr']?['credits'] ?? json['NameFR'] ?? '',
+        nameDE: translations['de']?['credits'] ?? json['NameDE'] ?? '',
+        nameES: translations['es']?['credits'] ?? json['NameES'] ?? '',
+        nameHI: translations['in']?['credits'] ?? json['NameHI'] ?? '',
+        nameTH: translations['th']?['credits'] ?? json['NameTH'] ?? '',
+        isYoutube: value('isYoutube', true),
+        period: int.tryParse(value('period', 0).toString()) ?? 0,
+        rank: value('rank').toString(),
+        lastRank: value('lastRank').toString(),
+        totalGross: value('totalGross').toString(),
+        weeks: value('weeks').toString(),
+        distributor: value('distributor').toString(),
+        isNewThisWeek: value('isNewThisWeek', false) == true,
+        weekStartDate: value('weekStartDate').toString(),
+        weekEndDate: value('weekEndDate').toString(),
+        id: value('id').toString(),
+        tid: value('tid').toString(),
+        originSource: stringMap(origin),
+        translations: stringMap(translations),
+        metadata: stringMap(metadata));
   }
 }

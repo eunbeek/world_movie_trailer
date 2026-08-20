@@ -1,0 +1,80 @@
+/* eslint-disable max-len */
+const axios = require("axios");
+
+const showTimeUrl = "https://capi.showtimes.com.tw/1/app/bootstrap";
+
+const showTimeHeaders = {
+  "accept": "application/json, text/plain, */*",
+  "authorization": "undefined", // If you have a valid token, replace "undefined" with it
+  "referer": "https://www.showtimes.com.tw/",
+  "sec-ch-ua": "\"Not)A;Brand\";v=\"99\", \"Google Chrome\";v=\"127\", \"Chromium\";v=\"127\"",
+  "sec-ch-ua-mobile": "?0",
+  "sec-ch-ua-platform": "\"macOS\"",
+  "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+};
+
+/**
+ * Strips HTML tags from a string.
+ * @param {string} str - The input string containing HTML.
+ * @return {string} - The cleaned string without HTML tags.
+ */
+function removeHtmlTags(str) {
+  return str.replace(/<[^>]*>/g, ""); // Removes everything between '<' and '>'
+}
+
+/**
+ * Fetches movie data from ShowTime
+ * @return {Promise<Array>}
+ * A promise that resolves to a list of movies from ShowTime.
+ */
+async function fetchMovieListFromShowTime() {
+  const movies = [];
+
+  try {
+    const response = await axios.get(showTimeUrl, {headers: showTimeHeaders});
+
+    if (response.status === 200) {
+      const data = response.data;
+      data.payload.programs.forEach((item) => {
+        const formattedDate = item.availableAt.split("T")[0];
+        const formattedCast = item.meta.authors ? item.meta.authors.map((cast) => ({name: cast})) : [];
+        const formattedCrew = item.meta.directors ? item.meta.directors.map((crew) => ({name: crew})) : [];
+        const sourcePosterUrl = item.coverImagePortrait ? item.coverImagePortrait.url : "";
+        const trailerUrl = item.previewVideo ? item.previewVideo.data : "";
+        const runtime = Math.round(item.duration / 60);
+        let spec = item.description || "No description available";
+
+        spec = removeHtmlTags(spec);
+
+        const isDuplicate = movies.some((movie) => movie.localTitle.trim() === item.name.trim());
+
+        if (!isDuplicate) {
+          movies.push({
+            localTitle: item.name,
+            runtime: runtime,
+            // TMDB replaces this URL when a poster is found. Keep ShowTimes as
+            // the mobile fallback because only browsers enforce its CORS.
+            posterUrl: sourcePosterUrl,
+            sourcePosterUrl,
+            source: "showtimes",
+            trailerUrl: trailerUrl,
+            spec: spec,
+            releaseDate: formattedDate,
+            credits: {cast: formattedCast, crew: formattedCrew},
+          });
+        }
+      });
+    } else {
+      console.error("Failed to fetch data:", response.status);
+    }
+  } catch (err) {
+    console.error("Error fetching from ShowTime:", err);
+  }
+
+  return movies;
+}
+
+
+module.exports = {
+  fetchMovieListFromShowTime,
+};
