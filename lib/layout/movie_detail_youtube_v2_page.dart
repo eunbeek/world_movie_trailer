@@ -159,7 +159,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
       if (mounted) setState(() => _showOriginal = !_showOriginal);
     }
 
-    if (!_settings.canTranslate) {
+    if (!kIsWeb && !_settings.canTranslate) {
       final granted =
           await showPremiumTranslationPrompt(context, _settings.language);
       if (!granted) return;

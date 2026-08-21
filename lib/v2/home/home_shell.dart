@@ -406,7 +406,7 @@ class _HomeShellState extends State<HomeShell> {
                 showEnglish: _showEnglish,
                 onLanguageChanged: (value) async {
                   final settings = context.read<SettingsProvider>();
-                  if (value && !settings.canTranslate) {
+                  if (value && !kIsWeb && !settings.canTranslate) {
                     final granted = await showPremiumTranslationPrompt(
                       context,
                       settings.language,
@@ -420,8 +420,9 @@ class _HomeShellState extends State<HomeShell> {
                   MaterialPageRoute(builder: (_) => const SettingsPage()),
                 ),
               ),
-              if (_section == 0 || _section == 3) _countrySelector(),
-              if (_section == 1) _boxOfficeSelector(),
+              if (_section == 0) _countrySelector(),
+              if (_section == 1 || _section == 3 || _section == 4)
+                _boxOfficeSelector(),
               if (_section == 0) _filterSelector(),
               if (_section == 1) _weekTitle(),
               if (_section == 3) _specialTitle(),
@@ -436,7 +437,7 @@ class _HomeShellState extends State<HomeShell> {
 
   Widget _countrySelector() {
     final countries = _countryKeys.entries.toList(growable: false);
-    final itemCount = countries.length + 1;
+    final itemCount = countries.length;
     final infiniteScroll =
         MediaQuery.sizeOf(context).width < _desktopBreakpoint;
     return SizedBox(
@@ -448,25 +449,6 @@ class _HomeShellState extends State<HomeShell> {
         itemCount: infiniteScroll ? null : itemCount,
         itemBuilder: (context, index) {
           final itemIndex = index % itemCount;
-          if (itemIndex == countries.length) {
-            return TextButton(
-              onPressed: () => _selectSection(3),
-              child: Text(
-                (_navigationLabels[context.read<SettingsProvider>().language] ??
-                    _navigationLabels['en']!)['special']!,
-                style: TextStyle(
-                  color: _section == 3
-                      ? Theme.of(context).colorScheme.onSurface
-                      : Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.65),
-                  fontWeight: _section == 3 ? FontWeight.w800 : FontWeight.w500,
-                ),
-              ),
-            );
-          }
-
           final entry = countries[itemIndex];
           final selected = _section == 0 && entry.key == _countryCode;
           final settings = context.watch<SettingsProvider>();
@@ -519,32 +501,49 @@ class _HomeShellState extends State<HomeShell> {
 
   Widget _boxOfficeSelector() {
     final language = context.read<SettingsProvider>().language;
-    return Row(
-      children: [
-        _selectorButton('box_office', getBoxOfficeLabel(language, 'box_usa')),
-        _selectorButton('box_office_kr',
-            '${localizedCountries[language]?['korea'] ?? 'Korea'} ${getBoxOfficeLabel(language, 'box')}'),
-      ],
+    final navigation = _navigationLabels[language] ?? _navigationLabels['en']!;
+    return SizedBox(
+      height: 44,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        children: [
+          _selectorButton(
+              1, 'box_office', getBoxOfficeLabel(language, 'box_usa')),
+          _selectorButton(1, 'box_office_kr',
+              '${localizedCountries[language]?['korea'] ?? 'Korea'} ${getBoxOfficeLabel(language, 'box')}'),
+          _selectorButton(3, null, navigation['special']!),
+          _selectorButton(4, null, navigation['quotes']!),
+        ],
+      ),
     );
   }
 
-  Widget _selectorButton(String code, String label) => TextButton(
+  Widget _selectorButton(int section, String? code, String label) => TextButton(
         onPressed: () {
-          if (_boxOfficeCode == code) return;
-          setState(() => _boxOfficeCode = code);
+          if (_section == section && (code == null || _boxOfficeCode == code)) {
+            return;
+          }
+          setState(() {
+            _section = section;
+            if (code != null) _boxOfficeCode = code;
+          });
           _load();
         },
         child: Text(label,
             style: TextStyle(
-              color: _boxOfficeCode == code
+              color: _section == section &&
+                      (code == null || _boxOfficeCode == code)
                   ? Theme.of(context).colorScheme.onSurface
                   : Theme.of(context)
                       .colorScheme
                       .onSurface
                       .withValues(alpha: 0.6),
               fontWeight: FontWeight.w700,
-              decoration:
-                  _boxOfficeCode == code ? TextDecoration.underline : null,
+              decoration: _section == section &&
+                      (code == null || _boxOfficeCode == code)
+                  ? TextDecoration.underline
+                  : null,
               decorationColor: Colors.cyanAccent,
             )),
       );
@@ -1095,7 +1094,7 @@ class _HomeShellState extends State<HomeShell> {
     final language = context.read<SettingsProvider>().language;
     final navigation = _navigationLabels[language] ?? _navigationLabels['en']!;
     return BottomNavigationBar(
-      currentIndex: _section == 3 ? 0 : _section,
+      currentIndex: _section == 3 || _section == 4 ? 1 : _section,
       onTap: (index) => _selectSection(index),
       backgroundColor: Theme.of(context).colorScheme.surface,
       selectedItemColor: const Color(0xFFE9FF00),
@@ -1166,12 +1165,12 @@ class _Header extends StatelessWidget {
             const SizedBox(width: 30),
             _WebNavigationItem(
               label: navigationLabels['countries']!,
-              selected: section == 0 || section == 3,
+              selected: section == 0,
               onTap: () => onSectionChanged(0),
             ),
             _WebNavigationItem(
               label: navigationLabels['boxOffice']!,
-              selected: section == 1,
+              selected: section == 1 || section == 3 || section == 4,
               onTap: () => onSectionChanged(1),
             ),
             _WebNavigationItem(
