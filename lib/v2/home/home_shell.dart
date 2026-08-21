@@ -604,21 +604,35 @@ class _HomeShellState extends State<HomeShell> {
             'concept',
             movies.first.special ?? '',
           );
-    final language = context.read<SettingsProvider>().language;
-    final navigation = _navigationLabels[language] ?? _navigationLabels['en']!;
     return Align(
       alignment: Alignment.centerLeft,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(18, 14, 18, 10),
-        child: Text(
-          concept.isEmpty
-              ? navigation['special']!
-              : '${navigation['special']} · $concept',
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Movie Special',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            if (concept.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                concept,
+                style: TextStyle(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: .62),
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
@@ -806,7 +820,6 @@ class _HomeShellState extends State<HomeShell> {
   Widget _quoteBody() {
     final desktop = MediaQuery.sizeOf(context).width >= _desktopBreakpoint;
     final language = context.read<SettingsProvider>().language;
-    final navigation = _navigationLabels[language] ?? _navigationLabels['en']!;
     if (_quotes.isEmpty) {
       return _MessageState(
         icon: Icons.format_quote_rounded,
@@ -818,10 +831,11 @@ class _HomeShellState extends State<HomeShell> {
     final day =
         DateUtils.dateOnly(DateTime.now()).difference(DateTime(2020)).inDays;
     final firstIndex = day % _quotes.length;
-    final dailyQuotes = <Quote>[_quotes[firstIndex]];
-    if (_quotes.length > 1) {
-      dailyQuotes.add(_quotes[(firstIndex + 1) % _quotes.length]);
-    }
+    final quoteCount = _quotes.length < 3 ? _quotes.length : 3;
+    final dailyQuotes = List<Quote>.generate(
+      quoteCount,
+      (index) => _quotes[(firstIndex + index) % _quotes.length],
+    );
 
     return RefreshIndicator(
       onRefresh: _load,
@@ -832,16 +846,18 @@ class _HomeShellState extends State<HomeShell> {
           vertical: desktop ? 54 : 32,
         ),
         children: [
-          Text(
-            navigation['quotes']!,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Color(0xFFB12DDB),
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Movie Quotes',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 18),
           ...dailyQuotes.indexed.map((entry) => Padding(
                 padding: EdgeInsets.only(
                     bottom: entry.$1 == dailyQuotes.length - 1 ? 0 : 18),
