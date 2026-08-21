@@ -53,6 +53,13 @@ class SettingsProvider with ChangeNotifier {
 
   bool get isAdsFree => _settings.isAdsFree ?? false;
 
+  bool get hasTranslationAdAccess =>
+      _settings.translationAdAccessUntil?.isAfter(DateTime.now()) == true;
+
+  bool get canTranslate => isAdsFree || hasTranslationAdAccess;
+
+  bool get shouldShowVideoAds => !isAdsFree && !hasTranslationAdAccess;
+
   String get userId {
     if (_settings.userId == null || _settings.userId!.isEmpty) {
       // Generate a new UUID if the userId is null or empty
@@ -241,6 +248,13 @@ class SettingsProvider with ChangeNotifier {
 
   void updateIsAdsFree(bool adsFree) {
     _settings.isAdsFree = adsFree;
+    _saveSettings();
+    notifyListeners();
+  }
+
+  void grantTranslationAdAccess() {
+    _settings.translationAdAccessUntil =
+        DateTime.now().add(const Duration(hours: 12));
     _saveSettings();
     notifyListeners();
   }

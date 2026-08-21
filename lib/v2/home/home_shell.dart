@@ -147,7 +147,7 @@ class _HomeShellState extends State<HomeShell> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _load();
       final settings = context.read<SettingsProvider>();
-      if (!settings.isAdsFree && !kIsWeb) {
+      if (settings.shouldShowVideoAds && !kIsWeb) {
         _detailAd.loadAd(onAdLoaded: () {}, onAdFailed: () {});
       }
     });
@@ -358,7 +358,7 @@ class _HomeShellState extends State<HomeShell> {
 
   Future<void> _openMovie(Movie movie) async {
     final settings = context.read<SettingsProvider>();
-    if (!settings.isAdsFree && !kIsWeb) {
+    if (settings.shouldShowVideoAds && !kIsWeb) {
       settings.updateOpenCount();
       if (DetailAdPolicy.shouldShow(settings.openCount)) {
         settings.resetOpenCount();
@@ -406,14 +406,12 @@ class _HomeShellState extends State<HomeShell> {
                 showEnglish: _showEnglish,
                 onLanguageChanged: (value) async {
                   final settings = context.read<SettingsProvider>();
-                  if (value &&
-                      !TranslationAccess.canTranslate(
-                          isPremium: settings.isAdsFree)) {
-                    await showPremiumTranslationPrompt(
+                  if (value && !settings.canTranslate) {
+                    final granted = await showPremiumTranslationPrompt(
                       context,
                       settings.language,
                     );
-                    return;
+                    if (!granted) return;
                   }
                   setState(() => _showEnglish = value);
                   _load();
@@ -651,18 +649,99 @@ class _HomeShellState extends State<HomeShell> {
             : getErrorMessage(context.read<SettingsProvider>().language),
       );
     }
+    if (_section == 0) {
+      return _countryPosterGrid(movies: movies, onRefresh: _load);
+    }
     return _responsiveMovieList(
       movies: movies,
       boxOffice: _section == 1,
       onRefresh: _load,
+      showCountry: _section == 3,
+      specialSection: _section == 3,
     );
   }
+
+  Widget _countryPosterGrid({
+    required List<Movie> movies,
+    required Future<void> Function() onRefresh,
+  }) =>
+      LayoutBuilder(builder: (context, constraints) {
+        final mobile = constraints.maxWidth < 700;
+        return RefreshIndicator(
+          onRefresh: onRefresh,
+          child: GridView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.symmetric(
+              horizontal: mobile ? 14 : 24,
+              vertical: 12,
+            ),
+            gridDelegate: mobile
+                ? const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: .55,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 16,
+                  )
+                : const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 235,
+                    childAspectRatio: .58,
+                    crossAxisSpacing: 18,
+                    mainAxisSpacing: 20,
+                  ),
+            itemCount: movies.length,
+            itemBuilder: (_, index) {
+              final movie = movies[index];
+              return InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () => _openMovie(movie),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: SizedBox.expand(
+                          child: movie.posterUrl.isEmpty
+                              ? const ColoredBox(color: Color(0xFF9D1D25))
+                              : CachedNetworkImage(
+                                  imageUrl: movie.posterUrl,
+                                  fit: BoxFit.cover,
+                                  errorWidget: (_, __, ___) => const ColoredBox(
+                                      color: Color(0xFF9D1D25)),
+                                ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _displayMovieField(movie, 'title', movie.localTitle),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    if (movie.releaseDate.isNotEmpty)
+                      Text(movie.releaseDate,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: .62),
+                          )),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      });
 
   Widget _responsiveMovieList({
     required List<Movie> movies,
     required bool boxOffice,
     required Future<void> Function() onRefresh,
     bool showCountry = false,
+    bool specialSection = false,
   }) {
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 900;
@@ -670,6 +749,7 @@ class _HomeShellState extends State<HomeShell> {
             movie: movies[index],
             index: index,
             boxOffice: boxOffice,
+            specialSection: specialSection,
             displayTitle: _displayMovieField(
               movies[index],
               'title',
@@ -1279,6 +1359,7 @@ class _MovieRow extends StatelessWidget {
     required this.movie,
     required this.index,
     required this.boxOffice,
+    this.specialSection = false,
     required this.onTap,
     this.displayTitle,
     this.displayCountry,
@@ -1287,6 +1368,7 @@ class _MovieRow extends StatelessWidget {
   final Movie movie;
   final int index;
   final bool boxOffice;
+  final bool specialSection;
   final VoidCallback onTap;
   final String? displayTitle;
   final String? displayCountry;
@@ -1346,6 +1428,26 @@ class _MovieRow extends StatelessWidget {
                                   .onSurface
                                   .withValues(alpha: 0.6),
                               fontSize: 12)),
+                    if (boxOffice && movie.totalGross?.isNotEmpty == true)
+                      Text(
+                          '${getBoxOfficeLabel(language, 'total_gross')}: ${movie.totalGross}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: .6),
+                              fontSize: 12)),
+                    if (boxOffice && movie.weeks?.isNotEmpty == true)
+                      Text(
+                          '${getBoxOfficeLabel(language, 'screening_weeks')}: ${movie.weeks}',
+                          style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: .6),
+                              fontSize: 12)),
                     if (boxOffice && movie.distributor?.isNotEmpty == true)
                       Text(
                           '${getBoxOfficeLabel(language, 'distributor')}: ${movie.distributor}',
@@ -1374,6 +1476,24 @@ class _MovieRow extends StatelessWidget {
                                   .colorScheme
                                   .onSurface
                                   .withValues(alpha: 0.6),
+                              fontSize: 12)),
+                    if (specialSection && movie.year?.isNotEmpty == true)
+                      Text(movie.year!,
+                          style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: .6),
+                              fontSize: 12)),
+                    if (specialSection && movie.source.isNotEmpty)
+                      Text(movie.source,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: .6),
                               fontSize: 12)),
                   ],
                 ),

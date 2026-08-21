@@ -38,13 +38,14 @@ class SettingsAdapter extends TypeAdapter<Settings> {
       isBookmarkAlarmOn: fields[16] as bool?,
       isAdsFree: fields[17] as bool?,
       userId: fields[18] as String?,
+      translationAdAccessUntil: fields[19] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Settings obj) {
     writer
-      ..writeByte(19)
+      ..writeByte(20)
       ..writeByte(0)
       ..write(obj.language)
       ..writeByte(1)
@@ -82,7 +83,9 @@ class SettingsAdapter extends TypeAdapter<Settings> {
       ..writeByte(17)
       ..write(obj.isAdsFree)
       ..writeByte(18)
-      ..write(obj.userId);
+      ..write(obj.userId)
+      ..writeByte(19)
+      ..write(obj.translationAdAccessUntil);
   }
 
   @override

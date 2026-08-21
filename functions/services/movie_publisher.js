@@ -84,6 +84,25 @@ async function readExistingCredits(fileName) {
   }
 }
 
+/** Reads existing Storage movies so a temporarily missing formula never erases data. */
+async function readExistingMovies(fileName) {
+  try {
+    const [buffer] = await admin.storage().bucket().file(fileName).download();
+    const data = JSON.parse(buffer.toString("utf8"));
+    return new Map((data.movies || []).map((movie) =>
+      [movieLookupKey(movie), movie]).filter(([key]) => key));
+  } catch (error) {
+    if (error.code !== 404) console.warn(`Could not preserve movies from ${fileName}:`, error.message);
+    return new Map();
+  }
+}
+
+/** Formula results beginning with # are Sheets errors, not usable translations. */
+function isReadyTranslation(value) {
+  const text = String(value || "").trim();
+  return text !== "" && !text.startsWith("#");
+}
+
 /** Reads TMDB person IDs staged by a Sheet-only Fetch function. */
 async function readStagedCredits(normalizedCountry) {
   const fileName = `system/pending_credits_${normalizedCountry}.json`;
@@ -134,14 +153,16 @@ function areTranslationsComplete(movies) {
     const requiredFields = ["title", "overview", "country", "credits"];
     if (source.concept) requiredFields.push("concept");
     return translations.every((translation) => requiredFields.every((field) =>
-      !source[field] || String(translation[field] || "").trim() !== ""));
+      !source[field] || isReadyTranslation(translation[field])));
   });
 }
 
 /** Waits for GOOGLETRANSLATE formula results before publishing Storage JSON. */
 async function readFinalizedSheetAfterTranslations(normalizedCountry) {
+  let latestMovies = [];
   for (let attempt = 1; attempt <= TRANSLATION_POLL_ATTEMPTS; attempt++) {
     const movies = await readFinalizedSheet(normalizedCountry);
+    latestMovies = movies;
     if (areTranslationsComplete(movies)) return movies;
     if (attempt < TRANSLATION_POLL_ATTEMPTS) {
       console.log(`Translations for ${normalizedCountry} are incomplete (${attempt}/${TRANSLATION_POLL_ATTEMPTS}); retrying in ${TRANSLATION_POLL_INTERVAL_MS / 1000}s.`);
@@ -149,7 +170,29 @@ async function readFinalizedSheetAfterTranslations(normalizedCountry) {
     }
   }
   const waitSeconds = (TRANSLATION_POLL_ATTEMPTS - 1) * TRANSLATION_POLL_INTERVAL_MS / 1000;
-  throw new Error(`Translations for ${normalizedCountry} did not finish within ${waitSeconds} seconds; existing Storage JSON was preserved.`);
+  console.warn(`Translations for ${normalizedCountry} did not finish within ${waitSeconds} seconds; publishing with preserved/fallback translations.`);
+  return latestMovies;
+}
+
+/** Uses current formula values first, then existing Storage, then the original text. */
+function mergeTranslations(movie, existingMovie) {
+  const source = movie.originSource || {};
+  const current = movie.translations || {};
+  const previous = existingMovie && existingMovie.translations || {};
+  const languages = new Set([...Object.keys(current), ...Object.keys(previous)]);
+  const fields = ["title", "overview", "country", "credits", "concept"];
+  return Object.fromEntries([...languages].map((language) => {
+    const currentTranslation = current[language] || {};
+    const previousTranslation = previous[language] || {};
+    const merged = {...currentTranslation};
+    fields.forEach((field) => {
+      if (source[field] && !isReadyTranslation(merged[field])) {
+        merged[field] = isReadyTranslation(previousTranslation[field]) ?
+          previousTranslation[field] : source[field];
+      }
+    });
+    return [language, merged];
+  }));
 }
 
 /** Publishes already finalized Sheet rows to Firebase Storage. */
@@ -157,6 +200,7 @@ async function publishSheetMovies(normalizedCountry, processedMovies = []) {
   const timestamp = new Date().toISOString();
   const sheetMovies = (await readFinalizedSheetAfterTranslations(normalizedCountry)).filter(isPublishableMovie);
   const fileName = `movies_${normalizedCountry}.json`;
+  const existingMovies = await readExistingMovies(fileName);
   const existingCredits = await readExistingCredits(fileName);
   const stagedCredits = await readStagedCredits(normalizedCountry);
   const processedCredits = new Map(processedMovies.map((movie) => {
@@ -168,6 +212,7 @@ async function publishSheetMovies(normalizedCountry, processedMovies = []) {
     const key = movieLookupKey(movie);
     return buildStorageMovie({
       ...movie,
+      translations: mergeTranslations(movie, existingMovies.get(key)),
       credits: processedCredits.get(key) || stagedCredits.get(key) ||
         existingCredits.get(key) || {cast: [], crew: []},
     });
