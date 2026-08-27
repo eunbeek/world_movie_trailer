@@ -19,17 +19,20 @@ class MovieByUserAdapter extends TypeAdapter<MovieByUser> {
     return MovieByUser(
       movie: fields[0] as Movie,
       savedDate: fields[1] as DateTime?,
+      sourceFeedCode: fields[2] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, MovieByUser obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
       ..write(obj.movie)
       ..writeByte(1)
-      ..write(obj.savedDate);
+      ..write(obj.savedDate)
+      ..writeByte(2)
+      ..write(obj.sourceFeedCode);
   }
 
   @override

@@ -24,6 +24,9 @@ class SettingsProvider with ChangeNotifier {
 
   List<String> get countryOrder => getLocalizedCountryNames();
 
+  List<String> get countryOrderKeys =>
+      List.unmodifiable(_settings.countryOrder);
+
   bool get isVibrate => _settings.isVibrate;
 
   bool get isCaptionOn => _settings.isCaptionOn;
@@ -57,6 +60,10 @@ class SettingsProvider with ChangeNotifier {
       _settings.translationAdAccessUntil?.isAfter(DateTime.now()) == true;
 
   bool get canTranslate => isAdsFree || hasTranslationAdAccess;
+
+  bool get canUseRewardedFeatures => isAdsFree || hasTranslationAdAccess;
+
+  bool? get translatedContentPreference => _settings.showTranslatedContent;
 
   bool get shouldShowVideoAds => !isAdsFree && !hasTranslationAdAccess;
 
@@ -103,6 +110,12 @@ class SettingsProvider with ChangeNotifier {
         .where((key) => key.isNotEmpty)
         .toList();
     _settings.countryOrder = countryKeysToSave;
+    _saveSettings();
+    notifyListeners();
+  }
+
+  void updateCountryOrderKeys(List<String> countryKeys) {
+    _settings.countryOrder = List<String>.from(countryKeys);
     _saveSettings();
     notifyListeners();
   }
@@ -252,9 +265,17 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void grantTranslationAdAccess() {
+  void grantRewardedAdAccess() {
     _settings.translationAdAccessUntil =
-        DateTime.now().add(const Duration(hours: 12));
+        DateTime.now().add(const Duration(minutes: 10));
+    _saveSettings();
+    notifyListeners();
+  }
+
+  void grantTranslationAdAccess() => grantRewardedAdAccess();
+
+  void updateTranslatedContentPreference(bool showTranslatedContent) {
+    _settings.showTranslatedContent = showTranslatedContent;
     _saveSettings();
     notifyListeners();
   }

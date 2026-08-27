@@ -18,7 +18,7 @@ const {fetchQuotesInSpecialSection} = require("./features/quote/special");
 const {fetchMovieListFromMojo} = require("./features/box_office/usa");
 const {fetchMovieListFromKobis} = require("./features/box_office/kr");
 const {processBatch, saveMoviesAsJson, saveQuotesAsJson, updatePromotionUrl, processBatchForSpecial, reuseExistingSpecialMovies, selectNextSpecialPeriod} = require("./services/utils");
-const {publishSheetMovies, writeMoviesToSheet} = require("./services/movie_publisher");
+const {isPublishableMovie, publishSheetMovies, writeMoviesToSheet} = require("./services/movie_publisher");
 const {readSpecialDataSheet} = require("./services/movie_sheet");
 
 admin.initializeApp();
@@ -86,11 +86,10 @@ function createTestStore(country) {
  * Restricts test endpoints so they cannot consume an entire API quota.
  * @param {Object} req HTTP request containing an optional limit query.
  * @param {Array} items Items returned by the source crawler.
- * @param {boolean} allowUnlimited Whether limit=all may bypass the test cap.
  * @return {Array} At most the requested number of test items.
  */
-function limitTestItems(req, items, allowUnlimited = false) {
-  if (allowUnlimited && String(req.query.limit).toLowerCase() === "all") {
+function limitTestItems(req, items) {
+  if (String(req.query.limit).toLowerCase() === "all") {
     return items;
   }
   const requestedLimit = Number.parseInt(req.query.limit, 10);
@@ -535,7 +534,10 @@ exports.fetchMovieListBoxOfficeKR = functions
       const processedCount = 0;
       const startTime = Date.now();
       const allMovies = await fetchMovieListFromKobis();
-      const moviesWithDetails = await processBatch("ko-KR", allMovies, processedCount, startTime);
+      const processedMovies = await processBatch("ko-KR", allMovies, processedCount, startTime);
+      const moviesWithDetails = processedMovies.filter(isPublishableMovie)
+          .slice(0, 30)
+          .map((movie, index) => ({...movie, rank: String(index + 1)}));
 
       await writeMoviesToSheet("box_office_kr", moviesWithDetails);
 
@@ -1025,7 +1027,7 @@ exports.testFetchMovieListSpecial = functions.runWith(movieRuntimeOptions).https
         await readSpecialDataSheet(),
     ));
     const newMovies = specialMovies.filter((movie) => !movie.batch);
-    const selectedNewMovies = limitTestItems(req, newMovies, true);
+    const selectedNewMovies = limitTestItems(req, newMovies);
     const selectedKeys = new Set(selectedNewMovies.map((movie) =>
       `${movie.period}:${movie.tid}`));
     const testMovies = specialMovies.filter((movie) =>
@@ -1133,7 +1135,10 @@ exports.testFetchMovieListBoxOfficeKR = functions.runWith(kobisRuntimeOptions).h
     const testMovies = limitTestItems(req, allMovies);
 
     console.log(`KOBIS Movies: ${allMovies.length}, test limit: ${testMovies.length}`);
-    const moviesWithTrailer = await processBatch("ko-KR", testMovies, processedCount, startTime);
+    const processedMovies = await processBatch("ko-KR", testMovies, processedCount, startTime);
+    const moviesWithTrailer = processedMovies.filter(isPublishableMovie)
+        .slice(0, 30)
+        .map((movie, index) => ({...movie, rank: String(index + 1)}));
     await writeMoviesToSheet("box_office_kr", moviesWithTrailer);
 
     const timestamp = new Date().toISOString();

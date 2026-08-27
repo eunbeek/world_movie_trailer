@@ -52,9 +52,8 @@ async function fetchRunningFromEIGA() {
           const posterUrl = $(aTag).find("img").attr("src");
           const releaseDate = $(movieBox).find("small.time").text().trim().replace(/劇場公開日|公開/g, "");
 
-          if (posterUrl && posterUrl.startsWith("https://eiga.k-img.com/images/movie/noimg")) {
-            return; // Skip this movie and move to the next one
-          }
+          // Keep placeholder-poster movies for TMDB enrichment. Publishing
+          // excludes them only if TMDB cannot supply a real poster.
 
           // Extract the current year
           const currentDate = new Date();

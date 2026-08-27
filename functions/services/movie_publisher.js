@@ -17,7 +17,7 @@ function isPublishableMovie(movie) {
   const trailerUrl = String(movie.trailerUrl || "").trim();
   const posterUrl = String(movie.posterUrl || "").trim();
   return trailerUrl !== "" && trailerUrl !== "ERR404" &&
-    posterUrl !== "" && posterUrl !== "ERR404";
+    posterUrl !== "" && posterUrl !== "ERR404" && !/noimg/i.test(posterUrl);
 }
 
 /** Builds a stable client ID without relying on worksheet row numbers. */

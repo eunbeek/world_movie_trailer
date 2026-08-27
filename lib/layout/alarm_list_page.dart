@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/providers/show_permission.dart';
 import 'package:world_movie_trailer/common/services/alarm_service.dart';
 import 'package:world_movie_trailer/common/translate.dart';
+import 'package:world_movie_trailer/layout/widgets/settings_footer_branding.dart';
 
 class AlarmListPage extends StatefulWidget {
   const AlarmListPage({super.key});
@@ -115,7 +115,7 @@ class _AlarmListPageState extends State<AlarmListPage> {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(context, settingsProvider),
+      bottomNavigationBar: const SettingsFooter(),
     );
   }
 
@@ -235,81 +235,5 @@ class _AlarmListPageState extends State<AlarmListPage> {
         settingsProvider.updateAlarmForCountryByDay(day, countryKey, isOn);
       }
     });
-  }
-
-  Widget _buildBottomNavigationBar(
-      BuildContext context, SettingsProvider settingsProvider) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.12,
-      color: settingsProvider.isDarkTheme
-          ? const Color(0xff3c3c3c)
-          : const Color(0xff435555),
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).size.height * 0.12 * 0.1,
-        bottom: MediaQuery.of(context).size.height * 0.12 * 0.1,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          GestureDetector(
-            onTap: () async {
-              const url =
-                  'https://marmalade-neptune-dbe.notion.site/Home-Page-7589a833b4f6482e90844b9fe49c8ae0';
-              if (await canLaunchUrl(Uri.parse(url))) {
-                await launchUrl(Uri.parse(url),
-                    mode: LaunchMode.externalApplication);
-              }
-            },
-            child: Image.asset(
-              'assets/images/SIL_logo_h_xxhdpi.png',
-              height: MediaQuery.of(context).size.height * 0.045,
-            ),
-          ),
-          SizedBox(height: MediaQuery.of(context).size.height * 0.12 * 0.1),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              GestureDetector(
-                onTap: () async {
-                  const url =
-                      'https://sunnyinnolab.notion.site/Terms-and-Conditions-0601612ffa404317a4ddaf5a094e5471';
-                  if (await canLaunchUrl(Uri.parse(url))) {
-                    await launchUrl(Uri.parse(url),
-                        mode: LaunchMode.externalApplication);
-                  }
-                },
-                child: Text(
-                  getSettingsLabel(settingsProvider.language, "terms"),
-                  style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.height * 0.015,
-                      color: Colors.white),
-                ),
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0),
-                child: Text('|',
-                    style: TextStyle(fontSize: 14, color: Colors.white)),
-              ),
-              GestureDetector(
-                onTap: () async {
-                  const url =
-                      'https://sunnyinnolab.notion.site/Privacy-Policy-2919720d6e7848669b9d5e1170c6cabc';
-                  if (await canLaunchUrl(Uri.parse(url))) {
-                    await launchUrl(Uri.parse(url),
-                        mode: LaunchMode.externalApplication);
-                  }
-                },
-                child: Text(
-                  getSettingsLabel(settingsProvider.language, "privacy"),
-                  style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.height * 0.015,
-                      color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
   }
 }

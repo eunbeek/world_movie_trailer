@@ -18,10 +18,13 @@ class MovieService {
       if (data == null) throw StateError('Storage object is empty: $fileName');
       return data;
     }
-    final uri = Uri.https(
-        'firebasestorage.googleapis.com',
-        '/v0/b/$_webStorageBucket/o/${Uri.encodeComponent(fileName)}',
-        {'alt': 'media'});
+    final uri = Uri.https('firebasestorage.googleapis.com',
+        '/v0/b/$_webStorageBucket/o/${Uri.encodeComponent(fileName)}', {
+      'alt': 'media',
+      // Hive controls the app-level cache. A unique URL prevents browsers
+      // from reviving an older Storage response after a failed publish.
+      'v': DateTime.now().millisecondsSinceEpoch.toString(),
+    });
     final response = await http.get(uri);
     if (response.statusCode != 200) {
       throw StateError('Storage HTTP ${response.statusCode}: $fileName');
@@ -54,7 +57,8 @@ class MovieService {
   /// V2 entry point. UI routes use stable Storage codes and never reverse-map
   /// translated country labels back into API identifiers.
   static Future<List<Movie>> fetchMovieByCode(
-      String countryCode, String languageCode) async {
+      String countryCode, String languageCode,
+      {bool forceRefresh = false}) async {
     if (!storageCountryCodes.contains(countryCode)) {
       throw ArgumentError.value(
           countryCode, 'countryCode', 'Unsupported movie feed');
@@ -65,15 +69,24 @@ class MovieService {
         'movies_v2_${countryCode}_${_translationKey(languageCode)}';
     final cached = await _getMoviesFromHive(box, cacheKey);
     final cachedAt = cached['cachedAt'] as String?;
-    if (cachedAt != null &&
+    final cachedMovies =
+        (cached['movies'] as List?)?.whereType<Movie>().toList() ?? [];
+    if (!forceRefresh &&
+        cachedMovies.isNotEmpty &&
+        cachedAt != null &&
         !_isV2CacheOutdated(DateTime.tryParse(cachedAt) ?? DateTime(1970))) {
-      return (cached['movies'] as List?)?.whereType<Movie>().toList() ?? [];
+      return cachedMovies;
     }
 
     final result = await readMoviesFromStorage(countryCode, languageCode);
+    final movies =
+        (result['movies'] as List?)?.whereType<Movie>().toList() ?? [];
+    if (movies.isEmpty) {
+      throw StateError('No readable movies returned for $countryCode');
+    }
     result['cachedAt'] = DateTime.now().toIso8601String();
     await _saveMoviesToHive(box, cacheKey, result);
-    return (result['movies'] as List?)?.whereType<Movie>().toList() ?? [];
+    return movies;
   }
 
   static Future<List<Movie>> fetchMovie(
@@ -263,10 +276,7 @@ class MovieService {
     } catch (e, stackTrace) {
       print('Error reading movies: $e');
       print(stackTrace);
-      return {
-        'timestamp': null,
-        'movies': [],
-      }; // Return an empty list and null timestamp in case of an error
+      rethrow;
     }
   }
 

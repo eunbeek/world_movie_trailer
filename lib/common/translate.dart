@@ -4,7 +4,7 @@ import 'package:world_movie_trailer/common/iso3166.dart';
 
 // Setting
 String getLanguageName(String languageCode) {
-  return countryNameByLan['ko']?[languageCode] ?? 'UnKnown';
+  return languageDisplayNames[languageCode] ?? languageDisplayNames['en']!;
 }
 
 // setting label
@@ -221,7 +221,7 @@ String getReleaseLabel(String languageCode) {
     case 'fr':
       return labelReleaseFR;
     case 'de':
-      return labelRelease;
+      return labelReleaseDE;
     case 'es':
       return labelReleaseES;
     case 'hi':
@@ -301,7 +301,6 @@ String getDonationLabel(String languageCode, String field) {
 }
 
 String getPermissionLabel(String languageCode, String field) {
-  print(languageCode);
   return permissionLabels[field]?[languageCode.toLowerCase()] ??
       permissionLabels[field]?['en'] ??
       field;

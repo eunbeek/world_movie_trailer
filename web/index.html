@@ -35,17 +35,29 @@
     html, body { margin: 0; width: 100%; height: 100%; background: #000; }
     #app-loading {
       position: fixed; inset: 0; display: flex; align-items: center;
-      justify-content: center; background: #000; color: #b12ddb;
+      justify-content: center; flex-direction: column; gap: 16px;
+      background: #000; color: #bdbdbd;
       font: 700 16px -apple-system, BlinkMacSystemFont, sans-serif;
     }
     #app-loading button {
       margin-top: 16px; padding: 10px 18px; border: 0; border-radius: 8px;
       background: #9d00c6; color: #fff; font-weight: 700;
     }
+    #app-loading .loading-reel {
+      width: 72px; height: 72px; object-fit: contain;
+      animation: loading-reel-spin 2.4s linear infinite;
+    }
+    @keyframes loading-reel-spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) {
+      #app-loading .loading-reel { animation: none; }
+    }
   </style>
 </head>
 <body>
-  <div id="app-loading">World Movie Trailer</div>
+  <div id="app-loading" role="status" aria-label="Loading World Movie Trailer">
+    <img class="loading-reel" src="assets/assets/images/dark/loading_DT_xxhdpi.png" alt="">
+    <span>World Movie Trailer</span>
+  </div>
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader

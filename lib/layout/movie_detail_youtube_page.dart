@@ -10,10 +10,11 @@ import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
 import 'package:world_movie_trailer/common/translate.dart';
-import 'package:world_movie_trailer/common/translation_access.dart';
 import 'package:world_movie_trailer/app/world_movie_trailer_app.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/model/movieByUser.dart';
+import 'package:world_movie_trailer/layout/widgets/tmdb_credit_info.dart';
+import 'package:world_movie_trailer/layout/widgets/detail_asset_icon.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class MovieDetailPageYouTube extends StatefulWidget {
@@ -23,7 +24,9 @@ class MovieDetailPageYouTube extends StatefulWidget {
     required this.captionFlag,
     required this.captionLan,
     required this.isCustomized,
-    this.initialShowOriginal = false,
+    this.initialShowOriginal,
+    this.onShowOriginalChanged,
+    this.sourceFeedCode,
     this.cIdx,
   });
 
@@ -31,7 +34,9 @@ class MovieDetailPageYouTube extends StatefulWidget {
   final bool captionFlag;
   final String captionLan;
   final bool isCustomized;
-  final bool initialShowOriginal;
+  final bool? initialShowOriginal;
+  final ValueChanged<bool>? onShowOriginalChanged;
+  final String? sourceFeedCode;
   final int? cIdx;
 
   @override
@@ -48,8 +53,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   @override
   void initState() {
     super.initState();
-    _showOriginal = widget.initialShowOriginal ||
-        !TranslationAccess.defaultToTranslation(isPremium: _settings.isAdsFree);
+    _showOriginal = widget.initialShowOriginal ?? !_settings.canTranslate;
     if (widget.movie.trailerUrl.isNotEmpty) {
       _controller = YoutubePlayerController(
         initialVideoId: widget.movie.trailerUrl,
@@ -61,13 +65,15 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
         ),
       );
     }
-    SystemChrome.setPreferredOrientations(const [
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // Apply after the previous movie's player has finished disposing.
+      SystemChrome.setPreferredOrientations(const [
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
       _checkBookmark();
     });
     LogHelper().logEvent('trailer_watched', parameters: {
@@ -130,12 +136,17 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
       await MovieByUserService.deleteMovie(index);
       _message('movieDeleted');
     } else if (!_isBookmarked) {
+      if (!mounted) return;
       if (!await MovieByUserService.getIsAvailable(_settings)) {
         _message('maxMoviesReached');
         return;
       }
       await MovieByUserService.addMovie(
-        MovieByUser(movie: widget.movie, savedDate: DateTime.now()),
+        MovieByUser(
+          movie: widget.movie,
+          savedDate: DateTime.now(),
+          sourceFeedCode: widget.sourceFeedCode,
+        ),
         _settings,
       );
       _message('addToBookmark');
@@ -152,7 +163,9 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
 
   Future<void> _translate() async {
     void toggle() {
-      if (mounted) setState(() => _showOriginal = !_showOriginal);
+      if (!mounted) return;
+      setState(() => _showOriginal = !_showOriginal);
+      widget.onShowOriginalChanged?.call(_showOriginal);
     }
 
     if (!_settings.canTranslate) {
@@ -182,7 +195,8 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
       return _page(SizedBox(
         height: 240,
         child: Center(
-          child: Text('Trailer is not available',
+          child: Text(
+              getMenuItemTitle(_settings.language, 'Trailer unavailable'),
               style: TextStyle(
                   color: Theme.of(context)
                       .colorScheme
@@ -201,39 +215,48 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
     );
   }
 
-  Widget _page(Widget player) => Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: Stack(
-          fit: StackFit.expand,
-          children: [
-            const BackgroundWidget(isPausePage: true, isTapeExist: true),
-            SafeArea(
-              child: Column(
-                children: [
-                  _header(),
-                  Divider(height: 1, color: Theme.of(context).dividerColor),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          player,
-                          if (!widget.isCustomized) _actions(),
-                          Divider(
-                              height: 1, color: Theme.of(context).dividerColor),
-                          _metadata(),
-                          Divider(
-                              height: 1, color: Theme.of(context).dividerColor),
-                          _overviewSection(),
-                          Divider(
-                              height: 1, color: Theme.of(context).dividerColor),
-                        ],
+  Widget _page(Widget player) => PopScope<bool>(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) Navigator.of(context).pop(_showOriginal);
+        },
+        child: Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              const BackgroundWidget(isPausePage: true, isTapeExist: true),
+              SafeArea(
+                child: Column(
+                  children: [
+                    _header(),
+                    Divider(height: 1, color: Theme.of(context).dividerColor),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            player,
+                            if (!widget.isCustomized) _actions(),
+                            Divider(
+                                height: 1,
+                                color: Theme.of(context).dividerColor),
+                            _metadata(),
+                            Divider(
+                                height: 1,
+                                color: Theme.of(context).dividerColor),
+                            _overviewSection(),
+                            Divider(
+                                height: 1,
+                                color: Theme.of(context).dividerColor),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
 
@@ -242,7 +265,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
         child: Row(
           children: [
             IconButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(context).pop(_showOriginal),
               icon: Icon(Icons.arrow_back,
                   color: Theme.of(context).colorScheme.onSurface),
             ),
@@ -269,21 +292,28 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _action(
-              _isBookmarked ? Icons.bookmark : Icons.bookmark_border_rounded,
+              DetailAssetIcon(name: 'bookmark', active: _isBookmarked),
               getMenuItemTitle(_settings.language, 'Bookmark'),
               _toggleBookmark,
             ),
             const SizedBox(width: 34),
             _action(
-              Icons.translate,
-              _showOriginal
-                  ? (_settings.language == 'ko' ? '번역' : 'Translate')
-                  : (_settings.language == 'ko' ? '원본' : 'Original'),
+              DetailAssetIcon(name: 'translate', active: _showOriginal),
+              getMenuItemTitle(
+                _settings.language,
+                _showOriginal ? 'Translate' : 'Original',
+              ),
               _translate,
             ),
             const SizedBox(width: 34),
             _action(
-              Platform.isIOS ? Icons.ios_share_outlined : Icons.share_outlined,
+              Icon(
+                Platform.isIOS
+                    ? Icons.ios_share_outlined
+                    : Icons.share_outlined,
+                color: Theme.of(context).colorScheme.onSurface,
+                size: 29,
+              ),
               getSettingsLabel(_settings.language, 'share'),
               _share,
             ),
@@ -291,15 +321,14 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
         ),
       );
 
-  Widget _action(IconData icon, String label, VoidCallback onTap) => InkWell(
+  Widget _action(Widget icon, String label, VoidCallback onTap) => InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(10),
         child: SizedBox(
           width: 74,
           child: Column(
             children: [
-              Icon(icon,
-                  color: Theme.of(context).colorScheme.onSurface, size: 29),
+              icon,
               const SizedBox(height: 7),
               Text(label,
                   maxLines: 1,
@@ -317,28 +346,100 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
     final crew = widget.movie.credits?['crew'];
     final cast = widget.movie.credits?['cast'];
     String director = '';
+    Map? directorCredit;
+    final originalCreditNames = <String>[];
+    if (cast is List) {
+      for (final item in cast) {
+        final name = item is Map ? (item['name'] ?? '').toString() : '$item';
+        if (name.isNotEmpty && !originalCreditNames.contains(name)) {
+          originalCreditNames.add(name);
+        }
+      }
+    }
     if (crew is List && crew.isNotEmpty) {
       final directors =
           crew.where((item) => item is Map && item['job'] == 'Director');
       final selected = directors.isNotEmpty ? directors.first : crew.first;
-      if (selected is Map) director = (selected['name'] ?? '').toString();
+      if (selected is Map) {
+        directorCredit = selected;
+        director = (selected['name'] ?? '').toString();
+      }
+      for (final item in crew) {
+        final name = item is Map ? (item['name'] ?? '').toString() : '$item';
+        if (name.isNotEmpty && !originalCreditNames.contains(name)) {
+          originalCreditNames.add(name);
+        }
+      }
     }
-    final stars = cast is List
+    final originalStars = cast is List
         ? cast
             .take(4)
             .map((item) => item is Map ? item['name'] : '')
             .where((name) => name.toString().isNotEmpty)
             .join(', ')
         : '';
-    return Padding(
+    final localizedCredits = _localizedField('credits', originalStars);
+    final localizedNames = localizedCredits
+        .split(RegExp(r'[,，]'))
+        .map((name) => name.trim())
+        .where((name) => name.isNotEmpty)
+        .toList();
+    if (!_showOriginal && director.isNotEmpty) {
+      final directorIndex = originalCreditNames.indexOf(director);
+      if (directorIndex >= 0 && directorIndex < localizedNames.length) {
+        director = localizedNames[directorIndex];
+      }
+    }
+    final stars =
+        _showOriginal ? originalStars : localizedNames.take(4).join(', ');
+    final castCredits = cast is List ? cast.take(4).toList() : const [];
+    final starPeople = <TmdbCreditPerson>[];
+    for (var index = 0; index < castCredits.length; index++) {
+      final item = castCredits[index];
+      final originalName =
+          item is Map ? (item['name'] ?? '').toString() : item.toString();
+      final displayName = _showOriginal
+          ? originalName
+          : index < localizedNames.length
+              ? localizedNames[index]
+              : originalName;
+      if (displayName.isNotEmpty) {
+        starPeople.add(TmdbCreditPerson(
+          name: displayName,
+          tmdbId: item is Map ? item['id'] : null,
+        ));
+      }
+    }
+    if (starPeople.isEmpty && stars.isNotEmpty) {
+      starPeople.addAll(
+        stars
+            .split(RegExp(r'[,，]'))
+            .map((name) => name.trim())
+            .where((name) => name.isNotEmpty)
+            .map((name) => TmdbCreditPerson(name: name)),
+      );
+    }
+    return Container(
+      width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (director.isNotEmpty)
-            _info('${getTranslatedDetail('Director', lang)}', director),
+            TmdbCreditInfo(
+              label: getTranslatedDetail('Director', lang) ?? 'Director',
+              people: [
+                TmdbCreditPerson(
+                  name: director,
+                  tmdbId: directorCredit?['id'],
+                ),
+              ],
+            ),
           if (stars.isNotEmpty)
-            _info('${getTranslatedDetail('Stars', lang)}', stars),
+            TmdbCreditInfo(
+              label: getTranslatedDetail('Stars', lang) ?? 'Stars',
+              people: starPeople,
+            ),
           if (_country.isNotEmpty)
             _info('${getTranslatedDetail('Country', lang)}', _country),
           if (widget.movie.runtime.toString().isNotEmpty)
@@ -369,6 +470,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
           alignment: Alignment.centerLeft,
           child: Text(
             _overview == 'ERR404' ? '' : _overview,
+            textAlign: TextAlign.left,
             style: TextStyle(
               color: Theme.of(context)
                   .colorScheme

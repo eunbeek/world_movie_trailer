@@ -11,14 +11,19 @@ class MovieByUser extends HiveObject {
   @HiveField(1)
   DateTime? savedDate;
 
+  @HiveField(2)
+  String? sourceFeedCode;
+
   MovieByUser({
     required this.movie,
     this.savedDate,
+    this.sourceFeedCode,
   });
 
   Map<String, dynamic> toJson() => {
         'movie': movie.toJson(),
         'savedDate': savedDate?.toIso8601String(),
+        'sourceFeedCode': sourceFeedCode,
       };
 
   factory MovieByUser.fromJson(Map<dynamic, dynamic> json) {
@@ -26,6 +31,7 @@ class MovieByUser extends HiveObject {
       movie: Movie.fromJson(json['movie']),
       savedDate:
           json['savedDate'] != null ? DateTime.parse(json['savedDate']) : null,
+      sourceFeedCode: json['sourceFeedCode']?.toString(),
     );
   }
 }

@@ -66,6 +66,8 @@ PODS:
   - OrderedSet (6.0.3)
   - permission_handler_apple (9.4.8):
     - Flutter
+  - pointer_interceptor_ios (0.0.1):
+    - Flutter
   - share_plus (0.0.1):
     - Flutter
   - sqflite_darwin (0.0.4):
@@ -87,6 +89,7 @@ DEPENDENCIES:
   - google_mobile_ads (from `.symlinks/plugins/google_mobile_ads/ios`)
   - in_app_purchase_storekit (from `.symlinks/plugins/in_app_purchase_storekit/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+  - pointer_interceptor_ios (from `.symlinks/plugins/pointer_interceptor_ios/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
@@ -128,6 +131,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/in_app_purchase_storekit/darwin"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
+  pointer_interceptor_ios:
+    :path: ".symlinks/plugins/pointer_interceptor_ios/ios"
   share_plus:
     :path: ".symlinks/plugins/share_plus/ios"
   sqflite_darwin:
@@ -161,6 +166,7 @@ SPEC CHECKSUMS:
   in_app_purchase_storekit: 22cca7d08eebca9babdf4d07d0baccb73325d3c8
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   permission_handler_apple: 92d754bbaa7361d436db2d6c3c1c2a0fdcec462e
+  pointer_interceptor_ios: da06a662d5bfd329602b45b2ab41bc0fb5fdb0f0
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b

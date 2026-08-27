@@ -1,14 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:world_movie_trailer/common/background.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/premium_translation_prompt.dart';
-import 'package:world_movie_trailer/common/ad_manager/interstitial_ad_manager.dart';
-import 'package:world_movie_trailer/common/ad_manager/detail_ad_policy.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
 import 'package:world_movie_trailer/common/services/movie_service.dart';
 import 'package:world_movie_trailer/common/services/quote_service.dart';
@@ -16,10 +13,16 @@ import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/common/translate.dart';
 import 'package:world_movie_trailer/common/translation_access.dart';
 import 'package:world_movie_trailer/layout/movie_detail_page.dart';
+import 'package:world_movie_trailer/layout/widgets/detail_swipe_navigator.dart';
+import 'package:world_movie_trailer/layout/widgets/movie_loading_indicator.dart';
+import 'package:world_movie_trailer/v2/home/widgets/selection_tab_label.dart';
 import 'package:world_movie_trailer/layout/settings_page.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/model/movieByUser.dart';
 import 'package:world_movie_trailer/model/quote.dart';
+import 'package:world_movie_trailer/v2/home/widgets/home_state_widgets.dart';
+import 'package:world_movie_trailer/v2/home/widgets/main_text_scale_cap.dart';
+import 'package:world_movie_trailer/v2/home/featured_section_rotation.dart';
 
 enum _BookmarkSort { recent, title, releaseDate }
 
@@ -84,6 +87,66 @@ const _bookmarkLabels = <String, Map<String, String>>{
     'noResults': '找不到搜尋結果。',
     'tryAgain': '請嘗試其他關鍵字。',
   },
+  'fr': {
+    'title': 'Favoris',
+    'countSuffix': '',
+    'searchHint': 'Rechercher par titre, personne ou pays...',
+    'recent': 'Plus récents',
+    'titleSort': 'Titre',
+    'releaseSort': 'Date de sortie',
+    'emptyTitle': 'Aucun film enregistré.',
+    'emptyDescription': 'Touchez le signet d’un film pour l’enregistrer.',
+    'noResults': 'Aucun favori trouvé.',
+    'tryAgain': 'Essayez une autre recherche.',
+  },
+  'de': {
+    'title': 'Lesezeichen',
+    'countSuffix': '',
+    'searchHint': 'Nach Titel, Person oder Land suchen...',
+    'recent': 'Neueste',
+    'titleSort': 'Titel',
+    'releaseSort': 'Kinostart',
+    'emptyTitle': 'Noch keine Filme gespeichert.',
+    'emptyDescription': 'Tippe auf das Lesezeichen eines Films.',
+    'noResults': 'Keine Lesezeichen gefunden.',
+    'tryAgain': 'Versuche einen anderen Suchbegriff.',
+  },
+  'es': {
+    'title': 'Marcadores',
+    'countSuffix': '',
+    'searchHint': 'Buscar por título, persona o país...',
+    'recent': 'Más recientes',
+    'titleSort': 'Título',
+    'releaseSort': 'Fecha de estreno',
+    'emptyTitle': 'Aún no hay películas guardadas.',
+    'emptyDescription': 'Toca el marcador de una película para guardarla.',
+    'noResults': 'No se encontraron marcadores.',
+    'tryAgain': 'Prueba otra búsqueda.',
+  },
+  'hi': {
+    'title': 'बुकमार्क',
+    'countSuffix': '',
+    'searchHint': 'शीर्षक, व्यक्ति या देश से खोजें...',
+    'recent': 'नवीनतम',
+    'titleSort': 'शीर्षक',
+    'releaseSort': 'रिलीज़ की तारीख',
+    'emptyTitle': 'अभी कोई फ़िल्म बुकमार्क नहीं है।',
+    'emptyDescription': 'फ़िल्म सहेजने के लिए बुकमार्क दबाएँ।',
+    'noResults': 'कोई बुकमार्क नहीं मिला।',
+    'tryAgain': 'कोई दूसरा शब्द खोजें।',
+  },
+  'th': {
+    'title': 'บุ๊กมาร์ก',
+    'countSuffix': '',
+    'searchHint': 'ค้นหาจากชื่อ บุคคล หรือประเทศ...',
+    'recent': 'ล่าสุด',
+    'titleSort': 'ชื่อเรื่อง',
+    'releaseSort': 'วันเข้าฉาย',
+    'emptyTitle': 'ยังไม่มีภาพยนตร์ที่บุ๊กมาร์ก',
+    'emptyDescription': 'แตะไอคอนบุ๊กมาร์กเพื่อบันทึกภาพยนตร์',
+    'noResults': 'ไม่พบบุ๊กมาร์ก',
+    'tryAgain': 'ลองใช้คำค้นอื่น',
+  },
 };
 
 class HomeShell extends StatefulWidget {
@@ -93,9 +156,9 @@ class HomeShell extends StatefulWidget {
   State<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> {
+class _HomeShellState extends State<HomeShell>
+    with SingleTickerProviderStateMixin {
   static const double _desktopBreakpoint = 1040;
-  final InterstitialAdManager _detailAd = InterstitialAdManager();
   static const _defaultCountryByLanguage = <String, String>{
     'en': 'us',
     'ko': 'kr',
@@ -137,26 +200,29 @@ class _HomeShellState extends State<HomeShell> {
   _BookmarkSort _bookmarkSort = _BookmarkSort.recent;
   String? _lastLanguage;
   bool _translationPreferenceInitialized = false;
+  bool _featuredPreferenceInitialized = false;
+  int _featuredSection = FeaturedSectionRotation.specialSection;
   late final ScrollController _countryScrollController;
-  bool _countryScrollPositioned = false;
+  bool _editingCountryOrder = false;
+  late final AnimationController _countryJiggleController;
 
   @override
   void initState() {
     super.initState();
     _countryScrollController = ScrollController();
+    _countryJiggleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 150),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _load();
-      final settings = context.read<SettingsProvider>();
-      if (settings.shouldShowVideoAds && !kIsWeb) {
-        _detailAd.loadAd(onAdLoaded: () {}, onAdFailed: () {});
-      }
     });
   }
 
   @override
   void dispose() {
-    _detailAd.dispose();
     _countryScrollController.dispose();
+    _countryJiggleController.dispose();
     super.dispose();
   }
 
@@ -166,16 +232,22 @@ class _HomeShellState extends State<HomeShell> {
     final settings = context.watch<SettingsProvider>();
     if (!_translationPreferenceInitialized) {
       _translationPreferenceInitialized = true;
-      _showEnglish =
+      _showEnglish = settings.translatedContentPreference ??
           TranslationAccess.defaultToTranslation(isPremium: settings.isAdsFree);
     }
-    if (!_countryScrollPositioned && MediaQuery.sizeOf(context).width < 700) {
-      _countryScrollPositioned = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_countryScrollController.hasClients) {
-          _countryScrollController.jumpTo(10000);
-        }
-      });
+    if (!_featuredPreferenceInitialized) {
+      _featuredPreferenceInitialized = true;
+      if (!kIsWeb) {
+        _featuredSection = FeaturedSectionRotation.sectionForLaunch(
+          showQuotes: settings.isQuotes,
+        );
+        final nextShowQuotes = FeaturedSectionRotation.preferenceForNextLaunch(
+          showQuotes: settings.isQuotes,
+        );
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => settings.updateIsQuotes(nextShowQuotes),
+        );
+      }
     }
     final language = settings.language;
     if (_lastLanguage == null) {
@@ -218,93 +290,80 @@ class _HomeShellState extends State<HomeShell> {
         : country;
   }
 
-  static const _originalLabels = <String, String>{
-    'en': 'Original',
-    'ko': '원본',
-    'ja': '原文',
-    'zh': '原文',
-    'tw': '原文',
-    'fr': 'Original',
-    'de': 'Original',
-    'es': 'Original',
-    'hi': 'मूल',
-    'th': 'ต้นฉบับ',
-  };
-
   static const _navigationLabels = <String, Map<String, String>>{
     'en': {
       'countries': 'Countries',
       'boxOffice': 'Box Office',
       'bookmarks': 'Bookmarks',
       'special': 'Special',
-      'quotes': 'Daily Quote',
+      'quotes': 'Movie Quotes',
     },
     'ko': {
       'countries': '국가별',
       'boxOffice': '박스오피스',
       'bookmarks': '북마크',
       'special': '특별기획',
-      'quotes': '하루명언',
+      'quotes': '영화명언',
     },
     'ja': {
       'countries': '国別',
       'boxOffice': '興行ランキング',
       'bookmarks': 'お気に入り',
       'special': '特別企画',
-      'quotes': '今日の名言',
+      'quotes': '映画の名言',
     },
     'zh': {
       'countries': '国家',
       'boxOffice': '票房',
       'bookmarks': '书签',
       'special': '特别企划',
-      'quotes': '每日名言',
+      'quotes': '电影名言',
     },
     'tw': {
       'countries': '國家',
       'boxOffice': '票房',
       'bookmarks': '書籤',
       'special': '特別企劃',
-      'quotes': '每日名言',
+      'quotes': '電影名言',
     },
     'fr': {
       'countries': 'Pays',
       'boxOffice': 'Box-office',
       'bookmarks': 'Favoris',
       'special': 'Spécial',
-      'quotes': 'Citation du jour',
+      'quotes': 'Citations de films',
     },
     'de': {
       'countries': 'Länder',
       'boxOffice': 'Kinokasse',
       'bookmarks': 'Lesezeichen',
       'special': 'Spezial',
-      'quotes': 'Zitat des Tages',
+      'quotes': 'Filmzitate',
     },
     'es': {
       'countries': 'Países',
       'boxOffice': 'Taquilla',
       'bookmarks': 'Marcadores',
       'special': 'Especial',
-      'quotes': 'Cita del día',
+      'quotes': 'Frases de películas',
     },
     'hi': {
       'countries': 'देश',
       'boxOffice': 'बॉक्स ऑफिस',
       'bookmarks': 'बुकमार्क',
       'special': 'विशेष',
-      'quotes': 'आज का उद्धरण',
+      'quotes': 'फ़िल्मी उद्धरण',
     },
     'th': {
       'countries': 'ประเทศ',
       'boxOffice': 'บ็อกซ์ออฟฟิศ',
       'bookmarks': 'บุ๊กมาร์ก',
       'special': 'พิเศษ',
-      'quotes': 'คำคมประจำวัน',
+      'quotes': 'คำคมจากภาพยนตร์',
     },
   };
 
-  Future<void> _load() async {
+  Future<void> _load({bool forceRefresh = false}) async {
     if (!mounted) return;
     setState(() {
       _loading = true;
@@ -321,10 +380,28 @@ class _HomeShellState extends State<HomeShell> {
             : _section == 3
                 ? special
                 : _countryCode;
-        _movies = await MovieService.fetchMovieByCode(code, _contentLanguage);
+        _movies = await MovieService.fetchMovieByCode(
+          code,
+          _contentLanguage,
+          forceRefresh: forceRefresh,
+        );
       }
     } catch (error) {
-      _error = error;
+      if (_section == 4) {
+        try {
+          _section = FeaturedSectionRotation.specialSection;
+          _movies = await MovieService.fetchMovieByCode(
+            special,
+            _contentLanguage,
+            forceRefresh: forceRefresh,
+          );
+          _error = null;
+        } catch (fallbackError) {
+          _error = fallbackError;
+        }
+      } else {
+        _error = error;
+      }
     }
     if (mounted) setState(() => _loading = false);
   }
@@ -340,43 +417,92 @@ class _HomeShellState extends State<HomeShell> {
           ? _movies
           : _movies.where((movie) => movie.period == latest).toList();
     }
-    if (_section == 1 || _movieFilter == 0) return _movies;
-    return _movies.where((movie) {
-      final release = DateTime.tryParse(movie.releaseDate);
-      if (release == null) return _movieFilter == 1;
-      final today = DateUtils.dateOnly(DateTime.now());
-      final isUpcoming = release.isAfter(today);
-      return _movieFilter == 2 ? isUpcoming : !isUpcoming;
-    }).toList();
+    if (_section == 1) return _movies;
+    final today = DateUtils.dateOnly(DateTime.now());
+    final filtered = _movieFilter == 0
+        ? List<Movie>.from(_movies)
+        : _movies.where((movie) {
+            final release = DateTime.tryParse(movie.releaseDate);
+            if (release == null) return _movieFilter == 1;
+            final isUpcoming = release.isAfter(today);
+            return _movieFilter == 2 ? isUpcoming : !isUpcoming;
+          }).toList();
+    filtered.sort((first, second) {
+      final firstDate = DateTime.tryParse(first.releaseDate);
+      final secondDate = DateTime.tryParse(second.releaseDate);
+      if (firstDate == null && secondDate == null) return 0;
+      if (firstDate == null) return 1;
+      if (secondDate == null) return -1;
+      return _movieFilter == 2
+          ? firstDate.compareTo(secondDate)
+          : secondDate.compareTo(firstDate);
+    });
+    return filtered;
   }
 
-  void _selectSection(int value) {
+  Future<bool> _ensureRewardedAccess() async {
+    final settings = context.read<SettingsProvider>();
+    if (kIsWeb || settings.canUseRewardedFeatures) return true;
+    return showPremiumTranslationPrompt(context, settings.language);
+  }
+
+  Future<void> _selectSection(int value) async {
     if (_section == value) return;
+    if ((value == 2 || value == 3) && !await _ensureRewardedAccess()) return;
+    if (!mounted) return;
     setState(() => _section = value);
     _load();
   }
 
-  Future<void> _openMovie(Movie movie) async {
+  Future<void> _openMovie(Movie movie, {required List<Movie> movies}) async {
     final settings = context.read<SettingsProvider>();
-    if (settings.shouldShowVideoAds && !kIsWeb) {
-      settings.updateOpenCount();
-      if (DetailAdPolicy.shouldShow(settings.openCount)) {
-        settings.resetOpenCount();
-        await _detailAd.showAdIfAvailableAsync();
-      }
-    }
-
     if (!mounted) return;
-    await Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => MovieDetailPageYouTube(
-        movie: movie,
-        captionFlag: settings.isCaptionOn,
-        captionLan: settings.language,
-        isCustomized: false,
-        initialShowOriginal: !_showEnglish,
+    final sequence = List<Movie>.unmodifiable(movies);
+    final initialIndex = sequence.indexOf(movie);
+    if (initialIndex < 0) return;
+    final sourceCodes =
+        sequence.map(_sourceFeedCodeFor).toList(growable: false);
+    var currentShowOriginal = !_showEnglish;
+    final showOriginal =
+        await Navigator.of(context).push<bool>(MaterialPageRoute(
+      builder: (_) => DetailSwipeNavigator(
+        itemCount: sequence.length,
+        initialIndex: initialIndex,
+        itemBuilder: (_, index) => MovieDetailPageYouTube(
+          movie: sequence[index],
+          captionFlag: settings.isCaptionOn,
+          captionLan: settings.language,
+          isCustomized: false,
+          initialShowOriginal: currentShowOriginal,
+          onShowOriginalChanged: (value) {
+            currentShowOriginal = value;
+            settings.updateTranslatedContentPreference(!value);
+          },
+          sourceFeedCode: sourceCodes[index],
+        ),
       ),
     ));
+    if (mounted && showOriginal != null) {
+      setState(() => _showEnglish = !showOriginal);
+      settings.updateTranslatedContentPreference(_showEnglish);
+    }
     if (_section == 2) await _load();
+  }
+
+  String? _sourceFeedCodeFor(Movie movie) {
+    if (_section == 0) return _countryCode;
+    if (_section == 1) return _boxOfficeCode;
+    if (_section == 3) return special;
+    if (_section != 2) return null;
+    final movieKey = movie.id.isNotEmpty ? movie.id : movie.localTitle;
+    for (final bookmark in _bookmarks) {
+      final bookmarkedMovie = bookmark.movie;
+      final bookmarkKey = bookmarkedMovie.id.isNotEmpty
+          ? bookmarkedMovie.id
+          : bookmarkedMovie.localTitle;
+      if (bookmarkKey == movieKey) return bookmark.sourceFeedCode;
+    }
+    return null;
   }
 
   @override
@@ -384,79 +510,152 @@ class _HomeShellState extends State<HomeShell> {
     final language = context.watch<SettingsProvider>().language;
     final navigation = _navigationLabels[language] ?? _navigationLabels['en']!;
     final compact = MediaQuery.sizeOf(context).width < _desktopBreakpoint;
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          BackgroundWidget(
-            isPausePage: false,
-            isTapeExist: true,
-          ),
-          SafeArea(
-            child: Column(children: [
-              _Header(
-                title: getAppBarTitle(language).replaceAll('\n', ' '),
-                navigationLabels: navigation,
-                section: _section,
-                onSectionChanged: _selectSection,
-                onTitleTap: () => _selectSection(0),
-                languageLabel: countryNameByLan['ko']?[language] ?? 'English',
-                originalLabel: _originalLabels[language] ?? 'Original',
-                showEnglish: _showEnglish,
-                onLanguageChanged: (value) async {
-                  final settings = context.read<SettingsProvider>();
-                  if (value && !kIsWeb && !settings.canTranslate) {
-                    final granted = await showPremiumTranslationPrompt(
-                      context,
-                      settings.language,
-                    );
-                    if (!granted) return;
-                  }
-                  setState(() => _showEnglish = value);
-                  _load();
-                },
-                onSettings: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const SettingsPage()),
+    return MainTextScaleCap(
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            BackgroundWidget(
+              isPausePage: false,
+              isTapeExist: true,
+            ),
+            SafeArea(
+              child: Column(children: [
+                _Header(
+                  title: getAppBarTitle(language).replaceAll('\n', ' '),
+                  navigationLabels: navigation,
+                  section: _section,
+                  onSectionChanged: _selectSection,
+                  onTitleTap: () => _selectSection(0),
+                  languageLabel: getLanguageName(language),
+                  originalLabel: getMenuItemTitle(language, 'Original'),
+                  settingsTooltip: getMenuItemTitle(language, 'Settings'),
+                  showEnglish: _showEnglish,
+                  onLanguageChanged: (value) async {
+                    final settings = context.read<SettingsProvider>();
+                    if (value && !kIsWeb && !settings.canTranslate) {
+                      final granted = await showPremiumTranslationPrompt(
+                        context,
+                        settings.language,
+                      );
+                      if (!granted) return;
+                    }
+                    setState(() => _showEnglish = value);
+                    settings.updateTranslatedContentPreference(value);
+                    _load();
+                  },
+                  onSettings: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SettingsPage()),
+                  ),
                 ),
-              ),
-              if (_section == 0) _countrySelector(),
-              if (_section == 1 || _section == 3 || _section == 4)
-                _boxOfficeSelector(),
-              if (_section == 0) _filterSelector(),
-              if (_section == 1) _weekTitle(),
-              if (_section == 3) _specialTitle(),
-              Expanded(child: _body()),
-            ]),
-          ),
-        ],
+                if (_section == 0) _countrySelector(),
+                if (_section == 1 || _section == 3 || _section == 4)
+                  _boxOfficeSelector(),
+                Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: Theme.of(context).dividerColor,
+                ),
+                if (_section == 0) _filterSelector(),
+                if (_section == 1) _weekTitle(),
+                if (_section == 3) _specialTitle(),
+                if (_section == 4) _quoteTitle(),
+                Expanded(child: _body()),
+              ]),
+            ),
+          ],
+        ),
+        bottomNavigationBar: compact ? _bottomNavigation() : null,
       ),
-      bottomNavigationBar: compact ? _bottomNavigation() : null,
     );
   }
 
   Widget _countrySelector() {
-    final countries = _countryKeys.entries.toList(growable: false);
+    final settings = context.watch<SettingsProvider>();
+    final countries = _orderedCountries(settings);
+    if (_editingCountryOrder) {
+      return SizedBox(
+        height: 48,
+        child: Row(
+          children: [
+            Expanded(
+              child: ReorderableListView.builder(
+                scrollDirection: Axis.horizontal,
+                buildDefaultDragHandles: false,
+                padding: const EdgeInsets.only(left: 10),
+                itemCount: countries.length,
+                onReorderItem: (oldIndex, newIndex) {
+                  final reordered =
+                      List<MapEntry<String, String>>.from(countries);
+                  final moved = reordered.removeAt(oldIndex);
+                  reordered.insert(newIndex, moved);
+                  settings.updateCountryOrderKeys(
+                    reordered.map((entry) => entry.value).toList(),
+                  );
+                },
+                itemBuilder: (context, index) {
+                  final entry = countries[index];
+                  return ReorderableDelayedDragStartListener(
+                    key: ValueKey(entry.key),
+                    index: index,
+                    child: AnimatedBuilder(
+                      animation: _countryJiggleController,
+                      builder: (_, child) => Transform.rotate(
+                        angle: (_countryJiggleController.value - .5) *
+                            (index.isEven ? .025 : -.025),
+                        child: child,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        child: Chip(
+                          avatar: const Icon(Icons.drag_indicator_rounded,
+                              size: 17),
+                          label: Text(
+                            localizedCountries[settings.language]
+                                    ?[entry.value] ??
+                                entry.value,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            IconButton(
+              tooltip: getMenuItemTitle(settings.language, 'Done'),
+              onPressed: _finishCountryOrderEditing,
+              icon: const Icon(Icons.check_circle_rounded),
+            ),
+          ],
+        ),
+      );
+    }
     final itemCount = countries.length;
-    final infiniteScroll =
-        MediaQuery.sizeOf(context).width < _desktopBreakpoint;
+    final mobile = MediaQuery.sizeOf(context).width < _desktopBreakpoint;
     return SizedBox(
-      height: 42,
-      child: ListView.builder(
+      height: 34,
+      child: ListView.separated(
         controller: _countryScrollController,
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: infiniteScroll ? null : itemCount,
+        itemCount: itemCount,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
         itemBuilder: (context, index) {
-          final itemIndex = index % itemCount;
-          final entry = countries[itemIndex];
+          final entry = countries[index];
           final selected = _section == 0 && entry.key == _countryCode;
-          final settings = context.watch<SettingsProvider>();
           final hasUpdate = settings.hasContentUpdate(entry.key);
           return Stack(
             clipBehavior: Clip.none,
             children: [
               TextButton(
+                onLongPress: mobile ? _startCountryOrderEditing : null,
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(56, 34),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
                 onPressed: () {
                   settings.acknowledgeContentUpdate(entry.key);
                   if (selected) return;
@@ -466,18 +665,10 @@ class _HomeShellState extends State<HomeShell> {
                   });
                   _load();
                 },
-                child: Text(
+                child: _selectionTabLabel(
                   localizedCountries[settings.language]?[entry.value] ??
                       entry.value,
-                  style: TextStyle(
-                    color: selected
-                        ? Theme.of(context).colorScheme.onSurface
-                        : Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.65),
-                    fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
-                  ),
+                  selected,
                 ),
               ),
               if (hasUpdate)
@@ -499,100 +690,149 @@ class _HomeShellState extends State<HomeShell> {
     );
   }
 
+  List<MapEntry<String, String>> _orderedCountries(SettingsProvider settings) {
+    final byName = {
+      for (final entry in _countryKeys.entries) entry.value: entry
+    };
+    final ordered = <MapEntry<String, String>>[];
+    for (final key in settings.countryOrderKeys) {
+      final entry = byName.remove(key);
+      if (entry != null) ordered.add(entry);
+    }
+    ordered.addAll(byName.values);
+    return ordered;
+  }
+
+  void _startCountryOrderEditing() {
+    setState(() => _editingCountryOrder = true);
+    _countryJiggleController.repeat(reverse: true);
+  }
+
+  void _finishCountryOrderEditing() {
+    _countryJiggleController.stop();
+    _countryJiggleController.value = .5;
+    setState(() => _editingCountryOrder = false);
+  }
+
   Widget _boxOfficeSelector() {
     final language = context.read<SettingsProvider>().language;
     final navigation = _navigationLabels[language] ?? _navigationLabels['en']!;
     return SizedBox(
-      height: 44,
+      height: 34,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         children: [
           _selectorButton(
-              1, 'box_office', getBoxOfficeLabel(language, 'box_usa')),
+              1, 'box_office', localizedCountries[language]?['usa'] ?? 'USA'),
           _selectorButton(1, 'box_office_kr',
-              '${localizedCountries[language]?['korea'] ?? 'Korea'} ${getBoxOfficeLabel(language, 'box')}'),
-          _selectorButton(3, null, navigation['special']!),
-          _selectorButton(4, null, navigation['quotes']!),
+              localizedCountries[language]?['korea'] ?? 'Korea'),
+          if (kIsWeb ||
+              _featuredSection == FeaturedSectionRotation.specialSection)
+            _selectorButton(3, null, navigation['special']!),
+          if (kIsWeb ||
+              _featuredSection == FeaturedSectionRotation.quotesSection)
+            _selectorButton(4, null, navigation['quotes']!),
         ],
       ),
     );
   }
 
   Widget _selectorButton(int section, String? code, String label) => TextButton(
-        onPressed: () {
+        style: TextButton.styleFrom(
+          minimumSize: const Size(0, 34),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        onPressed: () async {
           if (_section == section && (code == null || _boxOfficeCode == code)) {
             return;
           }
+          if (section == 3 || section == 4) {
+            if (!await _ensureRewardedAccess()) return;
+          }
+          if (!mounted) return;
           setState(() {
             _section = section;
             if (code != null) _boxOfficeCode = code;
           });
           _load();
         },
-        child: Text(label,
-            style: TextStyle(
-              color: _section == section &&
-                      (code == null || _boxOfficeCode == code)
-                  ? Theme.of(context).colorScheme.onSurface
-                  : Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.6),
-              fontWeight: FontWeight.w700,
-              decoration: _section == section &&
-                      (code == null || _boxOfficeCode == code)
-                  ? TextDecoration.underline
-                  : null,
-              decorationColor: Colors.cyanAccent,
-            )),
+        child: _selectionTabLabel(
+          label,
+          _section == section && (code == null || _boxOfficeCode == code),
+        ),
       );
 
-  Widget _filterSelector() => Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(
-                3,
-                (index) => getFilterLabel(
-                    index, context.read<SettingsProvider>().language))
-            .asMap()
-            .entries
-            .map((entry) => TextButton(
-                  onPressed: () => setState(() => _movieFilter = entry.key),
-                  child: Text(entry.value,
-                      style: TextStyle(
-                        color: _movieFilter == entry.key
-                            ? Theme.of(context).colorScheme.onSurface
-                            : Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.6),
-                        fontWeight: _movieFilter == entry.key
-                            ? FontWeight.w800
-                            : FontWeight.w500,
-                      )),
-                ))
-            .toList(),
+  Widget _filterSelector() => SizedBox(
+        height: 38,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: List.generate(
+                  3,
+                  (index) => getFilterLabel(
+                      index, context.read<SettingsProvider>().language))
+              .asMap()
+              .entries
+              .map((entry) => TextButton(
+                    style: TextButton.styleFrom(
+                      minimumSize: const Size(0, 36),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: () async {
+                      if (entry.key == 2 && !await _ensureRewardedAccess()) {
+                        return;
+                      }
+                      if (mounted) setState(() => _movieFilter = entry.key);
+                    },
+                    child: _selectionTabLabel(
+                      entry.value,
+                      _movieFilter == entry.key,
+                    ),
+                  ))
+              .toList(),
+        ),
       );
+
+  Widget _selectionTabLabel(String label, bool selected) =>
+      SelectionTabLabel(label: label, selected: selected);
 
   Widget _weekTitle() {
     final first = _movies.isEmpty ? null : _movies.first;
-    final range = first == null || first.weekStartDate?.isEmpty != false
+    final range = first == null
         ? ''
-        : ' (${first.weekStartDate} - ${first.weekEndDate})';
+        : _formatBoxOfficeWeek(first.weekStartDate, first.weekEndDate);
     final language = context.read<SettingsProvider>().language;
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-        child: Text('${getBoxOfficeLabel(language, 'this_week')}$range',
-            style: TextStyle(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.7),
-                fontSize: 15)),
-      ),
+    return _contentSectionTitle(
+      '${getBoxOfficeLabel(language, 'this_week')}$range',
     );
+  }
+
+  Widget _contentSectionTitle(String title) => Align(
+        alignment: Alignment.centerLeft,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: Text(title,
+              style: TextStyle(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.7),
+                  fontSize: 15)),
+        ),
+      );
+
+  String _formatBoxOfficeWeek(String? startValue, String? endValue) {
+    if (startValue?.isEmpty != false || endValue?.isEmpty != false) return '';
+    final start = DateTime.tryParse(startValue!);
+    final end = DateTime.tryParse(endValue!);
+    if (start == null || end == null) return ' ($startValue - $endValue)';
+    final startText = DateFormat('MMM d', 'en_US').format(start);
+    if (start.year == end.year && start.month == end.month) {
+      return ' ($startText-${end.day})';
+    }
+    return ' ($startText - ${DateFormat('MMM d', 'en_US').format(end)})';
   }
 
   Widget _specialTitle() {
@@ -604,71 +844,54 @@ class _HomeShellState extends State<HomeShell> {
             'concept',
             movies.first.special ?? '',
           );
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(18, 14, 18, 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Movie Special',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            if (concept.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                concept,
-                style: TextStyle(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: .62),
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
+    final language = context.read<SettingsProvider>().language;
+    final title =
+        (_navigationLabels[language] ?? _navigationLabels['en']!)['special']!;
+    return _contentSectionTitle(concept.isEmpty ? title : '$title ($concept)');
+  }
+
+  Widget _quoteTitle() {
+    final language = context.read<SettingsProvider>().language;
+    return _contentSectionTitle(
+      (_navigationLabels[language] ?? _navigationLabels['en']!)['quotes']!,
     );
   }
 
   Widget _body() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: MovieLoadingIndicator());
     }
     if (_error != null) {
-      return _MessageState(
+      return MessageState(
         icon: Icons.cloud_off_outlined,
         message: getErrorMessage(context.read<SettingsProvider>().language),
-        action: _load,
+        action: () => _load(forceRefresh: true),
       );
     }
     if (_section == 2) return _bookmarkBody();
     if (_section == 4) return _quoteBody();
     final movies = _visibleMovies;
     if (movies.isEmpty) {
-      return _MessageState(
+      return MessageState(
         icon: _section == 2
             ? Icons.bookmark_border_rounded
             : Icons.movie_outlined,
         message: _section == 2
             ? getErrorByUserMessage(context.read<SettingsProvider>().language)
             : getErrorMessage(context.read<SettingsProvider>().language),
+        action: _section == 2 ? null : () => _load(forceRefresh: true),
       );
     }
     if (_section == 0) {
-      return _countryPosterGrid(movies: movies, onRefresh: _load);
+      return _countryPosterGrid(
+        movies: movies,
+        onRefresh: () => _load(forceRefresh: true),
+      );
     }
     return _responsiveMovieList(
       movies: movies,
       boxOffice: _section == 1,
-      onRefresh: _load,
+      onRefresh: () => _load(forceRefresh: true),
       showCountry: _section == 3,
       specialSection: _section == 3,
     );
@@ -704,15 +927,17 @@ class _HomeShellState extends State<HomeShell> {
             itemCount: movies.length,
             itemBuilder: (_, index) {
               final movie = movies[index];
-              return InkWell(
-                borderRadius: BorderRadius.circular(14),
-                onTap: () => _openMovie(movie),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
+              final dark = context.read<SettingsProvider>().isDarkTheme;
+              return Material(
+                color: dark ? const Color(0xFF666666) : const Color(0xFF999999),
+                borderRadius: BorderRadius.circular(15),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () => _openMovie(movie, movies: movies),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
                         child: SizedBox.expand(
                           child: movie.posterUrl.isEmpty
                               ? const ColoredBox(color: Color(0xFF9D1D25))
@@ -724,24 +949,35 @@ class _HomeShellState extends State<HomeShell> {
                                 ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _displayMovieField(movie, 'title', movie.localTitle),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    if (movie.releaseDate.isNotEmpty)
-                      Text(movie.releaseDate,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: .62),
-                          )),
-                  ],
+                      Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _displayMovieField(
+                                  movie, 'title', movie.localTitle),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFFECECEC),
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            if (movie.releaseDate.isNotEmpty)
+                              Text(
+                                movie.releaseDate.replaceAll('-', '.'),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFFC7C7C7),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -755,9 +991,13 @@ class _HomeShellState extends State<HomeShell> {
     required Future<void> Function() onRefresh,
     bool showCountry = false,
     bool specialSection = false,
+    List<String>? sourceFlags,
   }) {
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 900;
+      final cardColor = Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFF292A2E)
+          : const Color(0xFFE1E2E5);
       Widget row(int index) => _MovieRow(
             movie: movies[index],
             index: index,
@@ -775,7 +1015,8 @@ class _HomeShellState extends State<HomeShell> {
                     movies[index].country,
                   )
                 : null,
-            onTap: () => _openMovie(movies[index]),
+            sourceFlag: sourceFlags?[index],
+            onTap: () => _openMovie(movies[index], movies: movies),
           );
 
       return RefreshIndicator(
@@ -796,6 +1037,7 @@ class _HomeShellState extends State<HomeShell> {
                 itemCount: movies.length,
                 itemBuilder: (_, index) => DecoratedBox(
                   decoration: BoxDecoration(
+                    color: cardColor,
                     border: Border.all(color: Theme.of(context).dividerColor),
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -806,12 +1048,25 @@ class _HomeShellState extends State<HomeShell> {
                 ),
               )
             : ListView.separated(
-                itemCount: movies.length,
-                separatorBuilder: (_, __) => Divider(
-                  height: 1,
-                  color: Theme.of(context).dividerColor,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
                 ),
-                itemBuilder: (_, index) => row(index),
+                itemCount: movies.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (_, index) => DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: cardColor,
+                    border: Border.all(
+                      color: Theme.of(context).dividerColor,
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: row(index),
+                  ),
+                ),
               ),
       );
     });
@@ -821,7 +1076,7 @@ class _HomeShellState extends State<HomeShell> {
     final desktop = MediaQuery.sizeOf(context).width >= _desktopBreakpoint;
     final language = context.read<SettingsProvider>().language;
     if (_quotes.isEmpty) {
-      return _MessageState(
+      return MessageState(
         icon: Icons.format_quote_rounded,
         message: getErrorMessage(language),
         action: _load,
@@ -837,97 +1092,92 @@ class _HomeShellState extends State<HomeShell> {
       (index) => _quotes[(firstIndex + index) % _quotes.length],
     );
 
-    return RefreshIndicator(
-      onRefresh: _load,
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.symmetric(
-          horizontal: desktop ? 80 : 22,
-          vertical: desktop ? 54 : 32,
-        ),
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Movie Quotes',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
+    return LayoutBuilder(builder: (context, constraints) {
+      final verticalPadding = desktop ? 16.0 : 8.0;
+      final availableHeight = constraints.maxHeight - verticalPadding * 2;
+      final contentHeight = availableHeight < 360 ? 360.0 : availableHeight;
+      return RefreshIndicator(
+        onRefresh: _load,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.symmetric(
+            horizontal: desktop ? 80 : 20,
+            vertical: verticalPadding,
+          ),
+          children: [
+            SizedBox(
+              height: contentHeight,
+              child: Column(
+                children: dailyQuotes.indexed
+                    .map((entry) => Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              bottom:
+                                  entry.$1 == dailyQuotes.length - 1 ? 0 : 14,
+                            ),
+                            child: _quoteCard(entry.$2, language),
+                          ),
+                        ))
+                    .toList(),
               ),
             ),
-          ),
-          const SizedBox(height: 18),
-          ...dailyQuotes.indexed.map((entry) => Padding(
-                padding: EdgeInsets.only(
-                    bottom: entry.$1 == dailyQuotes.length - 1 ? 0 : 18),
-                child: _quoteCard(entry.$2, language),
-              )),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
+    });
   }
 
   Widget _quoteCard(Quote quote, String language) {
     final desktop = MediaQuery.sizeOf(context).width >= _desktopBreakpoint;
-    final quoteText = !_showEnglish
-        ? quote.quoteEN
-        : language == 'ko'
-            ? quote.quoteKR
-            : language == 'ja'
-                ? quote.quoteJP
-                : quote.quoteEN;
-    final movieTitle = !_showEnglish
-        ? quote.movieEN
-        : language == 'ko'
-            ? quote.movieKR
-            : language == 'ja'
-                ? quote.movieJP
-                : quote.movieEN;
+    final quoteText =
+        _showEnglish ? quote.localizedQuote(language) : quote.quoteEN;
+    final movieTitle =
+        _showEnglish ? quote.localizedMovie(language) : quote.movieEN;
     return Align(
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 820),
         child: Container(
           width: double.infinity,
+          height: double.infinity,
           padding: EdgeInsets.symmetric(
-            horizontal: desktop ? 56 : 25,
-            vertical: desktop ? 42 : 32,
+            horizontal: desktop ? 48 : 22,
+            vertical: desktop ? 24 : 14,
           ),
           decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .onSurface
-                .withValues(alpha: 0.055),
-            border: Border.all(color: Theme.of(context).dividerColor),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF383B41)
+                : const Color(0xFFD9DCE1),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.format_quote_rounded,
-                  color: Color(0xFFB12DDB), size: 36),
-              const SizedBox(height: 14),
               Text(
                 quoteText,
                 textAlign: TextAlign.center,
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurface,
-                  fontSize: desktop ? 22 : 19,
+                  fontSize: desktop ? 19 : 16,
                   fontWeight: FontWeight.w700,
-                  height: 1.5,
+                  height: 1.35,
                 ),
               ),
               if (movieTitle.isNotEmpty) ...[
-                const SizedBox(height: 18),
+                const SizedBox(height: 12),
                 Text(
                   '— $movieTitle —',
                   textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: Theme.of(context)
                         .colorScheme
                         .onSurface
                         .withValues(alpha: 0.62),
-                    fontSize: 14,
+                    fontSize: desktop ? 14 : 12,
                   ),
                 ),
               ],
@@ -951,6 +1201,7 @@ class _HomeShellState extends State<HomeShell> {
         _displayMovieField(movie, 'country', movie.country),
         movie.originSource['title'],
         movie.originSource['country'],
+        _bookmarkCountrySearchTerms(item),
         movie.credits,
         movie.originSource['credits'],
       ].whereType<Object>().join(' ').toLowerCase().contains(query);
@@ -977,7 +1228,7 @@ class _HomeShellState extends State<HomeShell> {
       children: [
         Padding(
           padding:
-              EdgeInsets.fromLTRB(desktop ? 40 : 16, 22, desktop ? 40 : 16, 18),
+              EdgeInsets.fromLTRB(desktop ? 40 : 16, 10, desktop ? 40 : 16, 18),
           child: Column(
             children: [
               Row(
@@ -989,93 +1240,56 @@ class _HomeShellState extends State<HomeShell> {
                         fontWeight: FontWeight.w800,
                       )),
                   const Spacer(),
-                  Text('${items.length}${labels['countSuffix']}',
-                      style: TextStyle(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.65),
-                      )),
+                  if (desktop)
+                    Text('${items.length}${labels['countSuffix']}',
+                        style: TextStyle(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.65),
+                        )),
+                  if (!desktop) _bookmarkSortMenu(labels),
                 ],
               ),
-              const SizedBox(height: 18),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      onChanged: (value) =>
-                          setState(() => _bookmarkQuery = value),
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface),
-                      decoration: InputDecoration(
-                        hintText: labels['searchHint'],
-                        prefixIcon: const Icon(Icons.search_rounded),
-                        filled: true,
-                        fillColor: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.06),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
+              if (desktop) ...[
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        onChanged: (value) =>
+                            setState(() => _bookmarkQuery = value),
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface),
+                        decoration: InputDecoration(
+                          hintText: labels['searchHint'],
+                          prefixIcon: const Icon(Icons.search_rounded),
+                          filled: true,
+                          fillColor: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.06),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding:
+                              const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        contentPadding:
-                            const EdgeInsets.symmetric(vertical: 12),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 14),
-                  PopupMenuButton<_BookmarkSort>(
-                    initialValue: _bookmarkSort,
-                    onSelected: (value) =>
-                        setState(() => _bookmarkSort = value),
-                    itemBuilder: (_) => [
-                      PopupMenuItem(
-                          value: _BookmarkSort.recent,
-                          child: Text(labels['recent']!)),
-                      PopupMenuItem(
-                          value: _BookmarkSort.title,
-                          child: Text(labels['titleSort']!)),
-                      PopupMenuItem(
-                          value: _BookmarkSort.releaseDate,
-                          child: Text(labels['releaseSort']!)),
-                    ],
-                    child: Container(
-                      height: 48,
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.06),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.swap_vert_rounded,
-                              color: Color(0xFF9D00C6)),
-                          if (desktop) ...[
-                            const SizedBox(width: 5),
-                            Text(_bookmarkSortLabel(labels),
-                                style: const TextStyle(
-                                    color: Color(0xFF9D00C6),
-                                    fontWeight: FontWeight.w700)),
-                          ],
-                          const Icon(Icons.keyboard_arrow_down_rounded,
-                              color: Color(0xFF9D00C6)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                    const SizedBox(width: 14),
+                    _bookmarkSortMenu(labels),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
         Divider(height: 1, color: Theme.of(context).dividerColor),
         Expanded(
           child: items.isEmpty
-              ? _BookmarkEmptyState(
+              ? BookmarkEmptyState(
                   title: query.isEmpty
                       ? labels['emptyTitle']!
                       : labels['noResults']!,
@@ -1083,7 +1297,9 @@ class _HomeShellState extends State<HomeShell> {
                       ? labels['emptyDescription']!
                       : labels['tryAgain']!,
                 )
-              : _responsiveBookmarkList(items),
+              : desktop
+                  ? _responsiveBookmarkList(items)
+                  : _mobileBookmarkList(items),
         ),
       ],
     );
@@ -1096,10 +1312,183 @@ class _HomeShellState extends State<HomeShell> {
         _BookmarkSort.releaseDate => labels['releaseSort']!,
       };
 
+  Widget _bookmarkSortMenu(Map<String, String> labels) =>
+      PopupMenuButton<_BookmarkSort>(
+        initialValue: _bookmarkSort,
+        onSelected: (value) => setState(() => _bookmarkSort = value),
+        itemBuilder: (_) => [
+          PopupMenuItem(
+              value: _BookmarkSort.recent, child: Text(labels['recent']!)),
+          PopupMenuItem(
+              value: _BookmarkSort.title, child: Text(labels['titleSort']!)),
+          PopupMenuItem(
+              value: _BookmarkSort.releaseDate,
+              child: Text(labels['releaseSort']!)),
+        ],
+        child: Container(
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: .06),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.swap_vert_rounded, color: Color(0xFF9D00C6)),
+              const SizedBox(width: 5),
+              Text(_bookmarkSortLabel(labels),
+                  style: const TextStyle(
+                      color: Color(0xFF9D00C6), fontWeight: FontWeight.w700)),
+              const Icon(Icons.keyboard_arrow_down_rounded,
+                  color: Color(0xFF9D00C6)),
+            ],
+          ),
+        ),
+      );
+
+  Widget _mobileBookmarkList(List<MovieByUser> items) => RefreshIndicator(
+        onRefresh: _load,
+        child: ListView.separated(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          itemCount: items.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 14),
+          itemBuilder: (context, index) {
+            final item = items[index];
+            final movie = item.movie;
+            return Material(
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: .06),
+              borderRadius: BorderRadius.circular(18),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: () => _openMovie(
+                  movie,
+                  movies: items.map((item) => item.movie).toList(),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: SizedBox(
+                          width: 92,
+                          height: 138,
+                          child: movie.posterUrl.isEmpty
+                              ? const ColoredBox(color: Color(0xFF9D1D25))
+                              : CachedNetworkImage(
+                                  imageUrl: movie.posterUrl,
+                                  fit: BoxFit.cover,
+                                  errorWidget: (_, __, ___) => const ColoredBox(
+                                    color: Color(0xFF9D1D25),
+                                  ),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(_bookmarkFlag(item),
+                                style: const TextStyle(fontSize: 22)),
+                            const SizedBox(height: 8),
+                            Text(
+                              _displayMovieField(
+                                  movie, 'title', movie.localTitle),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            if (movie.releaseDate.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                movie.releaseDate.replaceAll('-', '.'),
+                                style: TextStyle(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: .58),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: getMenuItemTitle(
+                          context.read<SettingsProvider>().language,
+                          'Delete',
+                        ),
+                        onPressed: () => _deleteBookmark(item),
+                        icon: const Icon(Icons.delete_outline_rounded),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      );
+
+  String _bookmarkFlag(MovieByUser item) {
+    final source = item.sourceFeedCode;
+    if (source == special) return '🎬';
+    var code = switch (source) {
+      'box_office' => 'us',
+      'box_office_kr' => 'kr',
+      String value when value.length == 2 => value,
+      _ => '',
+    };
+    if (code.isEmpty) {
+      final fallback = (item.movie.originSource['country'] ?? '').toString();
+      if (fallback.length == 2) code = fallback.toLowerCase();
+    }
+    if (code.length != 2) return '🎞️';
+    return String.fromCharCodes(
+      code.toUpperCase().codeUnits.map((unit) => unit + 0x1F1A5),
+    );
+  }
+
+  String _bookmarkCountrySearchTerms(MovieByUser item) {
+    final source = item.sourceFeedCode ?? '';
+    final countryKey = switch (source) {
+      'box_office' => 'usa',
+      'box_office_kr' => 'korea',
+      String value when value.length == 2 => _countryKeys[value],
+      _ => null,
+    };
+    if (countryKey == null) return '';
+    final terms = <String>{source, countryKey};
+    for (final countries in localizedCountries.values) {
+      final localized = countries[countryKey];
+      if (localized?.isNotEmpty == true) terms.add(localized!);
+    }
+    return terms.join(' ');
+  }
+
+  Future<void> _deleteBookmark(MovieByUser item) async {
+    final index = _bookmarks.indexOf(item);
+    if (index < 0) return;
+    await MovieByUserService.deleteMovie(index);
+    await _load();
+  }
+
   Widget _responsiveBookmarkList(List<MovieByUser> items) {
     final movies = items.map((item) => item.movie).toList(growable: false);
     return _responsiveMovieList(
       movies: movies,
+      sourceFlags: items.map(_bookmarkFlag).toList(growable: false),
       boxOffice: false,
       onRefresh: _load,
       showCountry: true,
@@ -1109,25 +1498,69 @@ class _HomeShellState extends State<HomeShell> {
   Widget _bottomNavigation() {
     final language = context.read<SettingsProvider>().language;
     final navigation = _navigationLabels[language] ?? _navigationLabels['en']!;
-    return BottomNavigationBar(
-      currentIndex: _section == 3 || _section == 4 ? 1 : _section,
-      onTap: (index) => _selectSection(index),
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      selectedItemColor: const Color(0xFFE9FF00),
-      unselectedItemColor: Theme.of(context).colorScheme.onSurface,
-      selectedFontSize: 11,
-      unselectedFontSize: 11,
-      showSelectedLabels: true,
-      showUnselectedLabels: true,
-      type: BottomNavigationBarType.fixed,
-      items: [
-        BottomNavigationBarItem(
-            icon: const SizedBox.shrink(), label: navigation['countries']),
-        BottomNavigationBarItem(
-            icon: const SizedBox.shrink(), label: navigation['boxOffice']),
-        BottomNavigationBarItem(
-            icon: const SizedBox.shrink(), label: navigation['bookmarks']),
-      ],
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return SizedBox(
+      height: 64 + MediaQuery.paddingOf(context).bottom,
+      child: BottomNavigationBar(
+        currentIndex: _section == 3 || _section == 4 ? 1 : _section,
+        onTap: _selectSection,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        selectedItemColor: dark ? Colors.white : const Color(0xFF6D36B8),
+        unselectedItemColor:
+            Theme.of(context).colorScheme.onSurface.withValues(alpha: .48),
+        selectedFontSize: 11,
+        unselectedFontSize: 11,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        type: BottomNavigationBarType.fixed,
+        items: [
+          BottomNavigationBarItem(
+            icon: _bottomNavigationIcon(
+              'assets/images/v2/countries_inactive.png',
+              selected: false,
+            ),
+            activeIcon: _bottomNavigationIcon(
+              'assets/images/v2/countries_active.png',
+              selected: true,
+            ),
+            label: navigation['countries'],
+          ),
+          BottomNavigationBarItem(
+            icon: _bottomNavigationIcon(
+              'assets/images/v2/boxoffice_inactive.png',
+              selected: false,
+            ),
+            activeIcon: _bottomNavigationIcon(
+              'assets/images/v2/boxoffice_active.png',
+              selected: true,
+            ),
+            label: navigation['boxOffice'],
+          ),
+          BottomNavigationBarItem(
+            icon: _bottomNavigationIcon(
+              'assets/images/v2/bookmark_inactive.png',
+              selected: false,
+            ),
+            activeIcon: _bottomNavigationIcon(
+              'assets/images/v2/bookmark_inactive.png',
+              selected: true,
+            ),
+            label: navigation['bookmarks'],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _bottomNavigationIcon(String path, {required bool selected}) {
+    return Opacity(
+      opacity: selected ? 1 : .48,
+      child: Image.asset(
+        path,
+        width: 21,
+        height: 21,
+        fit: BoxFit.contain,
+      ),
     );
   }
 }
@@ -1141,6 +1574,7 @@ class _Header extends StatelessWidget {
     required this.onTitleTap,
     required this.languageLabel,
     required this.originalLabel,
+    required this.settingsTooltip,
     required this.showEnglish,
     required this.onLanguageChanged,
     required this.onSettings,
@@ -1153,6 +1587,7 @@ class _Header extends StatelessWidget {
   final VoidCallback onTitleTap;
   final String languageLabel;
   final String originalLabel;
+  final String settingsTooltip;
   final bool showEnglish;
   final ValueChanged<bool> onLanguageChanged;
   final VoidCallback onSettings;
@@ -1161,7 +1596,7 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final desktop = MediaQuery.sizeOf(context).width >= 1040;
     return Padding(
-      padding: EdgeInsets.fromLTRB(desktop ? 24 : 14, 10, 8, 6),
+      padding: EdgeInsets.fromLTRB(desktop ? 24 : 14, 10, 8, 0),
       child: Row(
         crossAxisAlignment:
             desktop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
@@ -1202,17 +1637,18 @@ class _Header extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const _StoreBadge.apple(),
+                  const StoreBadge.apple(),
                   const SizedBox(width: 5),
-                  const _StoreBadge.googlePlay(),
+                  const StoreBadge.googlePlay(),
                   const SizedBox(width: 14),
-                  _languageSwitch(),
+                  _languageSwitch(context),
                   _settingsButton(context),
                 ],
               ),
             )
           else ...[
-            _languageSwitch(),
+            const SizedBox(width: 10),
+            _languageSwitch(context),
             _settingsButton(context),
           ],
         ],
@@ -1225,7 +1661,7 @@ class _Header extends StatelessWidget {
     final titleText = Text(
       title,
       maxLines: 1,
-      overflow: TextOverflow.ellipsis,
+      softWrap: false,
       style: TextStyle(
         color: desktop
             ? const Color(0xFFB12DDB)
@@ -1234,7 +1670,20 @@ class _Header extends StatelessWidget {
         fontWeight: FontWeight.w800,
       ),
     );
-    if (!desktop) return titleText;
+    final fittedTitle = FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: titleText,
+    );
+    if (!desktop) {
+      return SizedBox(
+        height: 32,
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: fittedTitle,
+        ),
+      );
+    }
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1258,78 +1707,107 @@ class _Header extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 9),
-        titleText,
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 220, maxHeight: 32),
+          child: fittedTitle,
+        ),
       ],
     );
   }
 
-  Widget _languageSwitch() => SegmentedButton<bool>(
-        showSelectedIcon: false,
-        segments: [
-          ButtonSegment(
-            value: true,
-            label: Text(languageLabel, maxLines: 1, softWrap: false),
+  Widget _languageSwitch(BuildContext context) {
+    final desktop = MediaQuery.sizeOf(context).width >= 1040;
+    return Container(
+      width: desktop ? 150 : 124,
+      height: 34,
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF55545A)
+            : const Color(0xFFD2D0D5),
+        border: Border.all(
+          color: const Color(0xFF9D00C6).withValues(alpha: .55),
+        ),
+        borderRadius: BorderRadius.circular(19),
+      ),
+      child: Row(
+        children: [
+          _languageSwitchItem(
+            context: context,
+            label: languageLabel,
+            selected: showEnglish,
+            onTap: () => onLanguageChanged(true),
           ),
-          ButtonSegment(
-            value: false,
-            label: Text(originalLabel, maxLines: 1, softWrap: false),
+          _languageSwitchItem(
+            context: context,
+            label: originalLabel,
+            selected: !showEnglish,
+            onTap: () => onLanguageChanged(false),
           ),
         ],
-        selected: {showEnglish},
-        onSelectionChanged: (value) => onLanguageChanged(value.first),
-        style: const ButtonStyle(
-          visualDensity: VisualDensity.standard,
-          textStyle: WidgetStatePropertyAll(
-              TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-          minimumSize: WidgetStatePropertyAll(Size(95, 42)),
-          padding: WidgetStatePropertyAll(
-            EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      ),
+    );
+  }
+
+  Widget _languageSwitchItem({
+    required BuildContext context,
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) =>
+      Expanded(
+        child: Semantics(
+          button: true,
+          selected: selected,
+          child: InkWell(
+            onTap: selected ? null : onTap,
+            borderRadius: BorderRadius.circular(16),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOut,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                gradient: selected
+                    ? const LinearGradient(
+                        colors: [Color(0xFFB12DDB), Color(0xFF6746C7)],
+                      )
+                    : null,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: selected
+                    ? const [
+                        BoxShadow(
+                          color: Color(0x3D9D00C6),
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: selected
+                      ? Colors.white
+                      : Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: .72),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
           ),
         ),
       );
 
   Widget _settingsButton(BuildContext context) => IconButton(
-        tooltip: 'Settings',
+        tooltip: settingsTooltip,
         onPressed: onSettings,
         icon: Icon(Icons.settings_outlined,
             color: Theme.of(context).colorScheme.onSurface),
-      );
-}
-
-class _StoreBadge extends StatelessWidget {
-  const _StoreBadge.apple()
-      : apple = true,
-        url = 'https://apps.apple.com/us/app/world-movie-trailer/id6670228768';
-
-  const _StoreBadge.googlePlay()
-      : apple = false,
-        url =
-            'https://play.google.com/store/apps/details?id=com.sunnyinnolab.worldMovieTrailer';
-
-  final bool apple;
-  final String url;
-
-  @override
-  Widget build(BuildContext context) => InkWell(
-        onTap: () =>
-            launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
-        borderRadius: BorderRadius.circular(5),
-        child: SizedBox(
-          height: apple ? 32 : 42,
-          width: apple ? 96 : 108,
-          child: apple
-              ? SvgPicture.asset(
-                  'assets/images/store_badges/app_store_badge.svg',
-                  fit: BoxFit.contain,
-                  placeholderBuilder: (_) => const SizedBox.shrink(),
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                )
-              : Image.asset(
-                  'assets/images/store_badges/google_play_badge.png',
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                ),
-        ),
       );
 }
 
@@ -1378,6 +1856,7 @@ class _MovieRow extends StatelessWidget {
     required this.onTap,
     this.displayTitle,
     this.displayCountry,
+    this.sourceFlag,
   });
 
   final Movie movie;
@@ -1387,6 +1866,7 @@ class _MovieRow extends StatelessWidget {
   final VoidCallback onTap;
   final String? displayTitle;
   final String? displayCountry;
+  final String? sourceFlag;
 
   @override
   Widget build(BuildContext context) {
@@ -1420,6 +1900,10 @@ class _MovieRow extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (sourceFlag?.isNotEmpty == true) ...[
+                      Text(sourceFlag!, style: const TextStyle(fontSize: 20)),
+                      const SizedBox(height: 4),
+                    ],
                     Text(
                       boxOffice
                           ? '${movie.rank?.isNotEmpty == true ? movie.rank : index + 1}. ${displayTitle ?? movie.localTitle}'
@@ -1529,87 +2013,4 @@ class _MovieRow extends StatelessWidget {
       ),
     );
   }
-}
-
-class _MessageState extends StatelessWidget {
-  const _MessageState({required this.icon, required this.message, this.action});
-
-  final IconData icon;
-  final String message;
-  final VoidCallback? action;
-
-  @override
-  Widget build(BuildContext context) => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon,
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.35),
-                size: 42),
-            const SizedBox(height: 12),
-            Text(message,
-                style: TextStyle(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.7))),
-            if (action != null)
-              TextButton(onPressed: action, child: const Text('Retry')),
-          ],
-        ),
-      );
-}
-
-class _BookmarkEmptyState extends StatelessWidget {
-  const _BookmarkEmptyState({
-    required this.title,
-    required this.description,
-  });
-
-  final String title;
-  final String description;
-
-  @override
-  Widget build(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.bookmark_border_rounded,
-                size: 42,
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.28),
-              ),
-              const SizedBox(height: 14),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                description,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.6),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
 }

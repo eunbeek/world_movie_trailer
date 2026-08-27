@@ -97,12 +97,17 @@ async function processBatch(country, moviesData, processedCount, startTime, isTM
 
       if (fetchedMovie) {
         movie.tid = movie.tid || fetchedMovie.id || "";
-        movie.title = fetchedMovie.title || movie.title || movie.localTitle || "";
+        // Keep the title fetched from the country's local source as the
+        // original. TMDB enrichment may return an English title even when the
+        // country request used a localized endpoint.
+        movie.title = movie.localTitle || movie.title || fetchedMovie.title || "";
         movie.originCountry = fetchedMovie.origin_country && fetchedMovie.origin_country[0] || movie.originCountry || "";
         movie.posterUrl = fetchedMovie.poster_path ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${fetchedMovie.poster_path}` : movie.posterUrl;
         movie.trailerUrl = fetchedMovie.trailerLink || "";
         movie.country = movie.country ? movie.country : fetchedMovie.origin_country ? fetchedMovie.origin_country[0]: "";
-        movie.spec = fetchedMovie.overview ? fetchedMovie.overview : movie.spec ? movie.spec: "";
+        // Enrichment fills missing data only; it must not replace the local
+        // source overview with TMDB's fallback language.
+        movie.spec = movie.spec || fetchedMovie.overview || "";
         movie.releaseDate = movie.releaseDate? movie.releaseDate : fetchedMovie.release_date ? fetchedMovie.release_date : "";
         movie.runtime = fetchedMovie.runtime ? fetchedMovie.runtime : movie.runtime ? movie.runtime : "";
         movie.credits = fetchedMovie.credits ? fetchedMovie.credits : movie.credits ? movie.credits : {};

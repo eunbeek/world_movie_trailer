@@ -26,13 +26,15 @@ class QuoteAdapter extends TypeAdapter<Quote> {
       isShowed: fields[6] as bool,
       quoteKey: fields[7] as int,
       timestamp: fields[8] as String,
+      quoteTranslations: (fields[9] as Map).cast<String, String>(),
+      movieTranslations: (fields[10] as Map).cast<String, String>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, Quote obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.quoteEN)
       ..writeByte(1)
@@ -50,7 +52,11 @@ class QuoteAdapter extends TypeAdapter<Quote> {
       ..writeByte(7)
       ..write(obj.quoteKey)
       ..writeByte(8)
-      ..write(obj.timestamp);
+      ..write(obj.timestamp)
+      ..writeByte(9)
+      ..write(obj.quoteTranslations)
+      ..writeByte(10)
+      ..write(obj.movieTranslations);
   }
 
   @override

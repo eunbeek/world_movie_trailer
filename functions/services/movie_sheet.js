@@ -61,8 +61,8 @@ function buildOriginSource(movie) {
   const existing = movie.originSource || {};
   return {
     concept: existing.concept || movie.special || "",
-    title: existing.title || movie.title || movie.localTitle || "",
-    overview: existing.overview || movie.spec || movie.overview || "",
+    title: movie.localTitle || existing.title || movie.title || "",
+    overview: movie.spec || existing.overview || movie.overview || "",
     country: existing.country || countryCodeFromMovie(movie),
     credits: existing.credits || flattenCredits(movie.credits),
   };

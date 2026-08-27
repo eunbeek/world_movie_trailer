@@ -580,19 +580,17 @@ final Map<String, List<String>> countryByLanguage = {
   'en': ['usa', 'canada', 'australia', 'box_us', 'box_kr'],
 };
 
-Map<String, Map<String, String>> countryNameByLan = {
-  'ko': {
-    'ko': '한국어',
-    'en': 'English',
-    'ja': '日本語',
-    'zh': '簡体中文',
-    'tw': '繁體中文',
-    'fr': 'Français',
-    'de': 'Deutsch',
-    'es': 'Español',
-    'hi': 'हिन्दी',
-    'th': 'แบบไทย',
-  },
+const Map<String, String> languageDisplayNames = {
+  'ko': '한국어',
+  'en': 'English',
+  'ja': '日本語',
+  'zh': '简体中文',
+  'tw': '繁體中文',
+  'fr': 'Français',
+  'de': 'Deutsch',
+  'es': 'Español',
+  'hi': 'हिन्दी',
+  'th': 'ภาษาไทย',
 };
 // Constants for app bar titles
 const Map<String, String> countryAppBars = {
@@ -629,6 +627,13 @@ Map<String, Map<String, String>> menuTranslations = {
     'Dislike': '싫어요',
     'Bookmark': '북마크',
     'Memo': '메모',
+    'Translate': '번역',
+    'Original': '원본',
+    'Done': '완료',
+    'Delete': '삭제',
+    'Settings': '설정',
+    'Retry': '다시 시도',
+    'Trailer unavailable': '예고편을 재생할 수 없습니다',
   },
   'en': {
     'Country Order': 'Reorder Countries',
@@ -636,6 +641,13 @@ Map<String, Map<String, String>> menuTranslations = {
     'Dislike': 'Dislike',
     'Bookmark': 'Bookmark',
     'Memo': 'Memo',
+    'Translate': 'Translate',
+    'Original': 'Original',
+    'Done': 'Done',
+    'Delete': 'Delete',
+    'Settings': 'Settings',
+    'Retry': 'Retry',
+    'Trailer unavailable': 'Trailer is not available',
   },
   'ja': {
     'Country Order': '国別の並び順を変更',
@@ -643,6 +655,13 @@ Map<String, Map<String, String>> menuTranslations = {
     'Dislike': '低評価',
     'Bookmark': 'お気に入り',
     'Memo': 'メモ',
+    'Translate': '翻訳',
+    'Original': '原文',
+    'Done': '完了',
+    'Delete': '削除',
+    'Settings': '設定',
+    'Retry': '再試行',
+    'Trailer unavailable': '予告編を再生できません',
   },
   'zh': {
     'Country Order': '国家顺序变更', // Simplified Chinese
@@ -650,6 +669,10 @@ Map<String, Map<String, String>> menuTranslations = {
     'Dislike': '不喜欢',
     'Bookmark': '书签',
     'Memo': '备忘录',
+    'Translate': '翻译',
+    'Original': '原文',
+    'Done': '完成', 'Delete': '删除', 'Settings': '设置', 'Retry': '重试',
+    'Trailer unavailable': '无法播放预告片',
   },
   'tw': {
     'Country Order': '國家順序變更', // Traditional Chinese
@@ -657,6 +680,10 @@ Map<String, Map<String, String>> menuTranslations = {
     'Dislike': '不喜歡',
     'Bookmark': '書籤',
     'Memo': '備忘錄',
+    'Translate': '翻譯',
+    'Original': '原文',
+    'Done': '完成', 'Delete': '刪除', 'Settings': '設定', 'Retry': '重試',
+    'Trailer unavailable': '無法播放預告片',
   },
   'fr': {
     'Country Order': 'Réorganiser les pays',
@@ -664,6 +691,13 @@ Map<String, Map<String, String>> menuTranslations = {
     'Dislike': 'Je n’aime pas',
     'Bookmark': 'Marque-page',
     'Memo': 'Mémo',
+    'Translate': 'Traduire',
+    'Original': 'Original',
+    'Done': 'Terminé',
+    'Delete': 'Supprimer',
+    'Settings': 'Paramètres',
+    'Retry': 'Réessayer',
+    'Trailer unavailable': 'La bande-annonce est indisponible',
   },
   'de': {
     'Country Order': 'Länder neu ordnen',
@@ -671,6 +705,13 @@ Map<String, Map<String, String>> menuTranslations = {
     'Dislike': 'Gefällt mir nicht',
     'Bookmark': 'Lesezeichen',
     'Memo': 'Memo',
+    'Translate': 'Übersetzen',
+    'Original': 'Original',
+    'Done': 'Fertig',
+    'Delete': 'Löschen',
+    'Settings': 'Einstellungen',
+    'Retry': 'Erneut versuchen',
+    'Trailer unavailable': 'Trailer ist nicht verfügbar',
   },
   'es': {
     'Country Order': 'Reordenar países',
@@ -678,6 +719,13 @@ Map<String, Map<String, String>> menuTranslations = {
     'Dislike': 'No me gusta',
     'Bookmark': 'Marcador',
     'Memo': 'Nota',
+    'Translate': 'Traducir',
+    'Original': 'Original',
+    'Done': 'Listo',
+    'Delete': 'Eliminar',
+    'Settings': 'Ajustes',
+    'Retry': 'Reintentar',
+    'Trailer unavailable': 'El tráiler no está disponible',
   },
   'hi': {
     'Country Order': 'देशों को पुनः क्रमबद्ध करें',
@@ -685,6 +733,13 @@ Map<String, Map<String, String>> menuTranslations = {
     'Dislike': 'नापसंद',
     'Bookmark': 'बुकमार्क',
     'Memo': 'ज्ञापन',
+    'Translate': 'अनुवाद',
+    'Original': 'मूल',
+    'Done': 'पूर्ण',
+    'Delete': 'हटाएँ',
+    'Settings': 'सेटिंग',
+    'Retry': 'पुनः प्रयास',
+    'Trailer unavailable': 'ट्रेलर उपलब्ध नहीं है',
   },
   'th': {
     'Country Order': 'จัดเรียงประเทศใหม่',
@@ -692,6 +747,13 @@ Map<String, Map<String, String>> menuTranslations = {
     'Dislike': 'ไม่ชอบ',
     'Bookmark': 'บุ๊กมาร์ก',
     'Memo': 'เมโม่',
+    'Translate': 'แปล',
+    'Original': 'ต้นฉบับ',
+    'Done': 'เสร็จสิ้น',
+    'Delete': 'ลบ',
+    'Settings': 'การตั้งค่า',
+    'Retry': 'ลองอีกครั้ง',
+    'Trailer unavailable': 'ไม่สามารถเล่นตัวอย่างภาพยนตร์ได้',
   },
 };
 
@@ -1125,7 +1187,7 @@ const specialLabelTranslations = {
   },
   'Movie Quotes': {
     'en': 'Movie Quotes',
-    'ko': '영화 속 명대사',
+    'ko': '영화명언',
     'ja': '映画の中の名台詞',
     'zh': '电影经典台词',
     'tw': '電影經典台詞',
@@ -1223,7 +1285,7 @@ const specialLabelTranslations = {
 
 Map<String, String> movieQuoteTranslations = {
   'en': 'Movie Quotes',
-  'ko': '영화 속 명대사',
+  'ko': '영화명언',
   'ja': '映画の中の名台詞',
   'zh': '电影中的经典台词',
   'tw': '電影中的經典台詞',

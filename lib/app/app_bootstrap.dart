@@ -14,6 +14,7 @@ import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/model/movieByUser.dart';
 import 'package:world_movie_trailer/model/quote.dart';
 import 'package:world_movie_trailer/model/settings.dart';
+import 'package:world_movie_trailer/layout/widgets/movie_loading_indicator.dart';
 
 const _obsoleteHiveBoxes = [
   'settings',
@@ -69,9 +70,7 @@ class _BootstrapLoaderState extends State<_BootstrapLoader> {
                           textAlign: TextAlign.center,
                         ),
                       )
-                    : const CircularProgressIndicator(
-                        color: Color(0xFFB12DDB),
-                      ),
+                    : const MovieLoadingIndicator(),
               ),
             ),
           );
