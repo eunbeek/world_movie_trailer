@@ -23,6 +23,7 @@ void main() {
       box = await Hive.openBox<Settings>(SettingsProvider.boxName);
       expect(
           box.get(SettingsProvider.settingsKey)!.showTranslatedContent, true);
+      provider.dispose();
 
       final restarted =
           SettingsProvider(box.get(SettingsProvider.settingsKey)!);
@@ -33,6 +34,33 @@ void main() {
       box = await Hive.openBox<Settings>(SettingsProvider.boxName);
       expect(
           box.get(SettingsProvider.settingsKey)!.showTranslatedContent, false);
+      restarted.dispose();
+      await box.close();
+    } finally {
+      await Hive.close();
+      await directory.delete(recursive: true);
+    }
+  });
+
+  test('expired rewarded access automatically restores original content',
+      () async {
+    final directory =
+        await Directory.systemTemp.createTemp('wmt-expired-access-test-');
+    Hive.init(directory.path);
+    try {
+      final box = await Hive.openBox<Settings>(SettingsProvider.boxName);
+      final settings = Settings.defaultSettings()
+        ..translationAdAccessUntil =
+            DateTime.now().subtract(const Duration(seconds: 1))
+        ..showTranslatedContent = true;
+      await box.put(SettingsProvider.settingsKey, settings);
+
+      final provider = SettingsProvider(settings);
+      expect(provider.hasTranslationAdAccess, false);
+      expect(provider.translatedContentPreference, false);
+      expect(settings.translationAdAccessUntil, isNull);
+
+      provider.dispose();
       await box.close();
     } finally {
       await Hive.close();

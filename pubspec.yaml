@@ -2,7 +2,7 @@ name: world_movie_trailer
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 2.0.0+92
+version: 2.0.0+93
 
 environment:
   sdk: '>=3.3.3 <4.0.0'

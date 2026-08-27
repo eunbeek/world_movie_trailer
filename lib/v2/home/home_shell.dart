@@ -21,10 +21,23 @@ import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/model/movieByUser.dart';
 import 'package:world_movie_trailer/model/quote.dart';
 import 'package:world_movie_trailer/v2/home/widgets/home_state_widgets.dart';
-import 'package:world_movie_trailer/v2/home/widgets/main_text_scale_cap.dart';
 import 'package:world_movie_trailer/v2/home/featured_section_rotation.dart';
+import 'package:world_movie_trailer/v2/home/web_movie_playlist_page.dart';
 
 enum _BookmarkSort { recent, title, releaseDate }
+
+const _playLabels = <String, Map<String, String>>{
+  'ko': {'play': '플레이', 'unavailable': '영화명언에서는 사용할 수 없습니다'},
+  'en': {'play': 'Play', 'unavailable': 'Unavailable for Movie Quotes'},
+  'ja': {'play': '再生', 'unavailable': '映画の名言では利用できません'},
+  'zh': {'play': '播放', 'unavailable': '电影名言中不可用'},
+  'tw': {'play': '播放', 'unavailable': '電影名言中無法使用'},
+  'fr': {'play': 'Lecture', 'unavailable': 'Indisponible pour les citations'},
+  'de': {'play': 'Abspielen', 'unavailable': 'Für Filmzitate nicht verfügbar'},
+  'es': {'play': 'Reproducir', 'unavailable': 'No disponible para frases'},
+  'hi': {'play': 'चलाएँ', 'unavailable': 'फ़िल्मी उद्धरण में उपलब्ध नहीं'},
+  'th': {'play': 'เล่น', 'unavailable': 'ใช้ไม่ได้กับคำคมภาพยนตร์'},
+};
 
 const _bookmarkLabels = <String, Map<String, String>>{
   'en': {
@@ -234,6 +247,8 @@ class _HomeShellState extends State<HomeShell>
       _translationPreferenceInitialized = true;
       _showEnglish = settings.translatedContentPreference ??
           TranslationAccess.defaultToTranslation(isPremium: settings.isAdsFree);
+    } else if (!kIsWeb && !settings.canTranslate && _showEnglish) {
+      _showEnglish = false;
     }
     if (!_featuredPreferenceInitialized) {
       _featuredPreferenceInitialized = true;
@@ -505,69 +520,135 @@ class _HomeShellState extends State<HomeShell>
     return null;
   }
 
+  List<MovieByUser> _orderedBookmarkItems() {
+    final query = _bookmarkQuery.trim().toLowerCase();
+    final items = _bookmarks.where((item) {
+      if (query.isEmpty) return true;
+      final movie = item.movie;
+      return [
+        _displayMovieField(movie, 'title', movie.localTitle),
+        _displayMovieField(movie, 'country', movie.country),
+        movie.originSource['title'],
+        movie.originSource['country'],
+        _bookmarkCountrySearchTerms(item),
+        movie.credits,
+        movie.originSource['credits'],
+      ].whereType<Object>().join(' ').toLowerCase().contains(query);
+    }).toList();
+    items.sort((a, b) {
+      switch (_bookmarkSort) {
+        case _BookmarkSort.title:
+          return _displayMovieField(a.movie, 'title', a.movie.localTitle)
+              .toLowerCase()
+              .compareTo(
+                _displayMovieField(b.movie, 'title', b.movie.localTitle)
+                    .toLowerCase(),
+              );
+        case _BookmarkSort.releaseDate:
+          return b.movie.releaseDate.compareTo(a.movie.releaseDate);
+        case _BookmarkSort.recent:
+          return (b.savedDate ?? DateTime.fromMillisecondsSinceEpoch(0))
+              .compareTo(a.savedDate ?? DateTime.fromMillisecondsSinceEpoch(0));
+      }
+    });
+    return items;
+  }
+
+  List<Movie> get _currentPlaylistMovies {
+    final movies = _section == 2
+        ? _orderedBookmarkItems().map((item) => item.movie).toList()
+        : List<Movie>.from(_visibleMovies);
+    return movies
+        .where((movie) => movie.trailerUrl.trim().isNotEmpty)
+        .toList(growable: false);
+  }
+
+  Future<void> _openPlaylist() async {
+    if (!kIsWeb || _section == 4) return;
+    final movies = _currentPlaylistMovies;
+    if (movies.isEmpty || !mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => WebMoviePlaylistPage(
+          movies: movies,
+          sourceFeedCodes:
+              movies.map(_sourceFeedCodeFor).toList(growable: false),
+          initialShowOriginal: !_showEnglish,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final language = context.watch<SettingsProvider>().language;
     final navigation = _navigationLabels[language] ?? _navigationLabels['en']!;
     final compact = MediaQuery.sizeOf(context).width < _desktopBreakpoint;
-    return MainTextScaleCap(
-      child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: Stack(
-          fit: StackFit.expand,
-          children: [
-            BackgroundWidget(
-              isPausePage: false,
-              isTapeExist: true,
-            ),
-            SafeArea(
-              child: Column(children: [
-                _Header(
-                  title: getAppBarTitle(language).replaceAll('\n', ' '),
-                  navigationLabels: navigation,
-                  section: _section,
-                  onSectionChanged: _selectSection,
-                  onTitleTap: () => _selectSection(0),
-                  languageLabel: getLanguageName(language),
-                  originalLabel: getMenuItemTitle(language, 'Original'),
-                  settingsTooltip: getMenuItemTitle(language, 'Settings'),
-                  showEnglish: _showEnglish,
-                  onLanguageChanged: (value) async {
-                    final settings = context.read<SettingsProvider>();
-                    if (value && !kIsWeb && !settings.canTranslate) {
-                      final granted = await showPremiumTranslationPrompt(
-                        context,
-                        settings.language,
-                      );
-                      if (!granted) return;
-                    }
-                    setState(() => _showEnglish = value);
-                    settings.updateTranslatedContentPreference(value);
-                    _load();
-                  },
-                  onSettings: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const SettingsPage()),
-                  ),
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          BackgroundWidget(
+            isPausePage: false,
+            isTapeExist: true,
+          ),
+          SafeArea(
+            child: Column(children: [
+              _Header(
+                title: getAppBarTitle(language).replaceAll('\n', ' '),
+                navigationLabels: navigation,
+                section: _section,
+                onSectionChanged: _selectSection,
+                onTitleTap: () => _selectSection(0),
+                languageLabel: getLanguageName(language),
+                originalLabel: getMenuItemTitle(language, 'Original'),
+                settingsTooltip: getMenuItemTitle(language, 'Settings'),
+                playLabel:
+                    (_playLabels[language] ?? _playLabels['en']!)['play']!,
+                playUnavailableLabel: (_playLabels[language] ??
+                    _playLabels['en']!)['unavailable']!,
+                playEnabled: !_loading &&
+                    _error == null &&
+                    _section != 4 &&
+                    _currentPlaylistMovies.isNotEmpty,
+                onPlay: _openPlaylist,
+                showEnglish: _showEnglish,
+                onLanguageChanged: (value) async {
+                  final settings = context.read<SettingsProvider>();
+                  if (value && !kIsWeb && !settings.canTranslate) {
+                    final granted = await showPremiumTranslationPrompt(
+                      context,
+                      settings.language,
+                    );
+                    if (!granted) return;
+                  }
+                  setState(() => _showEnglish = value);
+                  settings.updateTranslatedContentPreference(value);
+                  _load();
+                },
+                onSettings: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SettingsPage()),
                 ),
-                if (_section == 0) _countrySelector(),
-                if (_section == 1 || _section == 3 || _section == 4)
-                  _boxOfficeSelector(),
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: Theme.of(context).dividerColor,
-                ),
-                if (_section == 0) _filterSelector(),
-                if (_section == 1) _weekTitle(),
-                if (_section == 3) _specialTitle(),
-                if (_section == 4) _quoteTitle(),
-                Expanded(child: _body()),
-              ]),
-            ),
-          ],
-        ),
-        bottomNavigationBar: compact ? _bottomNavigation() : null,
+              ),
+              if (_section == 0) _countrySelector(),
+              if (_section == 1 || _section == 3 || _section == 4)
+                _boxOfficeSelector(),
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: Theme.of(context).dividerColor,
+              ),
+              if (_section == 0) _filterSelector(),
+              if (_section == 1) _weekTitle(),
+              if (_section == 3) _specialTitle(),
+              if (_section == 4) _quoteTitle(),
+              Expanded(child: _body()),
+            ]),
+          ),
+        ],
       ),
+      bottomNavigationBar: compact ? _bottomNavigation() : null,
     );
   }
 
@@ -1193,36 +1274,7 @@ class _HomeShellState extends State<HomeShell>
     final language = context.read<SettingsProvider>().language;
     final labels = _bookmarkLabels[language] ?? _bookmarkLabels['en']!;
     final query = _bookmarkQuery.trim().toLowerCase();
-    final items = _bookmarks.where((item) {
-      if (query.isEmpty) return true;
-      final movie = item.movie;
-      return [
-        _displayMovieField(movie, 'title', movie.localTitle),
-        _displayMovieField(movie, 'country', movie.country),
-        movie.originSource['title'],
-        movie.originSource['country'],
-        _bookmarkCountrySearchTerms(item),
-        movie.credits,
-        movie.originSource['credits'],
-      ].whereType<Object>().join(' ').toLowerCase().contains(query);
-    }).toList();
-
-    items.sort((a, b) {
-      switch (_bookmarkSort) {
-        case _BookmarkSort.title:
-          return _displayMovieField(a.movie, 'title', a.movie.localTitle)
-              .toLowerCase()
-              .compareTo(
-                _displayMovieField(b.movie, 'title', b.movie.localTitle)
-                    .toLowerCase(),
-              );
-        case _BookmarkSort.releaseDate:
-          return b.movie.releaseDate.compareTo(a.movie.releaseDate);
-        case _BookmarkSort.recent:
-          return (b.savedDate ?? DateTime.fromMillisecondsSinceEpoch(0))
-              .compareTo(a.savedDate ?? DateTime.fromMillisecondsSinceEpoch(0));
-      }
-    });
+    final items = _orderedBookmarkItems();
 
     return Column(
       children: [
@@ -1575,6 +1627,10 @@ class _Header extends StatelessWidget {
     required this.languageLabel,
     required this.originalLabel,
     required this.settingsTooltip,
+    required this.playLabel,
+    required this.playUnavailableLabel,
+    required this.playEnabled,
+    required this.onPlay,
     required this.showEnglish,
     required this.onLanguageChanged,
     required this.onSettings,
@@ -1588,6 +1644,10 @@ class _Header extends StatelessWidget {
   final String languageLabel;
   final String originalLabel;
   final String settingsTooltip;
+  final String playLabel;
+  final String playUnavailableLabel;
+  final bool playEnabled;
+  final VoidCallback onPlay;
   final bool showEnglish;
   final ValueChanged<bool> onLanguageChanged;
   final VoidCallback onSettings;
@@ -1640,7 +1700,11 @@ class _Header extends StatelessWidget {
                   const StoreBadge.apple(),
                   const SizedBox(width: 5),
                   const StoreBadge.googlePlay(),
-                  const SizedBox(width: 14),
+                  if (kIsWeb) ...[
+                    const SizedBox(width: 10),
+                    _playButton(context),
+                  ],
+                  const SizedBox(width: 10),
                   _languageSwitch(context),
                   _settingsButton(context),
                 ],
@@ -1648,6 +1712,10 @@ class _Header extends StatelessWidget {
             )
           else ...[
             const SizedBox(width: 10),
+            if (kIsWeb) ...[
+              _playButton(context, compact: true),
+              const SizedBox(width: 6),
+            ],
             _languageSwitch(context),
             _settingsButton(context),
           ],
@@ -1809,6 +1877,90 @@ class _Header extends StatelessWidget {
         icon: Icon(Icons.settings_outlined,
             color: Theme.of(context).colorScheme.onSurface),
       );
+
+  Widget _playButton(BuildContext context, {bool compact = false}) {
+    final disabledColor =
+        Theme.of(context).colorScheme.onSurface.withValues(alpha: .12);
+    return Tooltip(
+      message: playEnabled ? playLabel : playUnavailableLabel,
+      child: Semantics(
+        button: true,
+        enabled: playEnabled,
+        label: playLabel,
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(19),
+          child: InkWell(
+            onTap: playEnabled ? onPlay : null,
+            borderRadius: BorderRadius.circular(19),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              height: 34,
+              constraints: BoxConstraints(minWidth: compact ? 38 : 78),
+              padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 13),
+              decoration: BoxDecoration(
+                gradient: playEnabled
+                    ? const LinearGradient(
+                        colors: [Color(0xFFB12DDB), Color(0xFF6746C7)],
+                      )
+                    : LinearGradient(colors: [disabledColor, disabledColor]),
+                borderRadius: BorderRadius.circular(19),
+                border: Border.all(
+                  color: playEnabled
+                      ? const Color(0xFF9D00C6).withValues(alpha: .55)
+                      : Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: .08),
+                ),
+                boxShadow: playEnabled
+                    ? const [
+                        BoxShadow(
+                          color: Color(0x3D9D00C6),
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.play_arrow_rounded,
+                    size: 19,
+                    color: playEnabled
+                        ? Colors.white
+                        : Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: .35),
+                  ),
+                  if (!compact) ...[
+                    const SizedBox(width: 3),
+                    Text(
+                      playLabel,
+                      style: TextStyle(
+                        color: playEnabled
+                            ? Colors.white
+                            : Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: .35),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _WebNavigationItem extends StatelessWidget {

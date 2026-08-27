@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:flutter/material.dart';
@@ -28,6 +30,10 @@ class MovieDetailPageYouTube extends StatefulWidget {
     this.onShowOriginalChanged,
     this.sourceFeedCode,
     this.cIdx,
+    this.autoPlay = false,
+    this.onPlaybackEnded,
+    this.playbackProgressLabel,
+    this.onPlaybackProgressTap,
   });
 
   final Movie movie;
@@ -38,6 +44,10 @@ class MovieDetailPageYouTube extends StatefulWidget {
   final ValueChanged<bool>? onShowOriginalChanged;
   final String? sourceFeedCode;
   final int? cIdx;
+  final bool autoPlay;
+  final VoidCallback? onPlaybackEnded;
+  final String? playbackProgressLabel;
+  final VoidCallback? onPlaybackProgressTap;
 
   @override
   State<MovieDetailPageYouTube> createState() => _MovieDetailPageYouTubeState();
@@ -47,6 +57,8 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   YoutubePlayerController? _playerController;
   bool _isBookmarked = false;
   bool _showOriginal = false;
+  StreamSubscription<YoutubePlayerValue>? _playerSubscription;
+  bool _playbackEnded = false;
 
   SettingsProvider get _settings => context.read<SettingsProvider>();
 
@@ -57,6 +69,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
     if (widget.movie.trailerUrl.isNotEmpty) {
       _playerController = YoutubePlayerController.fromVideoId(
         videoId: widget.movie.trailerUrl,
+        autoPlay: widget.autoPlay,
         params: YoutubePlayerParams(
           showControls: true,
           showFullscreenButton: true,
@@ -64,6 +77,11 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
           captionLanguage: widget.captionLan,
         ),
       );
+      _playerSubscription = _playerController!.listen((value) {
+        if (value.playerState != PlayerState.ended || _playbackEnded) return;
+        _playbackEnded = true;
+        widget.onPlaybackEnded?.call();
+      });
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -88,7 +106,20 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final settings = context.watch<SettingsProvider>();
+    if (!kIsWeb && !settings.canTranslate && !_showOriginal) {
+      _showOriginal = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) widget.onShowOriginalChanged?.call(true);
+      });
+    }
+  }
+
+  @override
   void dispose() {
+    _playerSubscription?.cancel();
     _playerController?.close();
     SystemChrome.setPreferredOrientations(const [
       DeviceOrientation.portraitUp,
@@ -269,7 +300,61 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                 ),
               ),
             ),
-            const SizedBox(width: 48),
+            if (widget.playbackProgressLabel != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 12, right: 18),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(18),
+                  child: InkWell(
+                    onTap: widget.onPlaybackProgressTap,
+                    borderRadius: BorderRadius.circular(18),
+                    child: Ink(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 13, vertical: 7),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFB12DDB), Color(0xFF6746C7)],
+                        ),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: const Color(0xFF9D00C6).withValues(alpha: .55),
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x3D9D00C6),
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            widget.playbackProgressLabel!,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          if (widget.onPlaybackProgressTap != null) ...[
+                            const SizedBox(width: 3),
+                            const Icon(
+                              Icons.skip_next_rounded,
+                              color: Colors.white,
+                              size: 17,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            else
+              const SizedBox(width: 48),
           ],
         ),
       );

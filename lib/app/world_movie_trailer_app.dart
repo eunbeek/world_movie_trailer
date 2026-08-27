@@ -6,6 +6,7 @@ import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/services/in_app_purchase_service.dart';
 import 'package:world_movie_trailer/v2/home/home_shell.dart';
+import 'package:world_movie_trailer/v2/home/widgets/main_text_scale_cap.dart';
 
 final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
@@ -42,6 +43,9 @@ class _WorldMovieTrailerAppState extends State<WorldMovieTrailerApp> {
       themeMode: settings.isDarkTheme ? ThemeMode.dark : ThemeMode.light,
       theme: _theme(Brightness.light),
       darkTheme: _theme(Brightness.dark),
+      builder: (context, child) => MainTextScaleCap(
+        child: child ?? const SizedBox.shrink(),
+      ),
       home: const HomeShell(),
     );
   }

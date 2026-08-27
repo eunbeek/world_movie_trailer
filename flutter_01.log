@@ -1,0 +1,85 @@
+Flutter crash report.
+Please report a bug at https://github.com/flutter/flutter/issues.
+
+## command
+
+flutter build web --release
+
+## exception
+
+_TypeError: type 'Null' is not a subtype of type 'String' in type cast
+
+```
+#0      MapBase.entries.<anonymous closure> (dart:collection/maps.dart:76:62)
+#1      MappedIterator.moveNext (dart:_internal/iterable.dart:420:20)
+#2      FileStore.persist (package:flutter_tools/src/build_system/file_store.dart:154:67)
+#3      FlutterBuildSystem.build (package:flutter_tools/src/build_system/build_system.dart:687:17)
+<asynchronous suspension>
+#4      WebBuilder.buildWeb (package:flutter_tools/src/web/compile.dart:107:34)
+<asynchronous suspension>
+#5      BuildWebCommand.runCommand (package:flutter_tools/src/commands/build_web.dart:293:5)
+<asynchronous suspension>
+#6      FlutterCommand.run.<anonymous closure> (package:flutter_tools/src/runner/flutter_command.dart:1630:27)
+<asynchronous suspension>
+#7      AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+<asynchronous suspension>
+#8      CommandRunner.runCommand (package:args/command_runner.dart:212:13)
+<asynchronous suspension>
+#9      FlutterCommandRunner.runCommand.<anonymous closure> (package:flutter_tools/src/runner/flutter_command_runner.dart:496:9)
+<asynchronous suspension>
+#10     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+<asynchronous suspension>
+#11     FlutterCommandRunner.runCommand (package:flutter_tools/src/runner/flutter_command_runner.dart:431:5)
+<asynchronous suspension>
+#12     FlutterCommandRunner.run.<anonymous closure> (package:flutter_tools/src/runner/flutter_command_runner.dart:307:33)
+<asynchronous suspension>
+#13     run.<anonymous closure>.<anonymous closure> (package:flutter_tools/runner.dart:104:11)
+<asynchronous suspension>
+#14     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+<asynchronous suspension>
+#15     main (package:flutter_tools/executable.dart:103:3)
+<asynchronous suspension>
+```
+
+## flutter doctor
+
+```
+[✓] Flutter (Channel stable, 3.44.8, on macOS 15.7.8 24G824 darwin-arm64, locale ko-CA) [280ms]
+    • Flutter version 3.44.8 on channel stable at /opt/homebrew/share/flutter
+    • Upstream repository https://github.com/flutter/flutter.git
+    • Framework revision 058e0af2c2 (5 weeks ago), 2026-07-23 10:56:21 -0700
+    • Engine revision 0cd610717b
+    • Dart version 3.12.2
+    • DevTools version 2.57.0
+    • Feature flags: enable-web, enable-linux-desktop, enable-macos-desktop, enable-windows-desktop, enable-android, enable-ios, cli-animations, enable-native-assets, no-enable-swift-package-manager, omit-legacy-version-file, enable-lldb-debugging, enable-uiscene-migration
+
+[✓] Android toolchain - develop for Android devices (Android SDK version 36.0.0) [1,954ms]
+    • Android SDK at /Users/ekim/Library/Android/sdk
+    • Emulator version 37.1.11.0 (build_id 15917651) (CL:N/A)
+    • Platform android-37.0, build-tools 36.0.0
+    • ANDROID_HOME = /Users/ekim/Library/Android/sdk
+    • ANDROID_SDK_ROOT = /Users/ekim/Library/Android/sdk
+    • Java binary at: /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin/java
+      This JDK is specified in your Flutter configuration.
+      To change the current JDK, run: `flutter config --jdk-dir="path/to/jdk"`.
+    • Java version OpenJDK Runtime Environment Temurin-17.0.19+10 (build 17.0.19+10)
+    • All Android licenses accepted.
+
+[✓] Xcode - develop for iOS and macOS (Xcode 26.3) [1,198ms]
+    • Xcode at /Applications/Xcode.app/Contents/Developer
+    • Build 17C529
+    • CocoaPods version 1.17.0
+
+[✓] Chrome - develop for the web [7ms]
+    • Chrome at /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+
+[✓] Connected device (3 available) [10.8s]
+    • ekim_SE3 (mobile) • 00008110-001004462603A01E • ios            • iOS 17.6.1 21G93
+    • macOS (desktop)   • macos                     • darwin-arm64   • macOS 15.7.8 24G824 darwin-arm64
+    • Chrome (web)      • chrome                    • web-javascript • Google Chrome 151.0.7922.174
+
+[✓] Network resources [178ms]
+    • All expected network resources are available.
+
+• No issues found!
+```

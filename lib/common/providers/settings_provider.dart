@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
@@ -11,10 +13,12 @@ class SettingsProvider with ChangeNotifier {
   static const settingsKey = 'current';
   final Settings _settings;
   final alarmService = AlarmService();
+  Timer? _rewardedAccessTimer;
 
   SettingsProvider(Settings newSettings) : _settings = newSettings {
     _normalizeContentUpdateSettings();
     _normalizeAlarmSettings();
+    _scheduleRewardedAccessExpiration();
     _saveSettings();
   }
   // property & getter
@@ -261,6 +265,11 @@ class SettingsProvider with ChangeNotifier {
 
   void updateIsAdsFree(bool adsFree) {
     _settings.isAdsFree = adsFree;
+    if (adsFree) {
+      _rewardedAccessTimer?.cancel();
+    } else {
+      _scheduleRewardedAccessExpiration();
+    }
     _saveSettings();
     notifyListeners();
   }
@@ -268,6 +277,7 @@ class SettingsProvider with ChangeNotifier {
   void grantRewardedAdAccess() {
     _settings.translationAdAccessUntil =
         DateTime.now().add(const Duration(minutes: 10));
+    _scheduleRewardedAccessExpiration();
     _saveSettings();
     notifyListeners();
   }
@@ -278,6 +288,33 @@ class SettingsProvider with ChangeNotifier {
     _settings.showTranslatedContent = showTranslatedContent;
     _saveSettings();
     notifyListeners();
+  }
+
+  void _scheduleRewardedAccessExpiration() {
+    _rewardedAccessTimer?.cancel();
+    if (isAdsFree) return;
+    final expiresAt = _settings.translationAdAccessUntil;
+    if (expiresAt == null) return;
+    final remaining = expiresAt.difference(DateTime.now());
+    if (remaining <= Duration.zero) {
+      _expireRewardedAccess(notify: false);
+      return;
+    }
+    _rewardedAccessTimer = Timer(remaining, _expireRewardedAccess);
+  }
+
+  void _expireRewardedAccess({bool notify = true}) {
+    if (isAdsFree) return;
+    _settings.translationAdAccessUntil = null;
+    _settings.showTranslatedContent = false;
+    _saveSettings();
+    if (notify) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _rewardedAccessTimer?.cancel();
+    super.dispose();
   }
 
   // save the setting change in hive

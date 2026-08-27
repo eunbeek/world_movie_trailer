@@ -28,6 +28,10 @@ class MovieDetailPageYouTube extends StatefulWidget {
     this.onShowOriginalChanged,
     this.sourceFeedCode,
     this.cIdx,
+    this.autoPlay = false,
+    this.onPlaybackEnded,
+    this.playbackProgressLabel,
+    this.onPlaybackProgressTap,
   });
 
   final Movie movie;
@@ -38,6 +42,10 @@ class MovieDetailPageYouTube extends StatefulWidget {
   final ValueChanged<bool>? onShowOriginalChanged;
   final String? sourceFeedCode;
   final int? cIdx;
+  final bool autoPlay;
+  final VoidCallback? onPlaybackEnded;
+  final String? playbackProgressLabel;
+  final VoidCallback? onPlaybackProgressTap;
 
   @override
   State<MovieDetailPageYouTube> createState() => _MovieDetailPageYouTubeState();
@@ -58,7 +66,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
       _controller = YoutubePlayerController(
         initialVideoId: widget.movie.trailerUrl,
         flags: YoutubePlayerFlags(
-          autoPlay: false,
+          autoPlay: widget.autoPlay,
           enableCaption: widget.captionFlag,
           captionLanguage: widget.captionLan,
           useHybridComposition: false,
@@ -80,6 +88,18 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
       'movie': widget.movie.localTitle,
       'timestamp': DateTime.now().toIso8601String(),
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final canTranslate = context.watch<SettingsProvider>().canTranslate;
+    if (!canTranslate && !_showOriginal) {
+      _showOriginal = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) widget.onShowOriginalChanged?.call(true);
+      });
+    }
   }
 
   @override
@@ -208,6 +228,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
     final player = YoutubePlayer(
       controller: _controller!,
       aspectRatio: 16 / 9,
+      onEnded: (_) => widget.onPlaybackEnded?.call(),
     );
     return YoutubePlayerBuilder(
       player: player,
