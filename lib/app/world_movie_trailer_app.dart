@@ -1,10 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:world_movie_trailer/common/background.dart';
 import 'package:world_movie_trailer/common/constants.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/services/in_app_purchase_service.dart';
+import 'package:world_movie_trailer/common/system_ui.dart';
+import 'package:world_movie_trailer/layout/widgets/movie_loading_indicator.dart';
 import 'package:world_movie_trailer/v2/home/home_shell.dart';
 import 'package:world_movie_trailer/v2/home/widgets/main_text_scale_cap.dart';
 
@@ -19,10 +22,17 @@ class WorldMovieTrailerApp extends StatefulWidget {
   State<WorldMovieTrailerApp> createState() => _WorldMovieTrailerAppState();
 }
 
-class _WorldMovieTrailerAppState extends State<WorldMovieTrailerApp> {
+class _WorldMovieTrailerAppState extends State<WorldMovieTrailerApp>
+    with WidgetsBindingObserver {
+  bool _homeReady = kIsWeb;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => hideAndroidNavigationBar(),
+    );
     if (widget.isFirstLaunch) {
       LogHelper().logEvent('new_user_installed');
     }
@@ -31,6 +41,21 @@ class _WorldMovieTrailerAppState extends State<WorldMovieTrailerApp> {
         (_) => IapHelper.listenToPurchases(context),
       );
     }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) hideAndroidNavigationBar();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void _markHomeReady() {
+    if (!_homeReady && mounted) setState(() => _homeReady = true);
   }
 
   @override
@@ -44,9 +69,30 @@ class _WorldMovieTrailerAppState extends State<WorldMovieTrailerApp> {
       theme: _theme(Brightness.light),
       darkTheme: _theme(Brightness.dark),
       builder: (context, child) => MainTextScaleCap(
-        child: child ?? const SizedBox.shrink(),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            child ?? const SizedBox.shrink(),
+            if (!_homeReady)
+              const Positioned.fill(
+                child: ColoredBox(
+                  color: Colors.black,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      BackgroundWidget(
+                        isPausePage: false,
+                        isTapeExist: true,
+                      ),
+                      Center(child: MovieLoadingIndicator()),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
-      home: const HomeShell(),
+      home: HomeShell(onInitialLoadComplete: _markHomeReady),
     );
   }
 }

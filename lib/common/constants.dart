@@ -1491,6 +1491,18 @@ const Map<String, Map<String, String>> movieDetailTranslations = {
     'th': 'นักแสดงนำ',
     'en': 'Stars',
   },
+  'Credits': {
+    'ko': '크레딧',
+    'ja': 'クレジット',
+    'zh': '演职人员',
+    'tw': '演職人員',
+    'fr': 'Crédits',
+    'de': 'Mitwirkende',
+    'es': 'Créditos',
+    'hi': 'क्रेडिट',
+    'th': 'เครดิต',
+    'en': 'Credits',
+  },
   'Country': {
     'ko': '국가',
     'ja': '国',

@@ -138,7 +138,7 @@ class Settings extends HiveObject {
         countryOrder: getLocalizedCountryKeys(deviceLanguage),
         isVibrate: true,
         isCaptionOn: false,
-        isQuotes: true,
+        isQuotes: false,
         startDate: DateTime.now(),
         totalOpen: 0,
         openCount: 0,

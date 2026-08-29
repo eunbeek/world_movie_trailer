@@ -116,6 +116,17 @@ function buildTestMoviePreview(movies) {
 }
 
 /**
+ * Returns whether a movie already has TMDB people that can be linked.
+ * @param {Object} movie Movie with optional structured credits.
+ * @return {boolean} Whether at least one cast or crew member is present.
+ */
+function hasStructuredCredits(movie) {
+  const credits = movie && movie.credits || {};
+  return Array.isArray(credits.cast) && credits.cast.length > 0 ||
+    Array.isArray(credits.crew) && credits.crew.length > 0;
+}
+
+/**
  * Fetches movies from CGV and Lotte, processes trailers, and saves the result.
  * Scheduled to run every Monday at 09:00 AM KST.
  *
@@ -1022,10 +1033,15 @@ exports.testFetchMovieListSpecial = functions.runWith(movieRuntimeOptions).https
     const processedCount = 0;
     const startTime = Date.now();
 
-    const specialMovies = selectNextSpecialPeriod(reuseExistingSpecialMovies(
+    const refreshAllCredits =
+      String(req.query.refreshCredits).toLowerCase() === "all";
+    const reusedMovies = reuseExistingSpecialMovies(
         await fetchMovieInSpecialSection(),
         await readSpecialDataSheet(),
-    ));
+    );
+    const specialMovies = refreshAllCredits ? reusedMovies.map((movie) =>
+      hasStructuredCredits(movie) ? movie : {...movie, batch: false}) :
+      selectNextSpecialPeriod(reusedMovies);
     const newMovies = specialMovies.filter((movie) => !movie.batch);
     const selectedNewMovies = limitTestItems(req, newMovies);
     const selectedKeys = new Set(selectedNewMovies.map((movie) =>
@@ -1035,7 +1051,13 @@ exports.testFetchMovieListSpecial = functions.runWith(movieRuntimeOptions).https
 
     const moviesWithTrailer = await processBatchForSpecial("en-US", testMovies, processedCount, startTime);
 
-    await saveMoviesAsJson("special", moviesWithTrailer);
+    if (refreshAllCredits) {
+      // Stage the refreshed TMDB people first. Sheet formulas can then settle
+      // independently before the lightweight Sheet-to-Storage sync runs.
+      await writeMoviesToSheet("special", moviesWithTrailer);
+    } else {
+      await saveMoviesAsJson("special", moviesWithTrailer);
+    }
 
     const timestamp = new Date().toISOString();
     console.log(`Success: [${timestamp}] Country: Special, Movie Count: ${moviesWithTrailer.length}`);
@@ -1045,6 +1067,7 @@ exports.testFetchMovieListSpecial = functions.runWith(movieRuntimeOptions).https
       timestamp,
       country: "Special",
       movieCount: moviesWithTrailer.length,
+      refreshedCredits: refreshAllCredits,
       movies: buildTestMoviePreview(moviesWithTrailer),
     });
   } catch (error) {

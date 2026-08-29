@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:world_movie_trailer/common/loading_animation_clock.dart';
 
 /// Uses the supplied film-reel artwork for full-page loading states.
 class MovieLoadingIndicator extends StatefulWidget {
@@ -12,10 +13,18 @@ class MovieLoadingIndicator extends StatefulWidget {
 
 class _MovieLoadingIndicatorState extends State<MovieLoadingIndicator>
     with SingleTickerProviderStateMixin {
-  late final _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 2400),
-  );
+  static const _animationDuration = Duration(milliseconds: 2400);
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: _animationDuration,
+      value: LoadingAnimationClock.progress(_animationDuration),
+    );
+  }
 
   @override
   void didChangeDependencies() {

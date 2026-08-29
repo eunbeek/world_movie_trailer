@@ -26,6 +26,10 @@ import 'package:world_movie_trailer/v2/home/web_movie_playlist_page.dart';
 
 enum _BookmarkSort { recent, title, releaseDate }
 
+const _navigationGradient = LinearGradient(
+  colors: [Color(0xFF168CFF), Color(0xFFC000FF)],
+);
+
 const _playLabels = <String, Map<String, String>>{
   'ko': {'play': '플레이', 'unavailable': '영화명언에서는 사용할 수 없습니다'},
   'en': {'play': 'Play', 'unavailable': 'Unavailable for Movie Quotes'},
@@ -163,7 +167,9 @@ const _bookmarkLabels = <String, Map<String, String>>{
 };
 
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key});
+  const HomeShell({super.key, this.onInitialLoadComplete});
+
+  final VoidCallback? onInitialLoadComplete;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -205,6 +211,7 @@ class _HomeShellState extends State<HomeShell>
   String _boxOfficeCode = 'box_office';
   bool _showEnglish = false;
   bool _loading = true;
+  bool _initialLoadReported = false;
   Object? _error;
   List<Movie> _movies = const [];
   List<MovieByUser> _bookmarks = const [];
@@ -418,7 +425,13 @@ class _HomeShellState extends State<HomeShell>
         _error = error;
       }
     }
-    if (mounted) setState(() => _loading = false);
+    if (mounted) {
+      setState(() => _loading = false);
+      if (!_initialLoadReported) {
+        _initialLoadReported = true;
+        widget.onInitialLoadComplete?.call();
+      }
+    }
   }
 
   List<Movie> get _visibleMovies {
@@ -564,7 +577,7 @@ class _HomeShellState extends State<HomeShell>
   }
 
   Future<void> _openPlaylist() async {
-    if (!kIsWeb || _section == 4) return;
+    if (_section == 4) return;
     final movies = _currentPlaylistMovies;
     if (movies.isEmpty || !mounted) return;
     await Navigator.of(context).push(
@@ -963,7 +976,7 @@ class _HomeShellState extends State<HomeShell>
         action: _section == 2 ? null : () => _load(forceRefresh: true),
       );
     }
-    if (_section == 0) {
+    if (_section == 0 || _section == 3) {
       return _countryPosterGrid(
         movies: movies,
         onRefresh: () => _load(forceRefresh: true),
@@ -972,6 +985,7 @@ class _HomeShellState extends State<HomeShell>
     return _responsiveMovieList(
       movies: movies,
       boxOffice: _section == 1,
+      koreanBoxOffice: _section == 1 && _boxOfficeCode == 'box_office_kr',
       onRefresh: () => _load(forceRefresh: true),
       showCountry: _section == 3,
       specialSection: _section == 3,
@@ -1046,7 +1060,15 @@ class _HomeShellState extends State<HomeShell>
                               ),
                             ),
                             const SizedBox(height: 4),
-                            if (movie.releaseDate.isNotEmpty)
+                            if (_section == 3 && movie.year?.isNotEmpty == true)
+                              Text(
+                                movie.year!,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFFC7C7C7),
+                                ),
+                              )
+                            else if (movie.releaseDate.isNotEmpty)
                               Text(
                                 movie.releaseDate.replaceAll('-', '.'),
                                 style: const TextStyle(
@@ -1069,6 +1091,7 @@ class _HomeShellState extends State<HomeShell>
   Widget _responsiveMovieList({
     required List<Movie> movies,
     required bool boxOffice,
+    bool koreanBoxOffice = false,
     required Future<void> Function() onRefresh,
     bool showCountry = false,
     bool specialSection = false,
@@ -1083,6 +1106,7 @@ class _HomeShellState extends State<HomeShell>
             movie: movies[index],
             index: index,
             boxOffice: boxOffice,
+            koreanBoxOffice: koreanBoxOffice,
             specialSection: specialSection,
             displayTitle: _displayMovieField(
               movies[index],
@@ -1367,6 +1391,10 @@ class _HomeShellState extends State<HomeShell>
   Widget _bookmarkSortMenu(Map<String, String> labels) =>
       PopupMenuButton<_BookmarkSort>(
         initialValue: _bookmarkSort,
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: .96),
         onSelected: (value) => setState(() => _bookmarkSort = value),
         itemBuilder: (_) => [
           PopupMenuItem(
@@ -1379,59 +1407,69 @@ class _HomeShellState extends State<HomeShell>
         ],
         child: Container(
           height: 44,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.all(1.5),
           decoration: BoxDecoration(
-            color:
-                Theme.of(context).colorScheme.onSurface.withValues(alpha: .06),
+            gradient: _navigationGradient,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.swap_vert_rounded, color: Color(0xFF9D00C6)),
-              const SizedBox(width: 5),
-              Text(_bookmarkSortLabel(labels),
-                  style: const TextStyle(
-                      color: Color(0xFF9D00C6), fontWeight: FontWeight.w700)),
-              const Icon(Icons.keyboard_arrow_down_rounded,
-                  color: Color(0xFF9D00C6)),
-            ],
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10.5),
+            decoration: BoxDecoration(
+              color: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerHighest
+                  .withValues(alpha: .96),
+              borderRadius: BorderRadius.circular(10.5),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.swap_vert_rounded, color: Colors.white),
+                const SizedBox(width: 5),
+                Text(_bookmarkSortLabel(labels),
+                    style: const TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.w700)),
+                const Icon(Icons.keyboard_arrow_down_rounded,
+                    color: Colors.white),
+              ],
+            ),
           ),
         ),
       );
 
   Widget _mobileBookmarkList(List<MovieByUser> items) => RefreshIndicator(
         onRefresh: _load,
-        child: ListView.separated(
+        child: GridView.builder(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 24),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: .50,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 16,
+          ),
           itemCount: items.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 14),
           itemBuilder: (context, index) {
             final item = items[index];
             final movie = item.movie;
+            final dark = Theme.of(context).brightness == Brightness.dark;
             return Material(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: .06),
-              borderRadius: BorderRadius.circular(18),
+              color: dark ? const Color(0xFF666666) : const Color(0xFF999999),
+              borderRadius: BorderRadius.circular(14),
+              clipBehavior: Clip.antiAlias,
               child: InkWell(
-                borderRadius: BorderRadius.circular(18),
                 onTap: () => _openMovie(
                   movie,
                   movies: items.map((item) => item.movie).toList(),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: SizedBox(
-                          width: 92,
-                          height: 138,
-                          child: movie.posterUrl.isEmpty
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          movie.posterUrl.isEmpty
                               ? const ColoredBox(color: Color(0xFF9D1D25))
                               : CachedNetworkImage(
                                   imageUrl: movie.posterUrl,
@@ -1440,52 +1478,80 @@ class _HomeShellState extends State<HomeShell>
                                     color: Color(0xFF9D1D25),
                                   ),
                                 ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(_bookmarkFlag(item),
-                                style: const TextStyle(fontSize: 22)),
-                            const SizedBox(height: 8),
-                            Text(
-                              _displayMovieField(
-                                  movie, 'title', movie.localTitle),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w800,
+                          Positioned(
+                            top: 3,
+                            right: 3,
+                            child: IconButton.filled(
+                              tooltip: getMenuItemTitle(
+                                context.read<SettingsProvider>().language,
+                                'Delete',
+                              ),
+                              onPressed: () => _deleteBookmark(item),
+                              style: IconButton.styleFrom(
+                                minimumSize: const Size(32, 32),
+                                fixedSize: const Size(32, 32),
+                                padding: EdgeInsets.zero,
+                                backgroundColor:
+                                    Colors.black.withValues(alpha: .52),
+                                foregroundColor: Colors.white,
+                              ),
+                              icon: const Icon(
+                                Icons.close_rounded,
+                                size: 20,
                               ),
                             ),
-                            if (movie.releaseDate.isNotEmpty) ...[
-                              const SizedBox(height: 8),
-                              Text(
-                                movie.releaseDate.replaceAll('-', '.'),
-                                style: TextStyle(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: .58),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      IconButton(
-                        tooltip: getMenuItemTitle(
-                          context.read<SettingsProvider>().language,
-                          'Delete',
-                        ),
-                        onPressed: () => _deleteBookmark(item),
-                        icon: const Icon(Icons.delete_outline_rounded),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _bookmarkFlag(item),
+                            maxLines: 1,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _displayMovieField(
+                              movie,
+                              'title',
+                              movie.localTitle,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFFECECEC),
+                              fontSize: 16,
+                              height: 1.22,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            item.sourceFeedCode == special
+                                ? _displayMovieField(
+                                    movie,
+                                    'concept',
+                                    movie.special ?? '',
+                                  )
+                                : movie.releaseDate.isEmpty
+                                    ? '-'
+                                    : movie.releaseDate.replaceAll('-', '.'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFFC7C7C7),
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -1496,9 +1562,8 @@ class _HomeShellState extends State<HomeShell>
   String _bookmarkFlag(MovieByUser item) {
     final source = item.sourceFeedCode;
     if (source == special) return '🎬';
+    if (source == 'box_office' || source == 'box_office_kr') return '🏆';
     var code = switch (source) {
-      'box_office' => 'us',
-      'box_office_kr' => 'kr',
       String value when value.length == 2 => value,
       _ => '',
     };
@@ -1537,6 +1602,7 @@ class _HomeShellState extends State<HomeShell>
   }
 
   Widget _responsiveBookmarkList(List<MovieByUser> items) {
+    if (kIsWeb) return _webBookmarkGrid(items);
     final movies = items.map((item) => item.movie).toList(growable: false);
     return _responsiveMovieList(
       movies: movies,
@@ -1547,72 +1613,215 @@ class _HomeShellState extends State<HomeShell>
     );
   }
 
-  Widget _bottomNavigation() {
-    final language = context.read<SettingsProvider>().language;
-    final navigation = _navigationLabels[language] ?? _navigationLabels['en']!;
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    return SizedBox(
-      height: 64 + MediaQuery.paddingOf(context).bottom,
-      child: BottomNavigationBar(
-        currentIndex: _section == 3 || _section == 4 ? 1 : _section,
-        onTap: _selectSection,
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        selectedItemColor: dark ? Colors.white : const Color(0xFF6D36B8),
-        unselectedItemColor:
-            Theme.of(context).colorScheme.onSurface.withValues(alpha: .48),
-        selectedFontSize: 11,
-        unselectedFontSize: 11,
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        type: BottomNavigationBarType.fixed,
-        items: [
-          BottomNavigationBarItem(
-            icon: _bottomNavigationIcon(
-              'assets/images/v2/countries_inactive.png',
-              selected: false,
+  Widget _webBookmarkGrid(List<MovieByUser> items) {
+    final movies = items.map((item) => item.movie).toList(growable: false);
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: GridView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(30, 22, 30, 36),
+        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 300,
+          mainAxisExtent: 535,
+          crossAxisSpacing: 24,
+          mainAxisSpacing: 28,
+        ),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          final movie = item.movie;
+          final dark = Theme.of(context).brightness == Brightness.dark;
+          return Material(
+            color: dark ? const Color(0xFF666666) : const Color(0xFF999999),
+            borderRadius: BorderRadius.circular(14),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () => _openMovie(movie, movies: movies),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        movie.posterUrl.isEmpty
+                            ? const ColoredBox(color: Color(0xFF9D1D25))
+                            : CachedNetworkImage(
+                                imageUrl: movie.posterUrl,
+                                fit: BoxFit.cover,
+                                errorWidget: (_, __, ___) =>
+                                    const ColoredBox(color: Color(0xFF9D1D25)),
+                              ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: IconButton.filled(
+                            tooltip: getMenuItemTitle(
+                              context.read<SettingsProvider>().language,
+                              'Delete',
+                            ),
+                            onPressed: () => _deleteBookmark(item),
+                            style: IconButton.styleFrom(
+                              minimumSize: const Size(32, 32),
+                              fixedSize: const Size(32, 32),
+                              padding: EdgeInsets.zero,
+                              backgroundColor:
+                                  Colors.black.withValues(alpha: .52),
+                              foregroundColor: Colors.white,
+                            ),
+                            icon: const Icon(Icons.close_rounded, size: 20),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _bookmarkFlag(item),
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          _displayMovieField(movie, 'title', movie.localTitle),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Color(0xFFECECEC),
+                            fontSize: 16,
+                            height: 1.22,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item.sourceFeedCode == special
+                              ? _displayMovieField(
+                                  movie,
+                                  'concept',
+                                  movie.special ?? '',
+                                )
+                              : movie.releaseDate.isEmpty
+                                  ? '-'
+                                  : movie.releaseDate.replaceAll('-', '.'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Color(0xFFC7C7C7),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-            activeIcon: _bottomNavigationIcon(
-              'assets/images/v2/countries_active.png',
-              selected: true,
-            ),
-            label: navigation['countries'],
-          ),
-          BottomNavigationBarItem(
-            icon: _bottomNavigationIcon(
-              'assets/images/v2/boxoffice_inactive.png',
-              selected: false,
-            ),
-            activeIcon: _bottomNavigationIcon(
-              'assets/images/v2/boxoffice_active.png',
-              selected: true,
-            ),
-            label: navigation['boxOffice'],
-          ),
-          BottomNavigationBarItem(
-            icon: _bottomNavigationIcon(
-              'assets/images/v2/bookmark_inactive.png',
-              selected: false,
-            ),
-            activeIcon: _bottomNavigationIcon(
-              'assets/images/v2/bookmark_inactive.png',
-              selected: true,
-            ),
-            label: navigation['bookmarks'],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  Widget _bottomNavigationIcon(String path, {required bool selected}) {
-    return Opacity(
-      opacity: selected ? 1 : .48,
-      child: Image.asset(
-        path,
-        width: 21,
-        height: 21,
-        fit: BoxFit.contain,
+  Widget _bottomNavigation() {
+    final language = context.read<SettingsProvider>().language;
+    final navigation = _navigationLabels[language] ?? _navigationLabels['en']!;
+    final currentIndex = _section == 3 || _section == 4 ? 1 : _section;
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 64,
+          child: Row(
+            children: [
+              _bottomNavigationDestination(
+                index: 0,
+                currentIndex: currentIndex,
+                inactivePath: 'assets/images/v2/countries_inactive.png',
+                activePath: 'assets/images/v2/countries_active.png',
+                label: navigation['countries']!,
+              ),
+              _bottomNavigationDestination(
+                index: 1,
+                currentIndex: currentIndex,
+                inactivePath: 'assets/images/v2/boxoffice_inactive.png',
+                activePath: 'assets/images/v2/boxoffice_active.png',
+                label: navigation['boxOffice']!,
+              ),
+              _bottomNavigationDestination(
+                index: 2,
+                currentIndex: currentIndex,
+                inactivePath: 'assets/images/v2/bookmark_inactive.png',
+                activePath: 'assets/images/v2/bookmark_inactive.png',
+                label: navigation['bookmarks']!,
+              ),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _bottomNavigationDestination({
+    required int index,
+    required int currentIndex,
+    required String inactivePath,
+    required String activePath,
+    required String label,
+  }) {
+    final selected = index == currentIndex;
+    return Expanded(
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: label,
+        child: InkWell(
+          onTap: () => _selectSection(index),
+          child: Center(
+            child: _bottomNavigationContent(
+              selected ? activePath : inactivePath,
+              label,
+              selected: selected,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _bottomNavigationContent(
+    String path,
+    String label, {
+    required bool selected,
+  }) {
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Image.asset(path, width: 23, height: 23, fit: BoxFit.contain),
+        const SizedBox(height: 3),
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: selected
+                ? Colors.white
+                : Theme.of(context).colorScheme.onSurface,
+            fontSize: 11,
+            fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+    if (!selected) return Opacity(opacity: .68, child: content);
+    return ShaderMask(
+      blendMode: BlendMode.srcIn,
+      shaderCallback: _navigationGradient.createShader,
+      child: content,
     );
   }
 }
@@ -1670,8 +1879,15 @@ class _Header extends StatelessWidget {
                 child: Center(child: _title(context)),
               ),
             )
-          else
+          else if (kIsWeb)
             Expanded(child: _title(context)),
+          if (!desktop && !kIsWeb)
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: _playButton(context),
+              ),
+            ),
           if (desktop) ...[
             const SizedBox(width: 30),
             _WebNavigationItem(
@@ -1991,10 +2207,22 @@ class _WebNavigationItem extends StatelessWidget {
         ),
         child: Transform.translate(
           offset: const Offset(0, 2),
-          child: Text(label,
-              style: TextStyle(
-                fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
-              )),
+          child: selected
+              ? ShaderMask(
+                  blendMode: BlendMode.srcIn,
+                  shaderCallback: _navigationGradient.createShader,
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                )
+              : Text(
+                  label,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
         ),
       );
 }
@@ -2004,6 +2232,7 @@ class _MovieRow extends StatelessWidget {
     required this.movie,
     required this.index,
     required this.boxOffice,
+    this.koreanBoxOffice = false,
     this.specialSection = false,
     required this.onTap,
     this.displayTitle,
@@ -2014,6 +2243,7 @@ class _MovieRow extends StatelessWidget {
   final Movie movie;
   final int index;
   final bool boxOffice;
+  final bool koreanBoxOffice;
   final bool specialSection;
   final VoidCallback onTap;
   final String? displayTitle;
@@ -2081,7 +2311,7 @@ class _MovieRow extends StatelessWidget {
                               fontSize: 12)),
                     if (boxOffice && movie.totalGross?.isNotEmpty == true)
                       Text(
-                          '${getBoxOfficeLabel(language, 'total_gross')}: ${movie.totalGross}',
+                          '${getBoxOfficeLabel(language, 'total_gross')}: ${_totalGrossLabel(movie.totalGross!)}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -2164,5 +2394,13 @@ class _MovieRow extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _totalGrossLabel(String value) {
+    if (!koreanBoxOffice) return value;
+    final digits = value.replaceAll(RegExp(r'[^0-9]'), '');
+    final amount = int.tryParse(digits);
+    if (amount == null) return value.startsWith('₩') ? value : '₩$value';
+    return '₩${NumberFormat.decimalPattern().format(amount)}';
   }
 }

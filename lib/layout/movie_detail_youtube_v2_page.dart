@@ -452,6 +452,9 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
 
   Widget _metadata() {
     final lang = _settings.language;
+    final isSpecial = widget.movie.special?.isNotEmpty == true;
+    final specialCredits =
+        isSpecial ? _localizedField('credits', widget.movie.source).trim() : '';
     final crew = widget.movie.credits?['crew'];
     final cast = widget.movie.credits?['cast'];
     String director = '';
@@ -538,10 +541,12 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
         crossAxisAlignment:
             kIsWeb ? CrossAxisAlignment.center : CrossAxisAlignment.start,
         children: [
-          if (widget.movie.special?.isNotEmpty == true)
+          if (isSpecial)
             _info('${getTranslatedDetail('Year', lang)}',
                 widget.movie.year ?? ''),
-          if (director.isNotEmpty)
+          if (isSpecial && specialCredits.isNotEmpty)
+            _info('${getTranslatedDetail('Credits', lang)}', specialCredits),
+          if (!isSpecial && director.isNotEmpty)
             TmdbCreditInfo(
               label: getTranslatedDetail('Director', lang) ?? 'Director',
               alignment: kIsWeb ? WrapAlignment.center : WrapAlignment.start,
@@ -552,13 +557,13 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                 ),
               ],
             ),
-          if (stars.isNotEmpty)
+          if (!isSpecial && stars.isNotEmpty)
             TmdbCreditInfo(
               label: getTranslatedDetail('Stars', lang) ?? 'Stars',
               alignment: kIsWeb ? WrapAlignment.center : WrapAlignment.start,
               people: starPeople,
             ),
-          if (_country.isNotEmpty)
+          if (!isSpecial && _country.isNotEmpty)
             _info('${getTranslatedDetail('Country', lang)}', _country),
           if (widget.movie.runtime.toString().isNotEmpty)
             _info('${getTranslatedDetail('Running Time', lang)}',

@@ -175,7 +175,6 @@ function buildSpecialDataRow(movie) {
     origin.concept || movie.special || "",
     origin.title || movie.localTitle || "",
     origin.overview || movie.spec || "",
-    origin.country || movie.country || "",
     origin.credits || movie.source || "",
   ];
 }
@@ -189,7 +188,7 @@ async function readSpecialSourceSheet() {
   const sheets = google.sheets({version: "v4", auth});
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `'${SPECIAL_SOURCE_SHEET}'!A2:H`,
+    range: `'${SPECIAL_SOURCE_SHEET}'!A2:G`,
   });
 
   return (response.data.values || [])
@@ -202,13 +201,11 @@ async function readSpecialSourceSheet() {
         special: row[4] || "",
         source: row[5] || "",
         localTitle: row[6] || "",
-        country: row[7] || "",
         sourceType: "tmdb",
         originSource: {
           concept: row[4] || "",
           title: row[6] || "",
           overview: "",
-          country: row[7] || "",
           credits: row[5] || "",
         },
         batch: false,
@@ -235,6 +232,21 @@ function readTranslations(row, startOffset, fieldCount = 4) {
       title: row[offset] || "",
       overview: row[offset + 1] || "",
       country: row[offset + 2] || "",
+      credits: row[offset + 3] || "",
+    };
+  });
+  return translations;
+}
+
+/** Converts Special translation columns: concept, title, overview, credits. */
+function readSpecialTranslations(row, startOffset) {
+  const translations = {};
+  TRANSLATION_LANGUAGES.forEach((language, index) => {
+    const offset = startOffset + index * 4;
+    translations[language.key] = {
+      concept: row[offset] || "",
+      title: row[offset + 1] || "",
+      overview: row[offset + 2] || "",
       credits: row[offset + 3] || "",
     };
   });
@@ -372,7 +384,7 @@ async function readBoxOfficeSheet(sheetName) {
       }));
 }
 
-/** Replaces SPECIAL_DATA inputs while preserving translation formulas N:BK. */
+/** Replaces SPECIAL_DATA inputs while preserving translation formulas M:AZ. */
 async function replaceSpecialDataSheet(movies) {
   const spreadsheetId = process.env.MOVIE_SPREADSHEET_ID || DEFAULT_SPREADSHEET_ID;
   const auth = new google.auth.GoogleAuth({
@@ -384,13 +396,13 @@ async function replaceSpecialDataSheet(movies) {
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `'${SPECIAL_DATA_SHEET}'!A4:M${lastRow}`,
+    range: `'${SPECIAL_DATA_SHEET}'!A4:L${lastRow}`,
     valueInputOption: "RAW",
     requestBody: {values},
   });
   await sheets.spreadsheets.values.clear({
     spreadsheetId,
-    range: `'${SPECIAL_DATA_SHEET}'!A${lastRow + 1}:M`,
+    range: `'${SPECIAL_DATA_SHEET}'!A${lastRow + 1}:L`,
   });
   console.log(`Google Sheet ${SPECIAL_DATA_SHEET} inputs replaced with ${movies.length} movies.`);
 }
@@ -404,7 +416,7 @@ async function readSpecialDataSheet() {
   const sheets = google.sheets({version: "v4", auth});
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `'${SPECIAL_DATA_SHEET}'!A4:BK`,
+    range: `'${SPECIAL_DATA_SHEET}'!A4:AZ`,
   });
   return (response.data.values || [])
       .filter((row) => row[0] && row[4] && row[5])
@@ -419,10 +431,9 @@ async function readSpecialDataSheet() {
           concept: row[8] || "",
           title: row[9] || "",
           overview: row[10] || "",
-          country: row[11] || "",
-          credits: row[12] || "",
+          credits: row[11] || "",
         },
-        translations: readTranslations(row, 13, 5),
+        translations: readSpecialTranslations(row, 12),
         credits: {cast: [], crew: []},
         metadata: {
           period: row[2] || "",

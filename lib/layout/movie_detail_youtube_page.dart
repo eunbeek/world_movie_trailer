@@ -10,6 +10,7 @@ import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
 import 'package:world_movie_trailer/common/translate.dart';
+import 'package:world_movie_trailer/common/system_ui.dart';
 import 'package:world_movie_trailer/app/world_movie_trailer_app.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/model/movieByUser.dart';
@@ -105,7 +106,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   @override
   void dispose() {
     _controller?.dispose();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    hideAndroidNavigationBar();
     SystemChrome.setPreferredOrientations(const [
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -302,7 +303,61 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                 ),
               ),
             ),
-            const SizedBox(width: 48),
+            if (widget.playbackProgressLabel != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 12, right: 18),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(18),
+                  child: InkWell(
+                    onTap: widget.onPlaybackProgressTap,
+                    borderRadius: BorderRadius.circular(18),
+                    child: Ink(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 13, vertical: 7),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFB12DDB), Color(0xFF6746C7)],
+                        ),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: const Color(0xFF9D00C6).withValues(alpha: .55),
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x3D9D00C6),
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            widget.playbackProgressLabel!,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          if (widget.onPlaybackProgressTap != null) ...[
+                            const SizedBox(width: 3),
+                            const Icon(
+                              Icons.skip_next_rounded,
+                              color: Colors.white,
+                              size: 17,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            else
+              const SizedBox(width: 48),
           ],
         ),
       );
@@ -364,6 +419,9 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
 
   Widget _metadata() {
     final lang = _settings.language;
+    final isSpecial = widget.movie.special?.isNotEmpty == true;
+    final specialCredits =
+        isSpecial ? _localizedField('credits', widget.movie.source).trim() : '';
     final crew = widget.movie.credits?['crew'];
     final cast = widget.movie.credits?['cast'];
     String director = '';
@@ -446,7 +504,12 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (director.isNotEmpty)
+          if (isSpecial)
+            _info('${getTranslatedDetail('Year', lang)}',
+                widget.movie.year ?? ''),
+          if (isSpecial && specialCredits.isNotEmpty)
+            _info('${getTranslatedDetail('Credits', lang)}', specialCredits),
+          if (!isSpecial && director.isNotEmpty)
             TmdbCreditInfo(
               label: getTranslatedDetail('Director', lang) ?? 'Director',
               people: [
@@ -456,12 +519,12 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                 ),
               ],
             ),
-          if (stars.isNotEmpty)
+          if (!isSpecial && stars.isNotEmpty)
             TmdbCreditInfo(
               label: getTranslatedDetail('Stars', lang) ?? 'Stars',
               people: starPeople,
             ),
-          if (_country.isNotEmpty)
+          if (!isSpecial && _country.isNotEmpty)
             _info('${getTranslatedDetail('Country', lang)}', _country),
           if (widget.movie.runtime.toString().isNotEmpty)
             _info('${getTranslatedDetail('Running Time', lang)}',

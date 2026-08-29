@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,9 +9,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:world_movie_trailer/app/world_movie_trailer_app.dart';
+import 'package:world_movie_trailer/common/background.dart';
+import 'package:world_movie_trailer/common/ad_manager/rewarded_translation_ad_manager.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/services/alarm_service.dart';
+import 'package:world_movie_trailer/common/system_ui.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/model/movieByUser.dart';
 import 'package:world_movie_trailer/model/quote.dart';
@@ -30,7 +35,11 @@ const _obsoleteHiveBoxes = [
 
 Future<void> bootstrap(FirebaseOptions firebaseOptions) async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  if (isAndroidApp) {
+    await hideAndroidNavigationBar();
+  } else {
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  }
   await SystemChrome.setPreferredOrientations(const [
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -60,17 +69,25 @@ class _BootstrapLoaderState extends State<_BootstrapLoader> {
             debugShowCheckedModeBanner: false,
             theme: ThemeData.dark(),
             home: Scaffold(
-              backgroundColor: Colors.black,
-              body: Center(
-                child: snapshot.hasError
-                    ? Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Text(
-                          '앱 초기화에 실패했습니다.\n${snapshot.error}',
-                          textAlign: TextAlign.center,
-                        ),
-                      )
-                    : const MovieLoadingIndicator(),
+              body: Stack(
+                fit: StackFit.expand,
+                children: [
+                  const BackgroundWidget(
+                    isPausePage: false,
+                    isTapeExist: true,
+                  ),
+                  Center(
+                    child: snapshot.hasError
+                        ? Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Text(
+                              '앱 초기화에 실패했습니다.\n${snapshot.error}',
+                              textAlign: TextAlign.center,
+                            ),
+                          )
+                        : const MovieLoadingIndicator(),
+                  ),
+                ],
               ),
             ),
           );
@@ -82,6 +99,7 @@ Future<Widget> _initializeApplication(FirebaseOptions options) async {
   if (!kIsWeb) {
     await _runStage('Firebase', () => _initializeFirebase(options));
     await MobileAds.instance.initialize();
+    unawaited(RewardedTranslationAdManager.preload());
   }
 
   await _runStage('Hive', Hive.initFlutter);

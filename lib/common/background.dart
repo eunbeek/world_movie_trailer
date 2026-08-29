@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:world_movie_trailer/common/loading_animation_clock.dart';
 
 /// Legacy world-map background, adapted to tile across wide web viewports.
 class BackgroundWidget extends StatefulWidget {
@@ -17,6 +18,7 @@ class BackgroundWidget extends StatefulWidget {
 
 class _BackgroundWidgetState extends State<BackgroundWidget>
     with SingleTickerProviderStateMixin {
+  static const _animationDuration = Duration(seconds: 50);
   late final AnimationController _controller;
 
   @override
@@ -24,7 +26,8 @@ class _BackgroundWidgetState extends State<BackgroundWidget>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 50),
+      duration: _animationDuration,
+      value: LoadingAnimationClock.progress(_animationDuration),
     );
     if (!widget.isPausePage) _controller.repeat();
   }

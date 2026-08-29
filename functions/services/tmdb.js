@@ -196,7 +196,12 @@ async function fetchEnglishYoutubeVideo(movieId) {
  */
 async function fetchSpeicalMovieInfo(movieId, countryCode) {
   try {
-    const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?append_to_response=videos,credits&language=${countryCode}`, getTmdbOptions());
+    let mediaType = "movie";
+    let response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?append_to_response=videos,credits&language=${countryCode}`, getTmdbOptions());
+    if (response.status === 404) {
+      mediaType = "tv";
+      response = await fetch(`https://api.themoviedb.org/3/tv/${movieId}?append_to_response=videos,credits&language=${countryCode}`, getTmdbOptions());
+    }
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -220,11 +225,21 @@ async function fetchSpeicalMovieInfo(movieId, countryCode) {
     }
     // If no 'Directing' crew found, select up to 4 from the entire crew
     if (directingCrew.length === 0) {
-      directingCrew = data.credits.crew.slice(0, 4);
+      directingCrew = mediaType === "tv" && Array.isArray(data.created_by) ?
+        data.created_by.slice(0, 4).map((person) => ({
+          ...person,
+          job: "Creator",
+          known_for_department: "Directing",
+        })) : data.credits.crew.slice(0, 4);
     }
 
     return {
       ...data,
+      media_type: mediaType,
+      title: data.title || data.name || "",
+      release_date: data.release_date || data.first_air_date || "",
+      runtime: data.runtime || data.episode_run_time &&
+        data.episode_run_time[0] || "",
       credits: {
         cast: selectedCast,
         crew: directingCrew,

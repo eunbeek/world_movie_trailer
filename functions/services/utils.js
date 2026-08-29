@@ -40,6 +40,8 @@ function reuseExistingSpecialMovies(sourceMovies, existingMovies) {
       runtime: existing.runtime || movie.runtime || "",
       spec: existing.originSource && existing.originSource.overview || movie.spec || "",
       credits: existing.credits || movie.credits || {},
+      sourceType: existing.metadata && existing.metadata.sourceType ||
+        movie.sourceType || "tmdb",
       batch: true,
     };
   });
@@ -168,6 +170,8 @@ async function processBatchForSpecial(country, moviesData, processedCount, start
         movie.releaseDate = movie.releaseDate || fetchedMovie.release_date || "";
         movie.runtime = movie.runtime || fetchedMovie.runtime || "";
         movie.credits = fetchedMovie.credits ? fetchedMovie.credits : {};
+        movie.sourceType = fetchedMovie.media_type === "tv" ?
+          "tmdb_tv" : "tmdb";
       }
 
       movie.batch = true;

@@ -2,6 +2,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:world_movie_trailer/v2/home/featured_section_rotation.dart';
 
 void main() {
+  test('A fresh install shows Special before Movie Quotes', () {
+    var showQuotes = false;
+
+    expect(
+      FeaturedSectionRotation.sectionForLaunch(showQuotes: showQuotes),
+      FeaturedSectionRotation.specialSection,
+    );
+
+    showQuotes = FeaturedSectionRotation.preferenceForNextLaunch(
+      showQuotes: showQuotes,
+    );
+    expect(
+      FeaturedSectionRotation.sectionForLaunch(showQuotes: showQuotes),
+      FeaturedSectionRotation.quotesSection,
+    );
+  });
+
   test('Special and Movie Quotes alternate on successive app launches', () {
     var showQuotes = true;
     final sections = <int>[];
