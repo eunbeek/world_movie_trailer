@@ -2051,11 +2051,7 @@ class _Header extends StatelessWidget {
               curve: Curves.easeOut,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                gradient: selected
-                    ? const LinearGradient(
-                        colors: [Color(0xFFB12DDB), Color(0xFF6746C7)],
-                      )
-                    : null,
+                gradient: selected ? _navigationGradient : null,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: selected
                     ? const [
@@ -2116,9 +2112,7 @@ class _Header extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 13),
               decoration: BoxDecoration(
                 gradient: playEnabled
-                    ? const LinearGradient(
-                        colors: [Color(0xFFB12DDB), Color(0xFF6746C7)],
-                      )
+                    ? _navigationGradient
                     : LinearGradient(colors: [disabledColor, disabledColor]),
                 borderRadius: BorderRadius.circular(19),
                 border: Border.all(
