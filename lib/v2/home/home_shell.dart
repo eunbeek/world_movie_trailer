@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:world_movie_trailer/common/background.dart';
+import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/premium_translation_prompt.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
@@ -41,6 +42,19 @@ const _playLabels = <String, Map<String, String>>{
   'es': {'play': 'Reproducir', 'unavailable': 'No disponible para frases'},
   'hi': {'play': 'चलाएँ', 'unavailable': 'फ़िल्मी उद्धरण में उपलब्ध नहीं'},
   'th': {'play': 'เล่น', 'unavailable': 'ใช้ไม่ได้กับคำคมภาพยนตร์'},
+};
+
+const _countryOrderEditLabels = <String, String>{
+  'en': 'Editing country order · Hold and drag',
+  'ko': '국가 순서 편집 중 · 길게 눌러 이동',
+  'ja': '国の順序を編集中 · 長押しして移動',
+  'zh': '正在调整国家顺序 · 长按并拖动',
+  'tw': '正在調整國家順序 · 長按並拖曳',
+  'fr': 'Ordre des pays · Maintenez et faites glisser',
+  'de': 'Länder sortieren · Halten und ziehen',
+  'es': 'Ordenando países · Mantén pulsado y arrastra',
+  'hi': 'देशों का क्रम · दबाकर खींचें',
+  'th': 'จัดลำดับประเทศ · กดค้างแล้วลาก',
 };
 
 const _bookmarkLabels = <String, Map<String, String>>{
@@ -479,6 +493,16 @@ class _HomeShellState extends State<HomeShell>
     if ((value == 2 || value == 3) && !await _ensureRewardedAccess()) return;
     if (!mounted) return;
     setState(() => _section = value);
+    LogHelper().logEvent('section_selected', parameters: {
+      'section': switch (value) {
+        0 => 'countries',
+        1 => 'box_office',
+        2 => 'bookmarks',
+        3 => 'special',
+        4 => 'quotes',
+        _ => 'unknown',
+      },
+    });
     _load();
   }
 
@@ -580,6 +604,11 @@ class _HomeShellState extends State<HomeShell>
     if (_section == 4) return;
     final movies = _currentPlaylistMovies;
     if (movies.isEmpty || !mounted) return;
+    LogHelper().logEvent('playlist_started', parameters: {
+      'section': _section,
+      'movie_count': movies.length,
+      'source': _section == 0 ? _countryCode : _sourceFeedCodeFor(movies.first),
+    });
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => WebMoviePlaylistPage(
@@ -630,19 +659,29 @@ class _HomeShellState extends State<HomeShell>
                 onLanguageChanged: (value) async {
                   final settings = context.read<SettingsProvider>();
                   if (value && !kIsWeb && !settings.canTranslate) {
-                    final granted = await showPremiumTranslationPrompt(
-                      context,
-                      settings.language,
-                    );
-                    if (!granted) return;
+                    final free = settings.useFreeTranslationIfAvailable();
+                    if (!free) {
+                      final granted = await showPremiumTranslationPrompt(
+                        context,
+                        settings.language,
+                      );
+                      if (!granted) return;
+                    }
                   }
                   setState(() => _showEnglish = value);
+                  LogHelper().logEvent('home_language_toggled', parameters: {
+                    'show_translated': value,
+                    'language': settings.language,
+                  });
                   settings.updateTranslatedContentPreference(value);
                   _load();
                 },
-                onSettings: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const SettingsPage()),
-                ),
+                onSettings: () {
+                  LogHelper().logEvent('settings_opened');
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SettingsPage()),
+                  );
+                },
               ),
               if (_section == 0) _countrySelector(),
               if (_section == 1 || _section == 3 || _section == 4)
@@ -669,15 +708,70 @@ class _HomeShellState extends State<HomeShell>
     final settings = context.watch<SettingsProvider>();
     final countries = _orderedCountries(settings);
     if (_editingCountryOrder) {
-      return SizedBox(
-        height: 48,
-        child: Row(
+      return Container(
+        height: 70,
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: .82),
+        child: Column(
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 2, 8, 0),
+              child: Row(
+                children: [
+                  const Icon(Icons.drag_indicator_rounded,
+                      size: 18, color: Color(0xFF168CFF)),
+                  const SizedBox(width: 5),
+                  Expanded(
+                    child: Text(
+                      _countryOrderEditLabels[settings.language] ??
+                          _countryOrderEditLabels['en']!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  InkWell(
+                    onTap: _finishCountryOrderEditing,
+                    borderRadius: BorderRadius.circular(15),
+                    child: Ink(
+                      height: 26,
+                      padding: const EdgeInsets.symmetric(horizontal: 11),
+                      decoration: BoxDecoration(
+                        gradient: _navigationGradient,
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.check_rounded,
+                              size: 16, color: Colors.white),
+                          const SizedBox(width: 3),
+                          Text(
+                            getMenuItemTitle(settings.language, 'Done'),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             Expanded(
               child: ReorderableListView.builder(
                 scrollDirection: Axis.horizontal,
                 buildDefaultDragHandles: false,
-                padding: const EdgeInsets.only(left: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 7),
                 itemCount: countries.length,
                 onReorderItem: (oldIndex, newIndex) {
                   final reordered =
@@ -687,9 +781,14 @@ class _HomeShellState extends State<HomeShell>
                   settings.updateCountryOrderKeys(
                     reordered.map((entry) => entry.value).toList(),
                   );
+                  LogHelper().logEvent('country_order_changed', parameters: {
+                    'from_index': oldIndex,
+                    'to_index': newIndex,
+                  });
                 },
                 itemBuilder: (context, index) {
                   final entry = countries[index];
+                  final selected = entry.key == _countryCode;
                   return ReorderableDelayedDragStartListener(
                     key: ValueKey(entry.key),
                     index: index,
@@ -697,18 +796,47 @@ class _HomeShellState extends State<HomeShell>
                       animation: _countryJiggleController,
                       builder: (_, child) => Transform.rotate(
                         angle: (_countryJiggleController.value - .5) *
-                            (index.isEven ? .025 : -.025),
+                            (index.isEven ? .04 : -.04),
                         child: child,
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 5),
-                        child: Chip(
-                          avatar: const Icon(Icons.drag_indicator_rounded,
-                              size: 17),
-                          label: Text(
-                            localizedCountries[settings.language]
-                                    ?[entry.value] ??
-                                entry.value,
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Container(
+                          height: 32,
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surface
+                                .withValues(alpha: .9),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: selected
+                                  ? const Color(0xFFC000FF)
+                                      .withValues(alpha: .72)
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: .34),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.drag_indicator_rounded,
+                                  size: 15, color: Color(0xFFC000FF)),
+                              const SizedBox(width: 7),
+                              Text(
+                                localizedCountries[settings.language]
+                                        ?[entry.value] ??
+                                    entry.value,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -716,11 +844,6 @@ class _HomeShellState extends State<HomeShell>
                   );
                 },
               ),
-            ),
-            IconButton(
-              tooltip: getMenuItemTitle(settings.language, 'Done'),
-              onPressed: _finishCountryOrderEditing,
-              icon: const Icon(Icons.check_circle_rounded),
             ),
           ],
         ),
@@ -756,6 +879,9 @@ class _HomeShellState extends State<HomeShell>
                   setState(() {
                     _section = 0;
                     _countryCode = entry.key;
+                  });
+                  LogHelper().logEvent('country_selected', parameters: {
+                    'country': entry.key,
                   });
                   _load();
                 },
@@ -798,6 +924,7 @@ class _HomeShellState extends State<HomeShell>
   }
 
   void _startCountryOrderEditing() {
+    LogHelper().logEvent('country_order_edit_started');
     setState(() => _editingCountryOrder = true);
     _countryJiggleController.repeat(reverse: true);
   }
@@ -850,6 +977,10 @@ class _HomeShellState extends State<HomeShell>
             _section = section;
             if (code != null) _boxOfficeCode = code;
           });
+          LogHelper().logEvent('box_office_content_selected', parameters: {
+            'section': section,
+            'source': code ?? (section == 3 ? 'special' : 'quotes'),
+          });
           _load();
         },
         child: _selectionTabLabel(
@@ -878,7 +1009,13 @@ class _HomeShellState extends State<HomeShell>
                       if (entry.key == 2 && !await _ensureRewardedAccess()) {
                         return;
                       }
-                      if (mounted) setState(() => _movieFilter = entry.key);
+                      if (mounted) {
+                        setState(() => _movieFilter = entry.key);
+                        LogHelper().logEvent(
+                          'movie_filter_selected',
+                          parameters: {'filter': entry.key},
+                        );
+                      }
                     },
                     child: _selectionTabLabel(
                       entry.value,
@@ -1598,6 +1735,11 @@ class _HomeShellState extends State<HomeShell>
     final index = _bookmarks.indexOf(item);
     if (index < 0) return;
     await MovieByUserService.deleteMovie(index);
+    LogHelper().logEvent('bookmark_removed', parameters: {
+      'movie': item.movie.localTitle,
+      'source': item.sourceFeedCode,
+      'location': 'bookmark_list',
+    });
     await _load();
   }
 

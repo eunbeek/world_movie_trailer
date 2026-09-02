@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:world_movie_trailer/common/ad_manager/settings_banner_ad.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
-import 'package:world_movie_trailer/common/translate.dart';
 
 class SettingsFooter extends StatelessWidget {
   const SettingsFooter({super.key, this.showBanner = false});
@@ -39,8 +38,8 @@ class SettingsFooter extends StatelessWidget {
           children: [
             SettingsFooterBranding(
               isDark: settings.isDarkTheme,
-              termsLabel: getSettingsLabel(settings.language, 'terms'),
-              privacyLabel: getSettingsLabel(settings.language, 'privacy'),
+              termsLabel: 'Terms',
+              privacyLabel: 'Privacy',
               onLogoTap: () => _open(_homeUri),
               onTermsTap: () => _open(_termsUri),
               onPrivacyTap: () => _open(_privacyUri),

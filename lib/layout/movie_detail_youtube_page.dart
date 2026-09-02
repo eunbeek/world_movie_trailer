@@ -76,6 +76,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      _settings.updateOpenCount();
       // Apply after the previous movie's player has finished disposing.
       SystemChrome.setPreferredOrientations(const [
         DeviceOrientation.landscapeLeft,
@@ -155,6 +156,10 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
     });
     if (_isBookmarked && index >= 0) {
       await MovieByUserService.deleteMovie(index);
+      LogHelper().logEvent('bookmark_removed', parameters: {
+        'movie': widget.movie.localTitle,
+        'source': widget.sourceFeedCode,
+      });
       _message('movieDeleted');
     } else if (!_isBookmarked) {
       if (!mounted) return;
@@ -170,6 +175,10 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
         ),
         _settings,
       );
+      LogHelper().logEvent('bookmark_added', parameters: {
+        'movie': widget.movie.localTitle,
+        'source': widget.sourceFeedCode,
+      });
       _message('addToBookmark');
     }
     if (mounted) setState(() => _isBookmarked = !_isBookmarked);
@@ -187,17 +196,27 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
       if (!mounted) return;
       setState(() => _showOriginal = !_showOriginal);
       widget.onShowOriginalChanged?.call(_showOriginal);
+      LogHelper().logEvent('detail_language_toggled', parameters: {
+        'movie': widget.movie.localTitle,
+        'show_original': _showOriginal,
+      });
     }
 
     if (!_settings.canTranslate) {
-      final granted =
-          await showPremiumTranslationPrompt(context, _settings.language);
-      if (!granted) return;
+      final free = _settings.useFreeTranslationIfAvailable();
+      if (!free) {
+        final granted =
+            await showPremiumTranslationPrompt(context, _settings.language);
+        if (!granted) return;
+      }
     }
     toggle();
   }
 
   void _share() {
+    LogHelper().logEvent('trailer_shared', parameters: {
+      'movie': widget.movie.localTitle,
+    });
     Share.share(
       'https://www.youtube.com/watch?v=${widget.movie.trailerUrl}',
       subject: 'Share $_title Movie Trailer',
@@ -363,22 +382,17 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
       );
 
   Widget _actions() => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _action(
               DetailAssetIcon(name: 'bookmark', active: _isBookmarked),
-              getMenuItemTitle(_settings.language, 'Bookmark'),
               _toggleBookmark,
             ),
             const SizedBox(width: 34),
             _action(
               DetailAssetIcon(name: 'translate', active: _showOriginal),
-              getMenuItemTitle(
-                _settings.language,
-                _showOriginal ? 'Translate' : 'Original',
-              ),
               _translate,
             ),
             const SizedBox(width: 34),
@@ -390,31 +404,16 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                 color: Theme.of(context).colorScheme.onSurface,
                 size: 29,
               ),
-              getSettingsLabel(_settings.language, 'share'),
               _share,
             ),
           ],
         ),
       );
 
-  Widget _action(Widget icon, String label, VoidCallback onTap) => InkWell(
+  Widget _action(Widget icon, VoidCallback onTap) => InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(10),
-        child: SizedBox(
-          width: 74,
-          child: Column(
-            children: [
-              icon,
-              const SizedBox(height: 7),
-              Text(label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontSize: 12)),
-            ],
-          ),
-        ),
+        child: SizedBox(width: 80, child: icon),
       );
 
   Widget _metadata() {
@@ -500,7 +499,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
     }
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -549,7 +548,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
       );
 
   Widget _overviewSection() => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 24),
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 18),
         child: Align(
           alignment: Alignment.centerLeft,
           child: Text(

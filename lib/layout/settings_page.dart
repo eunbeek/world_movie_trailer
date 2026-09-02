@@ -10,11 +10,25 @@ import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:world_movie_trailer/layout/alarm_list_page.dart';
 import 'package:world_movie_trailer/layout/credits_list_apge.dart';
+import 'package:world_movie_trailer/layout/donation_page.dart';
 import 'package:world_movie_trailer/layout/open_source_list_page.dart';
 
 import 'package:world_movie_trailer/layout/other_app_page.dart';
 import 'package:world_movie_trailer/layout/user_data_page.dart';
 import 'package:world_movie_trailer/layout/widgets/settings_footer_branding.dart';
+
+const _proUpgradeLabels = <String, String>{
+  'ko': 'Pro로 업그레이드',
+  'en': 'Upgrade to Pro',
+  'ja': 'Proにアップグレード',
+  'zh': '升级到Pro版',
+  'tw': '升級到Pro版',
+  'fr': 'Passer à la version Pro',
+  'de': 'Auf Pro upgraden',
+  'es': 'Actualizar a Pro',
+  'hi': 'प्रो पर अपग्रेड करें',
+  'th': 'อัปเกรดเป็น Pro',
+};
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -124,6 +138,30 @@ class SettingsPage extends StatelessWidget {
           SliverList(
             delegate: SliverChildListDelegate(
               [
+                if (!kIsWeb) ...[
+                  const Divider(),
+                  ListTile(
+                    onTap: () {
+                      LogHelper().logEvent('pro_upgrade_clicked', parameters: {
+                        'location': 'settings',
+                      });
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DonationPage(),
+                        ),
+                      );
+                    },
+                    title: Text(
+                      _proUpgradeLabels[settingsProvider.language] ??
+                          _proUpgradeLabels['en']!,
+                      style: TextStyle(
+                        fontSize: MediaQuery.of(context).size.height * 0.02,
+                      ),
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                  ),
+                ],
                 const Divider(),
                 ListTile(
                   onTap: () => {

@@ -2,7 +2,7 @@ name: world_movie_trailer
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 2.0.0+95
+version: 2.0.0+96
 
 environment:
   sdk: '>=3.3.3 <4.0.0'
@@ -91,7 +91,4 @@ flutter:
     - assets/images/deco_film_reel_02_DT_xxhdpi.png
     - assets/images/icon_list_delete_xxhdpi.png
     - assets/images/deco_donation_xxhdpi.png
-    - assets/images/other_apps/Dual Flashlight_icon_1024.png
-    - assets/images/other_apps/English_WangZa_Icon.png
-    - assets/images/other_apps/Find_Four_Icon.png
-    - assets/images/other_apps/Sky_Peacemaker.png
+    - assets/images/other_apps/

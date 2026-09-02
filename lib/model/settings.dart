@@ -68,6 +68,9 @@ class Settings extends HiveObject {
   @HiveField(19)
   DateTime? translationAdAccessUntil;
 
+  @HiveField(20)
+  bool? hasUsedFreeTranslation;
+
   @HiveField(21)
   bool? showTranslatedContent;
 
@@ -92,6 +95,7 @@ class Settings extends HiveObject {
       this.isAdsFree,
       this.userId,
       this.translationAdAccessUntil,
+      this.hasUsedFreeTranslation,
       this.showTranslatedContent});
 
   // Factory constructor to create default settings
@@ -152,6 +156,7 @@ class Settings extends HiveObject {
         isAdsFree: false,
         userId: generatedUuid,
         translationAdAccessUntil: null,
+        hasUsedFreeTranslation: false,
         showTranslatedContent: null);
   }
 }

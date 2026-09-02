@@ -11,7 +11,7 @@ void main() {
     final directory =
         await Directory.systemTemp.createTemp('wmt-settings-test-');
     Hive.init(directory.path);
-    Hive.registerAdapter(SettingsAdapter());
+    if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(SettingsAdapter());
     try {
       var box = await Hive.openBox<Settings>(SettingsProvider.boxName);
       await box.put(SettingsProvider.settingsKey, Settings.defaultSettings());
@@ -60,6 +60,70 @@ void main() {
       expect(provider.translatedContentPreference, false);
       expect(settings.translationAdAccessUntil, isNull);
 
+      provider.dispose();
+      await box.close();
+    } finally {
+      await Hive.close();
+      await directory.delete(recursive: true);
+    }
+  });
+
+  test('free translation is available once and persists across restart',
+      () async {
+    final directory =
+        await Directory.systemTemp.createTemp('wmt-free-translation-test-');
+    Hive.init(directory.path);
+    if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(SettingsAdapter());
+    try {
+      var box = await Hive.openBox<Settings>(SettingsProvider.boxName);
+      final settings = Settings.defaultSettings();
+      await box.put(SettingsProvider.settingsKey, settings);
+      final provider = SettingsProvider(settings);
+
+      expect(provider.useFreeTranslationIfAvailable(), true);
+      expect(provider.translatedContentPreference, true);
+      expect(provider.canTranslate, true);
+      expect(provider.canUseRewardedFeatures, false);
+      expect(provider.useFreeTranslationIfAvailable(), false);
+      await box.flush();
+      provider.dispose();
+      await box.close();
+
+      box = await Hive.openBox<Settings>(SettingsProvider.boxName);
+      final restarted =
+          SettingsProvider(box.get(SettingsProvider.settingsKey)!);
+      expect(restarted.hasUsedFreeTranslation, true);
+      expect(restarted.translatedContentPreference, true);
+      expect(restarted.canTranslate, true);
+      expect(restarted.canUseRewardedFeatures, false);
+      expect(restarted.useFreeTranslationIfAvailable(), false);
+      restarted.updateTranslatedContentPreference(false);
+      expect(restarted.canTranslate, false);
+      restarted.dispose();
+      await box.close();
+    } finally {
+      await Hive.close();
+      await directory.delete(recursive: true);
+    }
+  });
+
+  test('rewarded access still expires after ten minutes', () async {
+    final directory =
+        await Directory.systemTemp.createTemp('wmt-reward-duration-test-');
+    Hive.init(directory.path);
+    if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(SettingsAdapter());
+    try {
+      final box = await Hive.openBox<Settings>(SettingsProvider.boxName);
+      final settings = Settings.defaultSettings();
+      await box.put(SettingsProvider.settingsKey, settings);
+      final provider = SettingsProvider(settings);
+      final before = DateTime.now();
+
+      provider.grantRewardedAdAccess();
+
+      final remaining = settings.translationAdAccessUntil!.difference(before);
+      expect(remaining, greaterThanOrEqualTo(const Duration(minutes: 10)));
+      expect(remaining, lessThan(const Duration(minutes: 10, seconds: 1)));
       provider.dispose();
       await box.close();
     } finally {

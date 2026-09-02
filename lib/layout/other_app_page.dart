@@ -1,26 +1,89 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/translate.dart';
 import 'package:world_movie_trailer/layout/widgets/settings_footer_branding.dart';
 
+class _OtherApp {
+  const _OtherApp(this.name, this.link, this.iconPath);
+
+  final String name;
+  final String link;
+  final String iconPath;
+}
+
+const _otherApps = <_OtherApp>[
+  _OtherApp(
+    'Sky Peacemaker',
+    'https://skypeacemaker.onelink.me/YQxG/8s9sx66i',
+    'assets/images/other_apps/Sky Peacemaker - Finger Force Icon.png',
+  ),
+  _OtherApp(
+    'World Movie Trailer',
+    'https://wmt.onelink.me/YPN9/m428wgpq',
+    'icons/appstore.png',
+  ),
+  _OtherApp(
+    'World Book Ranking',
+    'https://worldbookranking.onelink.me/so3H/gff32rq',
+    'assets/images/other_apps/World Book Ranking Icon.png',
+  ),
+  _OtherApp(
+    'Simply Multi Timer',
+    'https://simplymultitime.onelink.me/6kU2/v7i9ke1m',
+    'assets/images/other_apps/Simply Multi Timer Icon.png',
+  ),
+  _OtherApp(
+    'Watermelon Checker',
+    'https://watermelonchecker.onelink.me/zF1F/obulncrt',
+    'assets/images/other_apps/Watermelon Checker Icon 1024.jpg',
+  ),
+  _OtherApp(
+    'LED POP',
+    'https://ledpop.onelink.me/ZM1Z/2myfwcif',
+    'assets/images/other_apps/LED POP Icon.png',
+  ),
+  _OtherApp(
+    'Wisdom Qclock',
+    'https://wisdomqclock.onelink.me/SVr2/b7qs4og1',
+    'assets/images/other_apps/Wisdom Qclock Icon.png',
+  ),
+  _OtherApp(
+    'Dual Flashlight',
+    'https://dualflashlight.onelink.me/7qkg/qpbc8y65',
+    'assets/images/other_apps/Dual Flashlight Icon.png',
+  ),
+  _OtherApp(
+    'Histree',
+    'https://histree.onelink.me/c9TM/bfbeczgq',
+    'assets/images/other_apps/Histree Icon.png',
+  ),
+  _OtherApp(
+    'Scanatory',
+    'https://scanatory.onelink.me/zzpK/2tr21itp',
+    'assets/images/other_apps/Scanatory Icon.png',
+  ),
+  _OtherApp(
+    'Play Memo',
+    'https://playmemo.onelink.me/LdOZ/6bbfoohf',
+    'assets/images/other_apps/Play Memo Icon.png',
+  ),
+  _OtherApp(
+    'Find Four',
+    'https://findfour.onelink.me/vurA/0tfteiuf',
+    'assets/images/other_apps/Find Four Icon.png',
+  ),
+  _OtherApp(
+    'decibella',
+    'https://decibella.onelink.me/Ve6i/vydwhkh4',
+    'assets/images/other_apps/decibella Icon 1024.png',
+  ),
+];
+
 class AppListPage extends StatelessWidget {
-  final String appFFName = "Find Four";
-  final String appEWName = "English Wangza";
-  final String appDFName = "Dual Flashlight";
-  final String appSPName = "Sky Peacemaker";
-
-  final String appFFAndroidLink =
-      "https://play.google.com/store/apps/details?id=com.mwm.findfour.gg&pcampaignid=web_share";
-  final String appFFIosLink =
-      "https://apps.apple.com/ca/app/find-four-find-4-differences/id6478101361";
-  final String appDFLink = "https://dualflashlig.onelink.me/Wccx/qnv6yh8s";
-  final String appFFLink = "https://findfour.onelink.me/vurA/0tfteiuf";
-  final String appTwoLink = "https://jaemitree.com/game/wangza";
-  final String appSPLink = "https://skypeacemaker.onelink.me/YQxG/8s9sx66i";
-
-  const AppListPage({super.key}); // 앱 링크
+  const AppListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -93,24 +156,13 @@ class AppListPage extends StatelessWidget {
             ),
           ),
           SliverList(
-            delegate: SliverChildListDelegate([
-              const Divider(),
-              _buildAppListTile(context, settingsProvider, appSPName, appSPLink,
-                  'assets/images/other_apps/Sky_Peacemaker.png'),
-              const Divider(),
-              _buildAppListTile(context, settingsProvider, appDFName, appDFLink,
-                  'assets/images/other_apps/Dual Flashlight_icon_1024.png'),
-              const Divider(),
-              _buildAppListTile(context, settingsProvider, appFFName, appFFLink,
-                  'assets/images/other_apps/Find_Four_Icon.png'),
-              const Divider(),
-              _buildAppListTile(
-                  context,
-                  settingsProvider,
-                  appEWName,
-                  appTwoLink,
-                  'assets/images/other_apps/English_WangZa_Icon.png'),
-            ]),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                if (index.isEven) return const Divider(height: 1);
+                return _buildAppListTile(context, _otherApps[index ~/ 2]);
+              },
+              childCount: _otherApps.length * 2 + 1,
+            ),
           ),
         ],
       ),
@@ -118,31 +170,23 @@ class AppListPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAppListTile(
-      BuildContext context,
-      SettingsProvider settingsProvider,
-      String appName,
-      String appLink,
-      String logoPath) {
+  Widget _buildAppListTile(BuildContext context, _OtherApp app) {
     return ListTile(
       leading: Image.asset(
-        logoPath,
+        app.iconPath,
         width: MediaQuery.of(context).size.height * 0.04,
         height: MediaQuery.of(context).size.height * 0.04,
+        fit: BoxFit.cover,
       ),
       title: Text(
-        getOtherAppName(settingsProvider.language, appName),
+        app.name,
         style: TextStyle(
           fontSize: MediaQuery.of(context).size.height * 0.02,
         ),
       ),
-      trailing: GestureDetector(
-        onTap: () async {
-          if (await canLaunchUrl(Uri.parse(appLink))) {
-            await launchUrl(Uri.parse(appLink),
-                mode: LaunchMode.externalApplication);
-          }
-        },
+      onTap: () => _openApp(app),
+      trailing: TextButton(
+        onPressed: () => _openApp(app),
         child: Text(
           "Link",
           style: TextStyle(
@@ -151,5 +195,15 @@ class AppListPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _openApp(_OtherApp app) async {
+    final uri = Uri.parse(app.link);
+    if (await canLaunchUrl(uri)) {
+      LogHelper().logEvent('other_app_opened', parameters: {
+        'app': app.name,
+      });
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 }

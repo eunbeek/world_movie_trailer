@@ -103,7 +103,7 @@ class CreditsList extends StatelessWidget {
                   ),
                 ),
                 trailing: Text(
-                  'Eunbee',
+                  'Eunbee Kim',
                   style: TextStyle(
                     fontSize: MediaQuery.of(context).size.height * 0.02,
                   ),
@@ -112,13 +112,13 @@ class CreditsList extends StatelessWidget {
               const Divider(),
               ListTile(
                 title: Text(
-                  'Artist',
+                  'UI/UX Designer',
                   style: TextStyle(
                     fontSize: MediaQuery.of(context).size.height * 0.02,
                   ),
                 ),
                 trailing: Text(
-                  'Eugene',
+                  'Eugene Song, Jenny Kim',
                   style: TextStyle(
                     fontSize: MediaQuery.of(context).size.height * 0.02,
                   ),
@@ -173,7 +173,7 @@ class CreditsList extends StatelessWidget {
                 subtitle: Padding(
                   padding: EdgeInsets.all(12),
                   child: Text(
-                    'Jisu, Rene, Steve, Sylbee, Kim and Choi Family, Esther, Marcus, Danop, Stojan, DVDPrime, Toronto Korean Developers',
+                    'Jisu, Rene, Yiseo, Steve, Sylbee, Kim and Choi Family, Esther, Marcus, Danop, Stojan, DVDPrime, Toronto Korean Developers',
                     style: TextStyle(
                       fontSize: MediaQuery.of(context).size.height * 0.017,
                     ),

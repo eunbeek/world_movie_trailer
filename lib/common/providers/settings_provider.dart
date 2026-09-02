@@ -63,9 +63,15 @@ class SettingsProvider with ChangeNotifier {
   bool get hasTranslationAdAccess =>
       _settings.translationAdAccessUntil?.isAfter(DateTime.now()) == true;
 
-  bool get canTranslate => isAdsFree || hasTranslationAdAccess;
+  bool get hasActiveFreeTranslation =>
+      hasUsedFreeTranslation && translatedContentPreference == true;
+
+  bool get canTranslate =>
+      isAdsFree || hasTranslationAdAccess || hasActiveFreeTranslation;
 
   bool get canUseRewardedFeatures => isAdsFree || hasTranslationAdAccess;
+
+  bool get hasUsedFreeTranslation => _settings.hasUsedFreeTranslation ?? false;
 
   bool? get translatedContentPreference => _settings.showTranslatedContent;
 
@@ -283,6 +289,15 @@ class SettingsProvider with ChangeNotifier {
   }
 
   void grantTranslationAdAccess() => grantRewardedAdAccess();
+
+  bool useFreeTranslationIfAvailable() {
+    if (hasUsedFreeTranslation) return false;
+    _settings.hasUsedFreeTranslation = true;
+    _settings.showTranslatedContent = true;
+    _saveSettings();
+    notifyListeners();
+    return true;
+  }
 
   void updateTranslatedContentPreference(bool showTranslatedContent) {
     _settings.showTranslatedContent = showTranslatedContent;
