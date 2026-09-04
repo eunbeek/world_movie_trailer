@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/layout/movie_detail_page.dart';
+import 'package:world_movie_trailer/layout/widgets/detail_country_localization.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 
 class WebMoviePlaylistPage extends StatefulWidget {
@@ -42,9 +43,15 @@ class _WebMoviePlaylistPageState extends State<WebMoviePlaylistPage> {
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsProvider>();
+    final progressLanguage = detailLabelLanguage(
+      showOriginal: _showOriginal,
+      selectedLanguage: settings.language,
+      sourceFeedCode: widget.sourceFeedCodes[_index],
+      movieId: widget.movies[_index].id,
+    );
     final progress = _completed
-        ? _completedLabels[settings.language] ?? _completedLabels['en']!
-        : '${_playingLabels[settings.language] ?? _playingLabels['en']!} '
+        ? _completedLabels[progressLanguage] ?? _completedLabels['en']!
+        : '${_playingLabels[progressLanguage] ?? _playingLabels['en']!} '
             '${_index + 1} / ${widget.movies.length}';
     return KeyedSubtree(
       key: ValueKey(_index),
@@ -55,7 +62,7 @@ class _WebMoviePlaylistPageState extends State<WebMoviePlaylistPage> {
         isCustomized: false,
         initialShowOriginal: _showOriginal,
         onShowOriginalChanged: (value) {
-          _showOriginal = value;
+          if (mounted) setState(() => _showOriginal = value);
           settings.updateTranslatedContentPreference(!value);
         },
         sourceFeedCode: widget.sourceFeedCodes[_index],

@@ -113,7 +113,7 @@ class BookmarkEmptyState extends StatelessWidget {
                 color: Theme.of(context)
                     .colorScheme
                     .onSurface
-                    .withValues(alpha: 0.28),
+                    .withValues(alpha: 0.6),
               ),
               const SizedBox(height: 14),
               Text(

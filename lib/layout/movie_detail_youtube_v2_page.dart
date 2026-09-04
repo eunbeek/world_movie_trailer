@@ -16,6 +16,7 @@ import 'package:world_movie_trailer/app/world_movie_trailer_app.dart';
 import 'package:world_movie_trailer/model/movie.dart';
 import 'package:world_movie_trailer/model/movieByUser.dart';
 import 'package:world_movie_trailer/layout/widgets/tmdb_credit_info.dart';
+import 'package:world_movie_trailer/layout/widgets/detail_country_localization.dart';
 import 'package:world_movie_trailer/layout/widgets/detail_asset_icon.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
@@ -131,6 +132,15 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
 
   String _localizedField(String field, String fallback) {
     if (_showOriginal) {
+      if (field == 'country') {
+        return detailOriginalCountry(
+          originSource: widget.movie.originSource,
+          translations: widget.movie.translations,
+          fallback: fallback,
+          sourceFeedCode: widget.sourceFeedCode,
+          movieId: widget.movie.id,
+        );
+      }
       return (widget.movie.originSource[field] ?? fallback).toString();
     }
     const aliases = {'zh': 'cn', 'hi': 'in'};
@@ -416,11 +426,18 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
           children: [
             _action(
               icon: DetailAssetIcon(name: 'bookmark', active: _isBookmarked),
+              label: getMenuItemTitle(_settings.language, 'Bookmark'),
+              selected: _isBookmarked,
               onTap: _toggleBookmark,
             ),
             const SizedBox(width: 42),
             _action(
               icon: DetailAssetIcon(name: 'translate', active: _showOriginal),
+              label: getMenuItemTitle(
+                _settings.language,
+                _showOriginal ? 'Translate' : 'Original',
+              ),
+              selected: _showOriginal,
               onTap: _translate,
             ),
             const SizedBox(width: 42),
@@ -432,6 +449,8 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                 color: Theme.of(context).colorScheme.onSurface,
                 size: 29,
               ),
+              label: getMenuItemTitle(_settings.language, 'Share'),
+              selected: true,
               onTap: _share,
             ),
           ],
@@ -440,16 +459,49 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
 
   Widget _action({
     required Widget icon,
+    required String label,
+    required bool selected,
     required VoidCallback onTap,
   }) =>
       InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(10),
-        child: SizedBox(width: 80, child: icon),
+        child: SizedBox(
+          width: 80,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              icon,
+              const SizedBox(height: 6),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(
+                        alpha: selected
+                            ? 1
+                            : Theme.of(context).brightness == Brightness.dark
+                                ? .55
+                                : .78,
+                      ),
+                  fontSize: 12,
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
       );
 
   Widget _metadata() {
-    final lang = _settings.language;
+    final lang = detailLabelLanguage(
+      showOriginal: _showOriginal,
+      selectedLanguage: _settings.language,
+      sourceFeedCode: widget.sourceFeedCode,
+      movieId: widget.movie.id,
+    );
     final isSpecial = widget.movie.special?.isNotEmpty == true;
     final specialCredits =
         isSpecial ? _localizedField('credits', widget.movie.source).trim() : '';
@@ -561,7 +613,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
               alignment: kIsWeb ? WrapAlignment.center : WrapAlignment.start,
               people: starPeople,
             ),
-          if (!isSpecial && _country.isNotEmpty)
+          if (_country.isNotEmpty)
             _info('${getTranslatedDetail('Country', lang)}', _country),
           if (widget.movie.runtime.toString().isNotEmpty)
             _info('${getTranslatedDetail('Running Time', lang)}',
@@ -610,10 +662,11 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
             _overview == 'ERR404' ? '' : _overview,
             textAlign: kIsWeb ? TextAlign.center : TextAlign.left,
             style: TextStyle(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.7),
+              color: Theme.of(context).colorScheme.onSurface.withValues(
+                    alpha: Theme.of(context).brightness == Brightness.dark
+                        ? .7
+                        : .9,
+                  ),
               fontSize: 17,
               height: 1.5,
             ),

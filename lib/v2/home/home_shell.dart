@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:world_movie_trailer/common/background.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
+import 'package:world_movie_trailer/v2/home/special_period_schedule.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/premium_translation_prompt.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
@@ -452,12 +453,13 @@ class _HomeShellState extends State<HomeShell>
     if (_section == 2) return _bookmarks.map((item) => item.movie).toList();
     if (_section == 3) {
       final periods = _movies.map((movie) => movie.period ?? 0);
-      final latest = periods.isEmpty
-          ? 0
-          : periods.reduce((current, next) => next > current ? next : current);
-      return latest == 0
+      final selectedPeriod = SpecialPeriodSchedule.selectAvailablePeriod(
+        availablePeriods: periods,
+        startDate: context.read<SettingsProvider>().startDate,
+      );
+      return selectedPeriod == 0
           ? _movies
-          : _movies.where((movie) => movie.period == latest).toList();
+          : _movies.where((movie) => movie.period == selectedPeriod).toList();
     }
     if (_section == 1) return _movies;
     final today = DateUtils.dateOnly(DateTime.now());
@@ -1075,14 +1077,16 @@ class _HomeShellState extends State<HomeShell>
             'concept',
             movies.first.special ?? '',
           );
-    final language = context.read<SettingsProvider>().language;
+    final selectedLanguage = context.read<SettingsProvider>().language;
+    final language = _showEnglish ? selectedLanguage : 'en';
     final title =
         (_navigationLabels[language] ?? _navigationLabels['en']!)['special']!;
     return _contentSectionTitle(concept.isEmpty ? title : '$title ($concept)');
   }
 
   Widget _quoteTitle() {
-    final language = context.read<SettingsProvider>().language;
+    final selectedLanguage = context.read<SettingsProvider>().language;
+    final language = _showEnglish ? selectedLanguage : 'en';
     return _contentSectionTitle(
       (_navigationLabels[language] ?? _navigationLabels['en']!)['quotes']!,
     );
@@ -1159,9 +1163,8 @@ class _HomeShellState extends State<HomeShell>
             itemCount: movies.length,
             itemBuilder: (_, index) {
               final movie = movies[index];
-              final dark = context.read<SettingsProvider>().isDarkTheme;
               return Material(
-                color: dark ? const Color(0xFF666666) : const Color(0xFF999999),
+                color: const Color(0xFF4C4F53),
                 borderRadius: BorderRadius.circular(15),
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
@@ -1236,9 +1239,7 @@ class _HomeShellState extends State<HomeShell>
   }) {
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 900;
-      final cardColor = Theme.of(context).brightness == Brightness.dark
-          ? const Color(0xFF292A2E)
-          : const Color(0xFFE1E2E5);
+      final cardColor = const Color(0xFF4C4F53);
       Widget row(int index) => _MovieRow(
             movie: movies[index],
             index: index,
@@ -1387,9 +1388,7 @@ class _HomeShellState extends State<HomeShell>
             vertical: desktop ? 24 : 14,
           ),
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? const Color(0xFF383B41)
-                : const Color(0xFFD9DCE1),
+            color: const Color(0xFF4C4F53),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Column(
@@ -1401,7 +1400,7 @@ class _HomeShellState extends State<HomeShell>
                 maxLines: 4,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
+                  color: Color(0xFFF2F2F2),
                   fontSize: desktop ? 19 : 16,
                   fontWeight: FontWeight.w700,
                   height: 1.35,
@@ -1415,10 +1414,7 @@ class _HomeShellState extends State<HomeShell>
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.62),
+                    color: Color(0xFFCFCFCF),
                     fontSize: desktop ? 14 : 12,
                   ),
                 ),
@@ -1561,13 +1557,26 @@ class _HomeShellState extends State<HomeShell>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.swap_vert_rounded, color: Colors.white),
+                Icon(
+                  Icons.swap_vert_rounded,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black,
+                ),
                 const SizedBox(width: 5),
                 Text(_bookmarkSortLabel(labels),
-                    style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.w700)),
-                const Icon(Icons.keyboard_arrow_down_rounded,
-                    color: Colors.white),
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : Colors.black,
+                      fontWeight: FontWeight.w700,
+                    )),
+                Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black,
+                ),
               ],
             ),
           ),
@@ -1897,8 +1906,8 @@ class _HomeShellState extends State<HomeShell>
               _bottomNavigationDestination(
                 index: 2,
                 currentIndex: currentIndex,
-                inactivePath: 'assets/images/v2/bookmark_inactive.png',
-                activePath: 'assets/images/v2/bookmark_inactive.png',
+                inactivePath: 'assets/images/v2/bookmark.png',
+                activePath: 'assets/images/v2/bookmark.png',
                 label: navigation['bookmarks']!,
               ),
             ],
@@ -1940,10 +1949,31 @@ class _HomeShellState extends State<HomeShell>
     String label, {
     required bool selected,
   }) {
+    final icon = path.endsWith('/bookmark.png')
+        ? Icon(
+            Icons.bookmark_border_rounded,
+            size: 27,
+            color: selected
+                ? Colors.white
+                : Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.58),
+          )
+        : Image.asset(
+            path,
+            width: 23,
+            height: 23,
+            fit: BoxFit.contain,
+            color: selected
+                ? Colors.white
+                : Theme.of(context).colorScheme.onSurface,
+            colorBlendMode: BlendMode.srcIn,
+          );
     final content = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset(path, width: 23, height: 23, fit: BoxFit.contain),
+        icon,
         const SizedBox(height: 3),
         Text(
           label,
@@ -1959,7 +1989,7 @@ class _HomeShellState extends State<HomeShell>
         ),
       ],
     );
-    if (!selected) return Opacity(opacity: .68, child: content);
+    if (!selected) return content;
     return ShaderMask(
       blendMode: BlendMode.srcIn,
       shaderCallback: _navigationGradient.createShader,
@@ -2431,87 +2461,53 @@ class _MovieRow extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                      ).copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
+                      ).copyWith(color: const Color(0xFFF2F2F2)),
                     ),
                     const SizedBox(height: 10),
                     if (boxOffice)
                       Text(
                           '${getBoxOfficeLabel(language, 'last_week')}: ${movie.lastRank?.isNotEmpty == true ? movie.lastRank : '-'}',
-                          style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.6),
-                              fontSize: 12)),
+                          style: const TextStyle(
+                              color: Color(0xFFCCCCCC), fontSize: 12)),
                     if (boxOffice && movie.totalGross?.isNotEmpty == true)
                       Text(
                           '${getBoxOfficeLabel(language, 'total_gross')}: ${_totalGrossLabel(movie.totalGross!)}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: .6),
-                              fontSize: 12)),
+                          style: const TextStyle(
+                              color: Color(0xFFCCCCCC), fontSize: 12)),
                     if (boxOffice && movie.weeks?.isNotEmpty == true)
                       Text(
                           '${getBoxOfficeLabel(language, 'screening_weeks')}: ${movie.weeks}',
-                          style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: .6),
-                              fontSize: 12)),
+                          style: const TextStyle(
+                              color: Color(0xFFCCCCCC), fontSize: 12)),
                     if (boxOffice && movie.distributor?.isNotEmpty == true)
                       Text(
                           '${getBoxOfficeLabel(language, 'distributor')}: ${movie.distributor}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.6),
-                              fontSize: 12)),
+                          style: const TextStyle(
+                              color: Color(0xFFCCCCCC), fontSize: 12)),
                     if (!boxOffice && movie.releaseDate.isNotEmpty)
                       Text(movie.releaseDate,
-                          style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.6),
-                              fontSize: 12)),
+                          style: const TextStyle(
+                              color: Color(0xFFCCCCCC), fontSize: 12)),
                     if (!boxOffice && displayCountry?.isNotEmpty == true)
                       Text(displayCountry!,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.6),
-                              fontSize: 12)),
+                          style: const TextStyle(
+                              color: Color(0xFFCCCCCC), fontSize: 12)),
                     if (specialSection && movie.year?.isNotEmpty == true)
                       Text(movie.year!,
-                          style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: .6),
-                              fontSize: 12)),
+                          style: const TextStyle(
+                              color: Color(0xFFCCCCCC), fontSize: 12)),
                     if (specialSection && movie.source.isNotEmpty)
                       Text(movie.source,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: .6),
-                              fontSize: 12)),
+                          style: const TextStyle(
+                              color: Color(0xFFCCCCCC), fontSize: 12)),
                   ],
                 ),
               ),

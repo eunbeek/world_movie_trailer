@@ -5,13 +5,14 @@ import 'package:world_movie_trailer/common/ad_manager/rewarded_translation_ad_ma
 import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/layout/donation_page.dart';
+import 'package:world_movie_trailer/layout/widgets/detail_asset_icon.dart';
 
 const _labels = <String, Map<String, String>>{
   'ko': {
     'title': '번역 무제한',
     'bookmarks': '북마크 저장 및 조회',
     'specialQuotes': '특별 정보 및 명대사',
-    'body': '광고를 시청하면\n모든 기능을 2시간 동안\n사용 가능!',
+    'body': '광고를 시청하면 모든 기능을\n2시간 동안 사용 가능!',
     'watch': '광고 보기',
     'failed': '광고를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
     'premiumTitle': '번역 기능은 Premium 전용입니다',
@@ -36,7 +37,7 @@ const _labels = <String, Map<String, String>>{
     'title': '翻訳無制限',
     'bookmarks': 'お気に入りの保存と閲覧',
     'specialQuotes': '特別情報と名言',
-    'body': '広告を視聴すると\n2時間すべての機能が\n利用可能！',
+    'body': '広告を視聴すると2時間\nすべての機能が利用可能！',
     'watch': '広告を見る',
     'failed': '広告を読み込めませんでした。しばらくしてからもう一度お試しください。',
     'premiumTitle': '翻訳はPremium限定機能です',
@@ -48,7 +49,7 @@ const _labels = <String, Map<String, String>>{
     'title': '无限制翻译',
     'bookmarks': '保存与查看收藏',
     'specialQuotes': '独家信息与金句',
-    'body': '观看广告\n即可在2小时内\n使用全部功能！',
+    'body': '观看广告即可在2小时内\n使用全部功能！',
     'watch': '观看广告',
     'failed': '无法加载广告，请稍后重试。',
     'premiumTitle': '翻译是Premium专属功能',
@@ -60,7 +61,7 @@ const _labels = <String, Map<String, String>>{
     'title': '無限制翻譯',
     'bookmarks': '儲存與檢視收藏',
     'specialQuotes': '獨家資訊與金句',
-    'body': '觀看廣告\n即可在2小時內\n使用全部功能！',
+    'body': '觀看廣告即可在2小時內\n使用全部功能！',
     'watch': '觀看廣告',
     'failed': '無法載入廣告，請稍後再試。',
     'premiumTitle': '翻譯是Premium專屬功能',
@@ -213,13 +214,23 @@ class _TranslationRewardDialogState extends State<_TranslationRewardDialog> {
     }
   }
 
+  void _upgradeToPro() {
+    if (_loading) return;
+    LogHelper().logEvent('pro_upgrade_clicked', parameters: {
+      'location': 'reward_prompt',
+    });
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const DonationPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsProvider>();
     final isDark = settings.isDarkTheme;
     final cardColor =
         isDark ? const Color(0xFF2B292D) : const Color(0xFFF5F2F7);
-    final secondaryColor = isDark ? Colors.white70 : Colors.black54;
+    final secondaryColor = isDark ? Colors.white70 : Colors.black87;
 
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 28),
@@ -232,17 +243,20 @@ class _TranslationRewardDialogState extends State<_TranslationRewardDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Align(
-                alignment: Alignment.centerRight,
-                child: IconButton.filledTonal(
-                  onPressed:
-                      _loading ? null : () => Navigator.pop(context, false),
-                  icon: const Icon(Icons.close_rounded),
-                  style: IconButton.styleFrom(
-                    foregroundColor: _accentColor,
-                    backgroundColor: isDark
-                        ? const Color(0xFF332D3B)
-                        : const Color(0xFFF1ECF4),
+              Transform.translate(
+                offset: const Offset(14, -10),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton.filledTonal(
+                    onPressed:
+                        _loading ? null : () => Navigator.pop(context, false),
+                    icon: const Icon(Icons.close_rounded),
+                    style: IconButton.styleFrom(
+                      foregroundColor: _accentColor,
+                      backgroundColor: isDark
+                          ? const Color(0xFF332D3B)
+                          : const Color(0xFFF1ECF4),
+                    ),
                   ),
                 ),
               ),
@@ -259,39 +273,24 @@ class _TranslationRewardDialogState extends State<_TranslationRewardDialog> {
                     ),
                   ),
                 ),
-                child: Column(
-                  children: [
-                    _BenefitRow(
-                      icon: Icons.translate_rounded,
-                      label: widget.label['title']!,
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                      child: Icon(Icons.add_circle, color: _accentColor),
-                    ),
-                    _BenefitRow(
-                      icon: Icons.bookmark_added_rounded,
-                      label: widget.label['bookmarks']!,
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                      child: Icon(Icons.add_circle, color: _accentColor),
-                    ),
-                    _BenefitRow(
-                      icon: Icons.auto_awesome_rounded,
-                      label: widget.label['specialQuotes']!,
-                    ),
-                  ],
+                child: _BenefitList(
+                  translation: widget.label['title']!,
+                  bookmarks: widget.label['bookmarks']!,
+                  specialQuotes: widget.label['specialQuotes']!,
                 ),
               ),
               const SizedBox(height: 24),
-              Text(
-                widget.label['body']!,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  height: 1.45,
-                  color: secondaryColor,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  widget.label['body']!,
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    height: 1.45,
+                    color: secondaryColor,
+                  ),
                 ),
               ),
               if (_error != null) ...[
@@ -335,6 +334,35 @@ class _TranslationRewardDialogState extends State<_TranslationRewardDialog> {
                         ),
                 ),
               ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: FilledButton(
+                  onPressed: _loading ? null : _upgradeToPro,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: cardColor,
+                    foregroundColor:
+                        isDark ? Colors.white : const Color(0xFF28252B),
+                    disabledBackgroundColor: cardColor.withValues(alpha: 0.55),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(
+                        color: _accentColor.withValues(
+                          alpha: isDark ? 0.42 : 0.18,
+                        ),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    widget.label['upgrade']!,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -343,22 +371,112 @@ class _TranslationRewardDialogState extends State<_TranslationRewardDialog> {
   }
 }
 
-class _BenefitRow extends StatelessWidget {
-  const _BenefitRow({required this.icon, required this.label});
+class _BenefitList extends StatelessWidget {
+  const _BenefitList({
+    required this.translation,
+    required this.bookmarks,
+    required this.specialQuotes,
+  });
 
-  final IconData icon;
+  final String translation;
+  final String bookmarks;
+  final String specialQuotes;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, constraints) {
+          const maximumFontSize = 18.0;
+          final availableTextWidth = constraints.maxWidth - 52;
+          final textScaler = MediaQuery.textScalerOf(context);
+          var sharedFontSize = maximumFontSize;
+          for (final label in [translation, bookmarks, specialQuotes]) {
+            final painter = TextPainter(
+              text: TextSpan(
+                text: label,
+                style: const TextStyle(
+                  fontSize: maximumFontSize,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              maxLines: 1,
+              textDirection: Directionality.of(context),
+              textScaler: textScaler,
+            )..layout();
+            if (painter.width > availableTextWidth) {
+              final fittedSize =
+                  (maximumFontSize * availableTextWidth / painter.width)
+                      .clamp(12.0, maximumFontSize)
+                      .toDouble();
+              if (fittedSize < sharedFontSize) sharedFontSize = fittedSize;
+            }
+          }
+          return Column(
+            children: [
+              _BenefitRow(
+                icon: const DetailAssetIcon(
+                  name: 'translate',
+                  active: true,
+                  color: Color(0xFF6750A4),
+                ),
+                label: translation,
+                fontSize: sharedFontSize,
+              ),
+              const SizedBox(height: 18),
+              _BenefitRow(
+                icon: const DetailAssetIcon(
+                  name: 'bookmark',
+                  active: true,
+                  color: Color(0xFF6750A4),
+                ),
+                label: bookmarks,
+                fontSize: sharedFontSize,
+              ),
+              const SizedBox(height: 18),
+              _BenefitRow(
+                icon: const Icon(
+                  Icons.videocam_outlined,
+                  color: Color(0xFF6750A4),
+                  size: 30,
+                ),
+                label: specialQuotes,
+                fontSize: sharedFontSize,
+              ),
+            ],
+          );
+        },
+      );
+}
+
+class _BenefitRow extends StatelessWidget {
+  const _BenefitRow({
+    required this.icon,
+    required this.label,
+    required this.fontSize,
+  });
+
+  final Widget icon;
   final String label;
+  final double fontSize;
 
   @override
   Widget build(BuildContext context) => Row(
         children: [
           const SizedBox(width: 2),
-          Icon(icon, color: const Color(0xFF6750A4), size: 30),
+          SizedBox(width: 32, height: 32, child: Center(child: icon)),
           const SizedBox(width: 20),
           Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                label,
+                maxLines: 1,
+                softWrap: false,
+                style: TextStyle(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
             ),
           ),
         ],

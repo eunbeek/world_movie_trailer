@@ -10,6 +10,7 @@ const BOX_OFFICE_KR_COUNTRIES = new Set(["box_office_kr", "box-office-kr"]);
 // formulas to settle. Keep polling rather than publishing partial data.
 const TRANSLATION_POLL_INTERVAL_MS = 15000;
 const TRANSLATION_POLL_ATTEMPTS = 16;
+const SPECIAL_TRANSLATION_POLL_ATTEMPTS = 4;
 
 /** Returns whether a processed movie can be included in published data. */
 function isPublishableMovie(movie) {
@@ -157,19 +158,26 @@ function areTranslationsComplete(movies) {
   });
 }
 
+/** Special source titles/concepts are direct values, so long formula polling is unnecessary. */
+function translationPollAttemptsFor(normalizedCountry) {
+  return normalizedCountry === "special" ?
+    SPECIAL_TRANSLATION_POLL_ATTEMPTS : TRANSLATION_POLL_ATTEMPTS;
+}
+
 /** Waits for GOOGLETRANSLATE formula results before publishing Storage JSON. */
 async function readFinalizedSheetAfterTranslations(normalizedCountry) {
   let latestMovies = [];
-  for (let attempt = 1; attempt <= TRANSLATION_POLL_ATTEMPTS; attempt++) {
+  const maxAttempts = translationPollAttemptsFor(normalizedCountry);
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const movies = await readFinalizedSheet(normalizedCountry);
     latestMovies = movies;
     if (areTranslationsComplete(movies)) return movies;
-    if (attempt < TRANSLATION_POLL_ATTEMPTS) {
-      console.log(`Translations for ${normalizedCountry} are incomplete (${attempt}/${TRANSLATION_POLL_ATTEMPTS}); retrying in ${TRANSLATION_POLL_INTERVAL_MS / 1000}s.`);
+    if (attempt < maxAttempts) {
+      console.log(`Translations for ${normalizedCountry} are incomplete (${attempt}/${maxAttempts}); retrying in ${TRANSLATION_POLL_INTERVAL_MS / 1000}s.`);
       await new Promise((resolve) => setTimeout(resolve, TRANSLATION_POLL_INTERVAL_MS));
     }
   }
-  const waitSeconds = (TRANSLATION_POLL_ATTEMPTS - 1) * TRANSLATION_POLL_INTERVAL_MS / 1000;
+  const waitSeconds = (maxAttempts - 1) * TRANSLATION_POLL_INTERVAL_MS / 1000;
   console.warn(`Translations for ${normalizedCountry} did not finish within ${waitSeconds} seconds; publishing with preserved/fallback translations.`);
   return latestMovies;
 }
@@ -279,5 +287,6 @@ module.exports = {
   isPublishableMovie,
   publishMovies,
   publishSheetMovies,
+  translationPollAttemptsFor,
   writeMoviesToSheet,
 };

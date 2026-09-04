@@ -1,8 +1,8 @@
 name: world_movie_trailer
-description: "A new Flutter project."
+description: "world movie trailer version 2"
 publish_to: 'none'
 
-version: 2.0.0+96
+version: 2.0.0+97
 
 environment:
   sdk: '>=3.3.3 <4.0.0'
@@ -55,14 +55,12 @@ flutter:
     - icons/appstore.png
     - assets/images/store_badges/app_store_badge.svg
     - assets/images/store_badges/google_play_badge.png
-    - assets/images/v2/bookmark_active.png
-    - assets/images/v2/bookmark_inactive.png
+    - assets/images/v2/bookmark.png
     - assets/images/v2/boxoffice_active.png
     - assets/images/v2/boxoffice_inactive.png
     - assets/images/v2/countries_active.png
     - assets/images/v2/countries_inactive.png
-    - assets/images/v2/translate_active.png
-    - assets/images/v2/translate_inactive.png
+    - assets/images/v2/translate.png
     - assets/images/dark/deco_world_map_DT_xxhdpi.png
     - assets/images/dark/deco_film_reel_DT_xxhdpi.png
     - assets/images/dark/icon_config_DT_xxhdpi.png
@@ -87,7 +85,6 @@ flutter:
     - assets/images/light/icon_credits_LT_xxhdpi.png
     - assets/images/light/icon_donation_LT_xxhdpi.png
     - assets/images/light/icon_store_LT_xxhdpi.png
-    - assets/images/SIL_logo_h_xxhdpi.png
     - assets/images/deco_film_reel_02_DT_xxhdpi.png
     - assets/images/icon_list_delete_xxhdpi.png
     - assets/images/deco_donation_xxhdpi.png

@@ -34,6 +34,189 @@ const COUNTRY_SHEETS = {
   cn: "CHINA_DATA",
 };
 
+const SPECIAL_SOURCE_TITLE_COLUMNS = {
+  ko: 6,
+  en: 7,
+  ja: 8,
+  cn: 9,
+  tw: 10,
+  fr: 11,
+  de: 12,
+  es: 13,
+  in: 14,
+  th: 15,
+};
+
+const SPECIAL_SOURCE_CONCEPT_COLUMNS = {
+  ko: 16,
+  en: 17,
+  ja: 18,
+  cn: 19,
+  tw: 20,
+  fr: 21,
+  de: 22,
+  es: 23,
+  in: 24,
+  th: 25,
+};
+
+const SPECIAL_DATA_TITLE_COLUMNS = {
+  ko: "N",
+  en: "R",
+  ja: "V",
+  cn: "Z",
+  tw: "AD",
+  fr: "AH",
+  es: "AL",
+  de: "AP",
+  in: "AT",
+  th: "AX",
+};
+
+const SPECIAL_DATA_CONCEPT_COLUMNS = {
+  ko: "M",
+  en: "Q",
+  ja: "U",
+  cn: "Y",
+  tw: "AC",
+  fr: "AG",
+  es: "AK",
+  de: "AO",
+  in: "AS",
+  th: "AW",
+};
+
+const COUNTRY_DISPLAY_LOCALES = {
+  ko: "ko",
+  en: "en",
+  ja: "ja",
+  cn: "zh-CN",
+  tw: "zh-TW",
+  fr: "fr",
+  de: "de",
+  es: "es",
+  in: "hi",
+  th: "th",
+};
+
+const COUNTRY_NAME_TO_CODES = {
+  "american": ["US"],
+  "argentina": ["AR"],
+  "austria": ["AT"],
+  "belgium": ["BE"],
+  "benin": ["BJ"],
+  "brazil": ["BR"],
+  "british": ["GB"],
+  "british-american": ["GB", "US"],
+  "canada": ["CA"],
+  "chile": ["CL"],
+  "china": ["CN"],
+  "cuba": ["CU"],
+  "denmark": ["DK"],
+  "france": ["FR"],
+  "germany": ["DE"],
+  "hong kong": ["HK"],
+  "hungary": ["HU"],
+  "india": ["IN"],
+  "iran": ["IR"],
+  "ireland": ["IE"],
+  "israel": ["IL"],
+  "italy": ["IT"],
+  "japan": ["JP"],
+  "korea": ["KR"],
+  "kosovo": ["XK"],
+  "mexico": ["MX"],
+  "new zealand": ["NZ"],
+  "norway": ["NO"],
+  "palestine": ["PS"],
+  "philippines": ["PH"],
+  "poland": ["PL"],
+  "portugal": ["PT"],
+  "romania": ["RO"],
+  "senegal": ["SN"],
+  "south korea": ["KR"],
+  "spain": ["ES"],
+  "sweden": ["SE"],
+  "switzerland": ["CH"],
+  "turkey": ["TR"],
+  "uk": ["GB"],
+  "us": ["US"],
+  "usa": ["US"],
+  "venezuela": ["VE"],
+};
+
+/** Converts free-form Special country values to localized country names. */
+function localizeSpecialCountry(value, language) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  const locale = COUNTRY_DISPLAY_LOCALES[language] || "en";
+  const displayNames = new Intl.DisplayNames([locale], {type: "region"});
+  const tokens = raw.split(/\s*(?:&|\/|,)\s*/).filter(Boolean);
+  const localized = tokens.flatMap((token) => {
+    const normalized = token.trim().toLowerCase().replace(/\./g, "");
+    const codes = COUNTRY_NAME_TO_CODES[normalized];
+    if (!codes) return [token.trim()];
+    return codes.map((code) => displayNames.of(code) || token.trim());
+  });
+  return [...new Set(localized)].join(" · ");
+}
+
+/** Parses one row from the planner-managed multilingual SPECIAL_SOURCE sheet. */
+function parseSpecialSourceRow(row) {
+  const translations = Object.fromEntries(Object.entries(SPECIAL_SOURCE_TITLE_COLUMNS)
+      .map(([language, titleIndex]) => [language, {
+        title: row[titleIndex] || "",
+        concept: row[SPECIAL_SOURCE_CONCEPT_COLUMNS[language]] || "",
+      }]));
+  const englishTitle = translations.en.title || translations.ko.title ||
+    Object.values(translations).map((entry) => entry.title).find(Boolean) || "";
+  const englishConcept = translations.en.concept || translations.ko.concept ||
+    Object.values(translations).map((entry) => entry.concept).find(Boolean) || "";
+  const country = String(row[4] || "").trim();
+  return {
+    tid: String(row[0] || ""),
+    period: Number.parseInt(row[1], 10) || 0,
+    trailerUrl: row[2] || "",
+    year: String(row[3] || ""),
+    country,
+    special: englishConcept,
+    source: row[5] || "",
+    localTitle: englishTitle,
+    sourceType: "tmdb",
+    translations,
+    originSource: {
+      concept: englishConcept,
+      title: englishTitle,
+      overview: "",
+      country,
+      credits: row[5] || "",
+    },
+    batch: false,
+  };
+}
+
+/** Builds updates that copy planner titles into each SPECIAL_DATA Title column. */
+function buildSpecialTitleUpdates(movies, lastRow) {
+  return Object.entries(SPECIAL_DATA_TITLE_COLUMNS).map(([language, column]) => ({
+    range: `'${SPECIAL_DATA_SHEET}'!${column}4:${column}${lastRow}`,
+    values: movies.map((movie) => [
+      movie.translations && movie.translations[language] &&
+        movie.translations[language].title || "",
+    ]),
+  }));
+}
+
+/** Builds updates that copy planner concepts into each SPECIAL_DATA Concept column. */
+function buildSpecialConceptUpdates(movies, lastRow) {
+  return Object.entries(SPECIAL_DATA_CONCEPT_COLUMNS).map(([language, column]) => ({
+    range: `'${SPECIAL_DATA_SHEET}'!${column}4:${column}${lastRow}`,
+    values: movies.map((movie) => [
+      movie.translations && movie.translations[language] &&
+        movie.translations[language].concept || "",
+    ]),
+  }));
+}
+
 /** Converts TMDB credits into the source string stored in the worksheet. */
 function flattenCredits(credits) {
   if (!credits) return "";
@@ -188,28 +371,12 @@ async function readSpecialSourceSheet() {
   const sheets = google.sheets({version: "v4", auth});
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `'${SPECIAL_SOURCE_SHEET}'!A2:G`,
+    range: `'${SPECIAL_SOURCE_SHEET}'!A2:Z`,
   });
 
   return (response.data.values || [])
-      .filter((row) => row[0] && row[6])
-      .map((row) => ({
-        tid: String(row[0]),
-        period: Number.parseInt(row[1], 10) || 0,
-        trailerUrl: row[2] || "",
-        year: String(row[3] || ""),
-        special: row[4] || "",
-        source: row[5] || "",
-        localTitle: row[6] || "",
-        sourceType: "tmdb",
-        originSource: {
-          concept: row[4] || "",
-          title: row[6] || "",
-          overview: "",
-          credits: row[5] || "",
-        },
-        batch: false,
-      }));
+      .filter((row) => row[0] && row.slice(6, 16).some(Boolean))
+      .map(parseSpecialSourceRow);
 }
 
 /** Returns whether a finalized country worksheet exists. */
@@ -400,6 +567,16 @@ async function replaceSpecialDataSheet(movies) {
     valueInputOption: "RAW",
     requestBody: {values},
   });
+  await sheets.spreadsheets.values.batchUpdate({
+    spreadsheetId,
+    requestBody: {
+      valueInputOption: "RAW",
+      data: [
+        ...buildSpecialTitleUpdates(movies, lastRow),
+        ...buildSpecialConceptUpdates(movies, lastRow),
+      ],
+    },
+  });
   await sheets.spreadsheets.values.clear({
     spreadsheetId,
     range: `'${SPECIAL_DATA_SHEET}'!A${lastRow + 1}:L`,
@@ -418,29 +595,50 @@ async function readSpecialDataSheet() {
     spreadsheetId,
     range: `'${SPECIAL_DATA_SHEET}'!A4:AZ`,
   });
+  const sourceMovies = await readSpecialSourceSheet();
+  const sourceByKey = new Map(sourceMovies.map((movie) =>
+    [`${movie.period}:${movie.tid}`, movie]));
   return (response.data.values || [])
       .filter((row) => row[0] && row[4] && row[5])
-      .map((row) => ({
-        id: row[0] || "",
-        tid: row[1] || "",
-        posterUrl: row[4] || "",
-        trailerUrl: row[5] || "",
-        runtime: row[6] || "",
-        releaseDate: "",
-        originSource: {
-          concept: row[8] || "",
-          title: row[9] || "",
-          overview: row[10] || "",
-          credits: row[11] || "",
-        },
-        translations: readSpecialTranslations(row, 12),
-        credits: {cast: [], crew: []},
-        metadata: {
-          period: row[2] || "",
-          sourceType: row[3] || "",
-          year: row[7] || "",
-        },
-      }));
+      .map((row) => {
+        const source = sourceByKey.get(`${row[2]}:${row[1]}`);
+        const sourceOrigin = source && source.originSource || {};
+        const translations = readSpecialTranslations(row, 12);
+        TRANSLATION_LANGUAGES.forEach(({key}) => {
+          const sourceTitle = source && source.translations &&
+            source.translations[key] && source.translations[key].title || "";
+          const sourceConcept = source && source.translations &&
+            source.translations[key] && source.translations[key].concept || "";
+          translations[key] = {
+            ...translations[key],
+            title: sourceTitle || translations[key].title || "",
+            concept: sourceConcept || translations[key].concept || "",
+            country: localizeSpecialCountry(sourceOrigin.country, key),
+          };
+        });
+        return {
+          id: row[0] || "",
+          tid: row[1] || "",
+          posterUrl: row[4] || "",
+          trailerUrl: row[5] || "",
+          runtime: row[6] || "",
+          releaseDate: "",
+          originSource: {
+            concept: sourceOrigin.concept || row[8] || "",
+            title: sourceOrigin.title || row[9] || "",
+            overview: row[10] || "",
+            country: sourceOrigin.country || "",
+            credits: sourceOrigin.credits || row[11] || "",
+          },
+          translations,
+          credits: {cast: [], crew: []},
+          metadata: {
+            period: row[2] || "",
+            sourceType: row[3] || "",
+            year: row[7] || "",
+          },
+        };
+      });
 }
 
 module.exports = {
@@ -450,7 +648,11 @@ module.exports = {
   buildOriginSource,
   buildBoxOfficeUsaRow,
   buildSpecialDataRow,
+  buildSpecialConceptUpdates,
+  buildSpecialTitleUpdates,
   buildMovieMetadata,
+  localizeSpecialCountry,
+  parseSpecialSourceRow,
   buildSheetHeaders,
   buildSheetRow,
   hasCountrySheet,
