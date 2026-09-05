@@ -4,6 +4,7 @@ const test = require("node:test");
 const {
   buildSpecialDataRow,
   buildSpecialConceptUpdates,
+  buildSpecialCreditUpdates,
   buildSpecialTitleUpdates,
   localizeSpecialCountry,
   parseSpecialSourceRow,
@@ -48,7 +49,16 @@ test("Special source uses the new country and localized-title columns", () => {
     "osYpGSz_0i4",
     "2025",
     "Korea",
+    "봉준호",
     "Bong Joon-Ho",
+    "ポン・ジュノ",
+    "奉俊昊",
+    "奉俊昊",
+    "Bong Joon-ho FR",
+    "Bong Joon-ho DE",
+    "Bong Joon-ho ES",
+    "बोंग जून-हो",
+    "พง จุน-โฮ",
     "미키 17",
     "Mickey 17",
     "ミッキー17",
@@ -82,6 +92,8 @@ test("Special source uses the new country and localized-title columns", () => {
   assert.equal(movie.translations.es.title, "Mickey 17 ES");
   assert.equal(movie.translations.ko.concept, "이 주의 감독");
   assert.equal(movie.translations.en.concept, "Director of the Week");
+  assert.equal(movie.translations.ko.credits, "봉준호");
+  assert.equal(movie.translations.ja.credits, "ポン・ジュノ");
 
   const updates = buildSpecialTitleUpdates([movie], 4);
   const byRange = Object.fromEntries(updates.map((update) =>
@@ -103,6 +115,19 @@ test("Special source uses the new country and localized-title columns", () => {
   assert.deepEqual(
       conceptsByRange["'SPECIAL_DATA'!U4:U4"],
       [["今週の監督"]],
+  );
+
+  const creditUpdates = buildSpecialCreditUpdates([movie], 4);
+  const creditsByRange = Object.fromEntries(creditUpdates.map((update) =>
+    [update.range, update.values]));
+  assert.deepEqual(creditsByRange["'SPECIAL_DATA'!P4:P4"], [["봉준호"]]);
+  assert.deepEqual(
+      creditsByRange["'SPECIAL_DATA'!T4:T4"],
+      [["Bong Joon-Ho"]],
+  );
+  assert.deepEqual(
+      creditsByRange["'SPECIAL_DATA'!X4:X4"],
+      [["ポン・ジュノ"]],
   );
 });
 

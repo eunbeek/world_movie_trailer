@@ -1,6 +1,63 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+String localizedTmdbCreditName({
+  required Map<String, dynamic> translations,
+  required String language,
+  required Object? tmdbId,
+  required String fallback,
+}) {
+  final id = tmdbId?.toString() ?? '';
+  if (id.isEmpty) return fallback;
+  const aliases = {'zh': 'cn', 'hi': 'in'};
+  final translation = translations[aliases[language] ?? language];
+  if (translation is! Map) return fallback;
+  final names = translation['creditNames'];
+  if (names is! Map) return fallback;
+  final localized = (names[id] ?? '').toString().trim();
+  return localized.isEmpty ? fallback : localized;
+}
+
+List<String> splitTmdbCreditNames(String value) => value
+    .split(value.contains('|||') ? RegExp(r'\s*\|\|\|\s*') : RegExp(r'[,，]'))
+    .map((name) => name.trim())
+    .where((name) => name.isNotEmpty)
+    .toList();
+
+/// Keeps the Sheet's localized names while attaching matching TMDB person IDs.
+List<TmdbCreditPerson> specialTmdbCreditPeople({
+  required String displayCredits,
+  required String originalCredits,
+  required Map<String, dynamic>? credits,
+}) {
+  String normalized(String value) =>
+      value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+
+  final displayNames = splitTmdbCreditNames(displayCredits);
+  final originalNames = splitTmdbCreditNames(originalCredits);
+  final people = <dynamic>[
+    ...?credits?['cast'] as List?,
+    ...?credits?['crew'] as List?,
+  ];
+  return List.generate(displayNames.length, (index) {
+    final originalName = index < originalNames.length
+        ? originalNames[index]
+        : displayNames[index];
+    final target = normalized(originalName);
+    Map? match;
+    for (final person in people) {
+      if (person is Map && normalized('${person['name'] ?? ''}') == target) {
+        match = person;
+        break;
+      }
+    }
+    return TmdbCreditPerson(
+      name: displayNames[index],
+      tmdbId: match?['id'],
+    );
+  });
+}
+
 class TmdbCreditPerson {
   const TmdbCreditPerson({required this.name, this.tmdbId});
 

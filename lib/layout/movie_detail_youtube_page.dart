@@ -477,6 +477,13 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
     final isSpecial = widget.movie.special?.isNotEmpty == true;
     final specialCredits =
         isSpecial ? _localizedField('credits', widget.movie.source).trim() : '';
+    final specialCreditPeople = specialTmdbCreditPeople(
+      displayCredits: specialCredits,
+      originalCredits:
+          (widget.movie.originSource['credits'] ?? widget.movie.source)
+              .toString(),
+      credits: widget.movie.credits,
+    );
     final crew = widget.movie.credits?['crew'];
     final cast = widget.movie.credits?['cast'];
     String director = '';
@@ -519,9 +526,19 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
         .where((name) => name.isNotEmpty)
         .toList();
     if (!_showOriginal && director.isNotEmpty) {
-      final directorIndex = originalCreditNames.indexOf(director);
-      if (directorIndex >= 0 && directorIndex < localizedNames.length) {
-        director = localizedNames[directorIndex];
+      final byId = localizedTmdbCreditName(
+        translations: widget.movie.translations,
+        language: _settings.language,
+        tmdbId: directorCredit?['id'],
+        fallback: '',
+      );
+      if (byId.isNotEmpty) {
+        director = byId;
+      } else {
+        final directorIndex = originalCreditNames.indexOf(director);
+        if (directorIndex >= 0 && directorIndex < localizedNames.length) {
+          director = localizedNames[directorIndex];
+        }
       }
     }
     final stars =
@@ -534,9 +551,14 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
           item is Map ? (item['name'] ?? '').toString() : item.toString();
       final displayName = _showOriginal
           ? originalName
-          : index < localizedNames.length
-              ? localizedNames[index]
-              : originalName;
+          : localizedTmdbCreditName(
+              translations: widget.movie.translations,
+              language: _settings.language,
+              tmdbId: item is Map ? item['id'] : null,
+              fallback: index < localizedNames.length
+                  ? localizedNames[index]
+                  : originalName,
+            );
       if (displayName.isNotEmpty) {
         starPeople.add(TmdbCreditPerson(
           name: displayName,
@@ -563,7 +585,10 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
             _info('${getTranslatedDetail('Year', lang)}',
                 widget.movie.year ?? ''),
           if (isSpecial && specialCredits.isNotEmpty)
-            _info('${getTranslatedDetail('Credits', lang)}', specialCredits),
+            TmdbCreditInfo(
+              label: getTranslatedDetail('Credits', lang) ?? 'Credits',
+              people: specialCreditPeople,
+            ),
           if (!isSpecial && director.isNotEmpty)
             TmdbCreditInfo(
               label: getTranslatedDetail('Director', lang) ?? 'Director',

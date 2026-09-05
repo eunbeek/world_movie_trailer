@@ -11,6 +11,12 @@ const BOX_OFFICE_KR_COUNTRIES = new Set(["box_office_kr", "box-office-kr"]);
 const TRANSLATION_POLL_INTERVAL_MS = 15000;
 const TRANSLATION_POLL_ATTEMPTS = 16;
 const SPECIAL_TRANSLATION_POLL_ATTEMPTS = 4;
+const CREDITS_DELIMITER_PATTERN = /\s*\|\|\|\s*/;
+const SOURCE_LANGUAGE_BY_FEED = {
+  kr: "ko", jp: "ja", ca: "en", tw: "tw", fr: "fr", de: "de",
+  us: "en", th: "th", au: "en", es: "es", in: "in", cn: "cn",
+  box_office: "en", box_office_kr: "ko", special: "en",
+};
 
 /** Returns whether a processed movie can be included in published data. */
 function isPublishableMovie(movie) {
@@ -67,6 +73,47 @@ function compactCredits(credits) {
   return {cast, crew};
 }
 
+/** Returns each unique TMDB person once, in the same cast-then-crew Sheet order. */
+function orderedCreditPeople(credits) {
+  const source = credits || {};
+  const people = [
+    ...(Array.isArray(source.cast) ? source.cast : []),
+    ...(Array.isArray(source.crew) ? source.crew : []),
+  ];
+  const seen = new Set();
+  return people.filter((person) => {
+    if (!person || !person.name) return false;
+    const key = person.id ? `id:${person.id}` :
+      `name:${String(person.name).trim().toLowerCase()}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+/** Splits both the new stable delimiter and legacy comma-separated Credits. */
+function splitTranslatedCredits(value) {
+  const text = String(value || "").trim();
+  if (!text) return [];
+  const parts = text.includes("|||") ? text.split(CREDITS_DELIMITER_PATTERN) :
+    text.split(/\s*[,，]\s*/);
+  return parts.map((name) => name.trim()).filter(Boolean);
+}
+
+/** Adds stable TMDB-ID-to-localized-name maps to every language translation. */
+function attachLocalizedCreditNames(translations, credits) {
+  const people = orderedCreditPeople(credits);
+  if (people.length === 0) return translations;
+  return Object.fromEntries(Object.entries(translations || {}).map(([language, translation]) => {
+    const localizedNames = splitTranslatedCredits(translation && translation.credits);
+    if (localizedNames.length !== people.length) return [language, translation];
+    const creditNames = Object.fromEntries(people
+        .filter((person) => person.id)
+        .map((person, index) => [String(person.id), localizedNames[index]]));
+    return [language, {...translation, creditNames}];
+  }));
+}
+
 /** Returns a stable key used to preserve credits across manual Sheet syncs. */
 function movieLookupKey(movie) {
   return String(movie.id || movie.tid || movie.tmdbId || "");
@@ -102,6 +149,15 @@ async function readExistingMovies(fileName) {
 function isReadyTranslation(value) {
   const text = String(value || "").trim();
   return text !== "" && !text.startsWith("#");
+}
+
+/** Rejects a long overview copied unchanged into a different language. */
+function isUsableTranslation(value, sourceValue, field, targetLanguage, sourceLanguage) {
+  if (!isReadyTranslation(value)) return false;
+  if (field !== "overview" || targetLanguage === sourceLanguage) return true;
+  const translated = String(value).trim();
+  const source = String(sourceValue || "").trim();
+  return source.length < 20 || translated !== source;
 }
 
 /** Reads TMDB person IDs staged by a Sheet-only Fetch function. */
@@ -146,15 +202,17 @@ async function readFinalizedSheet(normalizedCountry) {
 }
 
 /** Returns true when every non-empty source field has every translation result. */
-function areTranslationsComplete(movies) {
+function areTranslationsComplete(movies, normalizedCountry) {
+  const sourceLanguage = SOURCE_LANGUAGE_BY_FEED[normalizedCountry] || "en";
   return movies.every((movie) => {
     const source = movie.originSource || {};
-    const translations = Object.values(movie.translations || {});
+    const translations = Object.entries(movie.translations || {});
     if (translations.length === 0) return false;
     const requiredFields = ["title", "overview", "country", "credits"];
     if (source.concept) requiredFields.push("concept");
-    return translations.every((translation) => requiredFields.every((field) =>
-      !source[field] || isReadyTranslation(translation[field])));
+    return translations.every(([language, translation]) =>
+      requiredFields.every((field) => !source[field] || isUsableTranslation(
+          translation[field], source[field], field, language, sourceLanguage)));
   });
 }
 
@@ -171,7 +229,7 @@ async function readFinalizedSheetAfterTranslations(normalizedCountry) {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const movies = await readFinalizedSheet(normalizedCountry);
     latestMovies = movies;
-    if (areTranslationsComplete(movies)) return movies;
+    if (areTranslationsComplete(movies, normalizedCountry)) return movies;
     if (attempt < maxAttempts) {
       console.log(`Translations for ${normalizedCountry} are incomplete (${attempt}/${maxAttempts}); retrying in ${TRANSLATION_POLL_INTERVAL_MS / 1000}s.`);
       await new Promise((resolve) => setTimeout(resolve, TRANSLATION_POLL_INTERVAL_MS));
@@ -183,19 +241,22 @@ async function readFinalizedSheetAfterTranslations(normalizedCountry) {
 }
 
 /** Uses current formula values first, then existing Storage, then the original text. */
-function mergeTranslations(movie, existingMovie) {
+function mergeTranslations(movie, existingMovie, normalizedCountry) {
   const source = movie.originSource || {};
   const current = movie.translations || {};
   const previous = existingMovie && existingMovie.translations || {};
   const languages = new Set([...Object.keys(current), ...Object.keys(previous)]);
   const fields = ["title", "overview", "country", "credits", "concept"];
+  const sourceLanguage = SOURCE_LANGUAGE_BY_FEED[normalizedCountry] || "en";
   return Object.fromEntries([...languages].map((language) => {
     const currentTranslation = current[language] || {};
     const previousTranslation = previous[language] || {};
     const merged = {...currentTranslation};
     fields.forEach((field) => {
-      if (source[field] && !isReadyTranslation(merged[field])) {
-        merged[field] = isReadyTranslation(previousTranslation[field]) ?
+      if (source[field] && !isUsableTranslation(
+          merged[field], source[field], field, language, sourceLanguage)) {
+        merged[field] = isUsableTranslation(previousTranslation[field],
+            source[field], field, language, sourceLanguage) ?
           previousTranslation[field] : source[field];
       }
     });
@@ -218,11 +279,14 @@ async function publishSheetMovies(normalizedCountry, processedMovies = []) {
     (credits.cast.length > 0 || credits.crew.length > 0)));
   const storageMovies = sheetMovies.map((movie) => {
     const key = movieLookupKey(movie);
+    const credits = processedCredits.get(key) || stagedCredits.get(key) ||
+      existingCredits.get(key) || {cast: [], crew: []};
+    const translations = attachLocalizedCreditNames(
+        mergeTranslations(movie, existingMovies.get(key), normalizedCountry), credits);
     return buildStorageMovie({
       ...movie,
-      translations: mergeTranslations(movie, existingMovies.get(key)),
-      credits: processedCredits.get(key) || stagedCredits.get(key) ||
-        existingCredits.get(key) || {cast: [], crew: []},
+      translations,
+      credits,
     });
   });
   const dataToSave = {
@@ -281,12 +345,16 @@ async function publishMovies(country, movies) {
 
 module.exports = {
   areTranslationsComplete,
+  attachLocalizedCreditNames,
   buildMovieId,
   buildStorageMovie,
   compactCredits,
+  orderedCreditPeople,
   isPublishableMovie,
+  isUsableTranslation,
   publishMovies,
   publishSheetMovies,
   translationPollAttemptsFor,
+  splitTranslatedCredits,
   writeMoviesToSheet,
 };

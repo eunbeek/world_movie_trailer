@@ -1077,11 +1077,21 @@ class _HomeShellState extends State<HomeShell>
             'concept',
             movies.first.special ?? '',
           );
+    final credit = movies.isEmpty
+        ? ''
+        : _displayMovieField(
+            movies.first,
+            'credits',
+            movies.first.source,
+          ).trim();
     final selectedLanguage = context.read<SettingsProvider>().language;
     final language = _showEnglish ? selectedLanguage : 'en';
     final title =
         (_navigationLabels[language] ?? _navigationLabels['en']!)['special']!;
-    return _contentSectionTitle(concept.isEmpty ? title : '$title ($concept)');
+    final titleWithConcept = concept.isEmpty ? title : '$title ($concept)';
+    return _contentSectionTitle(
+      credit.isEmpty ? titleWithConcept : '$titleWithConcept : $credit',
+    );
   }
 
   Widget _quoteTitle() {

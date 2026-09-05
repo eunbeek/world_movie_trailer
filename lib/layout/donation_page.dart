@@ -7,6 +7,7 @@ import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/services/in_app_purchase_service.dart';
 import 'package:world_movie_trailer/common/translate.dart';
 import 'package:world_movie_trailer/layout/widgets/settings_footer_branding.dart';
+import 'package:world_movie_trailer/layout/widgets/settings_sliver_header.dart';
 
 class DonationPage extends StatefulWidget {
   const DonationPage({super.key});
@@ -74,68 +75,10 @@ class _DonationPageState extends State<DonationPage> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.large(
-            expandedHeight: MediaQuery.of(context).size.height * 0.15,
-            pinned: true,
-            leading: GestureDetector(
-              onTap: () => Navigator.of(context).pop(),
-              child: Padding(
-                padding: const EdgeInsets.only(top: 10.0),
-                child: Icon(
-                  Icons.arrow_back,
-                  size: MediaQuery.of(context).size.height * 0.03,
-                ),
-              ),
-            ),
-            flexibleSpace: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                var top = constraints.biggest.height;
-                return FlexibleSpaceBar(
-                  titlePadding: const EdgeInsets.only(bottom: 13),
-                  centerTitle: true,
-                  title: AnimatedOpacity(
-                    opacity: top < MediaQuery.of(context).size.height * 0.1
-                        ? 1.0
-                        : 0.0,
-                    duration: const Duration(milliseconds: 500),
-                    child: Text(
-                      getDonationLabel(lang, "donate"),
-                      style: TextStyle(
-                        fontSize: MediaQuery.of(context).size.height * 0.02,
-                        fontWeight: FontWeight.bold,
-                        color: settingsProvider.isDarkTheme
-                            ? Colors.white
-                            : Colors.black,
-                      ),
-                    ),
-                  ),
-                  background: Container(
-                    margin: const EdgeInsets.only(top: 50),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        const SizedBox(width: 15),
-                        Image.asset(
-                          settingsProvider.isDarkTheme
-                              ? 'assets/images/dark/icon_donation_DT_xxhdpi.png'
-                              : 'assets/images/light/icon_donation_LT_xxhdpi.png',
-                          height: MediaQuery.of(context).size.height * 0.03,
-                          width: MediaQuery.of(context).size.height * 0.03,
-                        ),
-                        const SizedBox(width: 20),
-                        Text(
-                          getDonationLabel(lang, "donate"),
-                          style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.height * 0.03,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
+          SettingsSliverHeader(
+            title: getDonationLabel(lang, "donate"),
+            darkIconAsset: 'assets/images/dark/icon_donation_DT_xxhdpi.png',
+            lightIconAsset: 'assets/images/light/icon_donation_LT_xxhdpi.png',
           ),
           SliverList(
             delegate: SliverChildListDelegate(

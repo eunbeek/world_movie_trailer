@@ -19,6 +19,7 @@ const BOX_OFFICE_USA_SHEET = "BOX_OFFICE_USA_DATA";
 const BOX_OFFICE_KR_SHEET = "BOX_OFFICE_KR_DATA";
 const SPECIAL_SOURCE_SHEET = "SPECIAL_SOURCE";
 const SPECIAL_DATA_SHEET = "SPECIAL_DATA";
+const CREDITS_DELIMITER = " ||| ";
 const COUNTRY_SHEETS = {
   kr: "KOREA_DATA",
   jp: "JAPAN_DATA",
@@ -35,29 +36,42 @@ const COUNTRY_SHEETS = {
 };
 
 const SPECIAL_SOURCE_TITLE_COLUMNS = {
-  ko: 6,
-  en: 7,
-  ja: 8,
-  cn: 9,
-  tw: 10,
-  fr: 11,
-  de: 12,
-  es: 13,
-  in: 14,
-  th: 15,
+  ko: 15,
+  en: 16,
+  ja: 17,
+  cn: 18,
+  tw: 19,
+  fr: 20,
+  de: 21,
+  es: 22,
+  in: 23,
+  th: 24,
 };
 
 const SPECIAL_SOURCE_CONCEPT_COLUMNS = {
-  ko: 16,
-  en: 17,
-  ja: 18,
-  cn: 19,
-  tw: 20,
-  fr: 21,
-  de: 22,
-  es: 23,
-  in: 24,
-  th: 25,
+  ko: 25,
+  en: 26,
+  ja: 27,
+  cn: 28,
+  tw: 29,
+  fr: 30,
+  de: 31,
+  es: 32,
+  in: 33,
+  th: 34,
+};
+
+const SPECIAL_SOURCE_CREDIT_COLUMNS = {
+  ko: 5,
+  en: 6,
+  ja: 7,
+  cn: 8,
+  tw: 9,
+  fr: 10,
+  de: 11,
+  es: 12,
+  in: 13,
+  th: 14,
 };
 
 const SPECIAL_DATA_TITLE_COLUMNS = {
@@ -84,6 +98,19 @@ const SPECIAL_DATA_CONCEPT_COLUMNS = {
   de: "AO",
   in: "AS",
   th: "AW",
+};
+
+const SPECIAL_DATA_CREDIT_COLUMNS = {
+  ko: "P",
+  en: "T",
+  ja: "X",
+  cn: "AB",
+  tw: "AF",
+  fr: "AJ",
+  es: "AN",
+  de: "AR",
+  in: "AV",
+  th: "AZ",
 };
 
 const COUNTRY_DISPLAY_LOCALES = {
@@ -167,11 +194,14 @@ function parseSpecialSourceRow(row) {
       .map(([language, titleIndex]) => [language, {
         title: row[titleIndex] || "",
         concept: row[SPECIAL_SOURCE_CONCEPT_COLUMNS[language]] || "",
+        credits: row[SPECIAL_SOURCE_CREDIT_COLUMNS[language]] || "",
       }]));
   const englishTitle = translations.en.title || translations.ko.title ||
     Object.values(translations).map((entry) => entry.title).find(Boolean) || "";
   const englishConcept = translations.en.concept || translations.ko.concept ||
     Object.values(translations).map((entry) => entry.concept).find(Boolean) || "";
+  const englishCredits = translations.en.credits || translations.ko.credits ||
+    Object.values(translations).map((entry) => entry.credits).find(Boolean) || "";
   const country = String(row[4] || "").trim();
   return {
     tid: String(row[0] || ""),
@@ -180,7 +210,7 @@ function parseSpecialSourceRow(row) {
     year: String(row[3] || ""),
     country,
     special: englishConcept,
-    source: row[5] || "",
+    source: englishCredits,
     localTitle: englishTitle,
     sourceType: "tmdb",
     translations,
@@ -189,7 +219,7 @@ function parseSpecialSourceRow(row) {
       title: englishTitle,
       overview: "",
       country,
-      credits: row[5] || "",
+      credits: englishCredits,
     },
     batch: false,
   };
@@ -217,6 +247,17 @@ function buildSpecialConceptUpdates(movies, lastRow) {
   }));
 }
 
+/** Builds updates that copy planner credits into each SPECIAL_DATA Credits column. */
+function buildSpecialCreditUpdates(movies, lastRow) {
+  return Object.entries(SPECIAL_DATA_CREDIT_COLUMNS).map(([language, column]) => ({
+    range: `'${SPECIAL_DATA_SHEET}'!${column}4:${column}${lastRow}`,
+    values: movies.map((movie) => [
+      movie.translations && movie.translations[language] &&
+        movie.translations[language].credits || "",
+    ]),
+  }));
+}
+
 /** Converts TMDB credits into the source string stored in the worksheet. */
 function flattenCredits(credits) {
   if (!credits) return "";
@@ -224,11 +265,19 @@ function flattenCredits(credits) {
 
   const cast = Array.isArray(credits.cast) ? credits.cast : [];
   const crew = Array.isArray(credits.crew) ? credits.crew : [];
+  const seen = new Set();
   return [...cast, ...crew]
-      .map((person) => typeof person === "string" ? person : person && person.name)
-      .filter(Boolean)
-      .filter((person, index, people) => people.indexOf(person) === index)
-      .join(", ");
+      .filter((person) => {
+        if (!person) return false;
+        const id = typeof person === "object" && person.id;
+        const name = typeof person === "string" ? person : person.name;
+        const key = id ? `id:${id}` : `name:${String(name || "").trim().toLowerCase()}`;
+        if (!name || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .map((person) => typeof person === "string" ? person : person.name)
+      .join(CREDITS_DELIMITER);
 }
 
 /** Returns the first valid ISO 3166-1 alpha-2 country code on a movie. */
@@ -371,11 +420,11 @@ async function readSpecialSourceSheet() {
   const sheets = google.sheets({version: "v4", auth});
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `'${SPECIAL_SOURCE_SHEET}'!A2:Z`,
+    range: `'${SPECIAL_SOURCE_SHEET}'!A2:AI`,
   });
 
   return (response.data.values || [])
-      .filter((row) => row[0] && row.slice(6, 16).some(Boolean))
+      .filter((row) => row[0] && row.slice(15, 25).some(Boolean))
       .map(parseSpecialSourceRow);
 }
 
@@ -574,6 +623,7 @@ async function replaceSpecialDataSheet(movies) {
       data: [
         ...buildSpecialTitleUpdates(movies, lastRow),
         ...buildSpecialConceptUpdates(movies, lastRow),
+        ...buildSpecialCreditUpdates(movies, lastRow),
       ],
     },
   });
@@ -609,10 +659,13 @@ async function readSpecialDataSheet() {
             source.translations[key] && source.translations[key].title || "";
           const sourceConcept = source && source.translations &&
             source.translations[key] && source.translations[key].concept || "";
+          const sourceCredits = source && source.translations &&
+            source.translations[key] && source.translations[key].credits || "";
           translations[key] = {
             ...translations[key],
             title: sourceTitle || translations[key].title || "",
             concept: sourceConcept || translations[key].concept || "",
+            credits: sourceCredits || translations[key].credits || "",
             country: localizeSpecialCountry(sourceOrigin.country, key),
           };
         });
@@ -649,12 +702,14 @@ module.exports = {
   buildBoxOfficeUsaRow,
   buildSpecialDataRow,
   buildSpecialConceptUpdates,
+  buildSpecialCreditUpdates,
   buildSpecialTitleUpdates,
   buildMovieMetadata,
   localizeSpecialCountry,
   parseSpecialSourceRow,
   buildSheetHeaders,
   buildSheetRow,
+  CREDITS_DELIMITER,
   hasCountrySheet,
   readCountrySheet,
   readBoxOfficeSheet,
