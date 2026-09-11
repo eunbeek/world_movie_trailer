@@ -8,18 +8,18 @@ class ContentUpdateSchedule {
 
   // Mirrors the Sheet-to-Storage schedules in functions/index.js.
   static const feeds = <String, ({int weekday, int hour, int minute})>{
-    'kr': (weekday: DateTime.monday, hour: 5, minute: 10),
-    'jp': (weekday: DateTime.tuesday, hour: 5, minute: 0),
-    'ca': (weekday: DateTime.wednesday, hour: 6, minute: 0),
-    'tw': (weekday: DateTime.thursday, hour: 7, minute: 0),
-    'fr': (weekday: DateTime.friday, hour: 6, minute: 0),
-    'de': (weekday: DateTime.saturday, hour: 5, minute: 0),
-    'us': (weekday: DateTime.wednesday, hour: 5, minute: 0),
-    'th': (weekday: DateTime.sunday, hour: 6, minute: 0),
-    'au': (weekday: DateTime.sunday, hour: 5, minute: 0),
-    'es': (weekday: DateTime.thursday, hour: 6, minute: 0),
-    'in': (weekday: DateTime.thursday, hour: 5, minute: 10),
-    'cn': (weekday: DateTime.friday, hour: 5, minute: 0),
+    'kr': (weekday: DateTime.monday, hour: 6, minute: 30),
+    'jp': (weekday: DateTime.tuesday, hour: 6, minute: 50),
+    'ca': (weekday: DateTime.wednesday, hour: 6, minute: 50),
+    'tw': (weekday: DateTime.thursday, hour: 6, minute: 50),
+    'fr': (weekday: DateTime.friday, hour: 6, minute: 50),
+    'de': (weekday: DateTime.saturday, hour: 6, minute: 50),
+    'us': (weekday: DateTime.wednesday, hour: 6, minute: 40),
+    'th': (weekday: DateTime.sunday, hour: 6, minute: 50),
+    'au': (weekday: DateTime.sunday, hour: 6, minute: 40),
+    'es': (weekday: DateTime.thursday, hour: 6, minute: 40),
+    'in': (weekday: DateTime.thursday, hour: 6, minute: 30),
+    'cn': (weekday: DateTime.friday, hour: 6, minute: 40),
   };
 
   static const statusKeys = <String, String>{

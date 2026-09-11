@@ -128,15 +128,15 @@ function hasStructuredCredits(movie) {
 
 /**
  * Fetches movies from CGV and Lotte, processes trailers, and saves the result.
- * Scheduled to run every Monday at 09:00 AM KST.
+ * Scheduled to run every Monday at 01:00 America/Toronto.
  *
  * @returns {Promise<null>} Returns null when the function completes.
  */
 exports.fetchMovieListKR = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 3 * * 1")
-    .timeZone("America/Toronto") // Adjust if the timezone should be KST
+    .schedule("0 1 * * 1")
+    .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
       const startTime = Date.now();
@@ -157,15 +157,15 @@ exports.fetchMovieListKR = functions
 
 /**
  * Fetches movies from EIGA, processes trailers, and saves the result.
- * Scheduled to run every Tuesday at 09:00 AM JST.
+ * Scheduled to run every Tuesday at 01:00 America/Toronto.
  *
  * @returns {Promise<null>} Returns null when the function completes.
  */
 exports.fetchMovieListJP = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 3 * * 2")
-    .timeZone("America/Toronto") // Adjust if the timezone should be JST
+    .schedule("0 1 * * 2")
+    .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
       const startTime = Date.now();
@@ -185,14 +185,14 @@ exports.fetchMovieListJP = functions
 
 /**
  * Fetches movies from Cineplex, processes trailers, and saves the result.
- * Scheduled to run every Wednesday at 09:00 AM EST.
+ * Scheduled to run every Wednesday at 01:10 America/Toronto.
  *
  * @returns {Promise<null>} Returns null when the function completes.
  */
 exports.fetchMovieListCA = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 4 * * 3")
+    .schedule("10 1 * * 3")
     .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
@@ -212,15 +212,15 @@ exports.fetchMovieListCA = functions
 
 /**
  * Fetches movies from ShowTime, processes trailers, and saves the result.
- * Scheduled to run every Thursday at 09:00 AM CST.
+ * Scheduled to run every Thursday at 01:20 America/Toronto.
  *
  * @returns {Promise<null>} Returns null when the function completes.
  */
 exports.fetchMovieListTW = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 5 * * 4")
-    .timeZone("America/Toronto") // Adjust if the timezone should be CST
+    .schedule("20 1 * * 4")
+    .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
       const startTime = Date.now();
@@ -237,15 +237,15 @@ exports.fetchMovieListTW = functions
 
 /**
  * Fetches movies from UGA, processes trailers, and saves the result.
- * Scheduled to run every Friday at 09:00 AM CET.
+ * Scheduled to run every Friday at 01:10 America/Toronto.
  *
  * @returns {Promise<null>} Returns null when the function completes.
  */
 exports.fetchMovieListFR = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 4 * * 5")
-    .timeZone("America/Toronto") // Adjust if the timezone should be CET
+    .schedule("10 1 * * 5")
+    .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
       const startTime = Date.now();
@@ -264,15 +264,15 @@ exports.fetchMovieListFR = functions
 
 /**
  * Fetches movies from Traumpalast, processes trailers, and saves the result.
- * Scheduled to run every Saturday at 09:00 AM CET.
+ * Scheduled to run every Saturday at 01:00 America/Toronto.
  *
  * @returns {Promise<null>} Returns null when the function completes.
  */
 exports.fetchMovieListDE = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 3 * * 6")
-    .timeZone("America/Toronto") // Adjust if the timezone should be CET
+    .schedule("0 1 * * 6")
+    .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
       const startTime = Date.now();
@@ -291,14 +291,14 @@ exports.fetchMovieListDE = functions
 
 /**
  * Fetches movies from TMDB by US region, processes trailers, and saves the result.
- * Scheduled to run every Sunday at 09:00 AM EST.
+ * Scheduled to run every Wednesday at 01:00 America/Toronto.
  *
  * @returns {Promise<null>} Returns null when the function completes.
  */
 exports.fetchMovieListUS = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 3 * * 3")
+    .schedule("0 1 * * 3")
     .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
@@ -318,14 +318,14 @@ exports.fetchMovieListUS = functions
 
 /**
  * Fetches movies from Sf by TH region, processes trailers, and saves the result.
- * Scheduled to run every Sunday at 5:00 AM EST.
+ * Scheduled to run every Sunday at 01:10 America/Toronto.
  *
  * @returns {Promise<null>} Returns null when the function completes.
  */
 exports.fetchMovieListTH = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 4 * * 7")
+    .schedule("10 1 * * 7")
     .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
@@ -345,14 +345,14 @@ exports.fetchMovieListTH = functions
 
 /**
  * Fetches movies from Event Cinema by AU region, processes trailers, and saves the result.
- * Scheduled to run every Sunday at 2:00 AM EST.
+ * Scheduled to run every Sunday at 01:00 America/Toronto.
  *
  * @returns {Promise<null>} Returns null when the function completes.
  */
 exports.fetchMovieListAU = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 3 * * 7")
+    .schedule("0 1 * * 7")
     .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
@@ -372,15 +372,15 @@ exports.fetchMovieListAU = functions
 
 /**
  * Fetches movies from Kinepolis, processes trailers, and saves the result.
- * Scheduled to run every Thursday at 09:00 AM CST.
+ * Scheduled to run every Thursday at 01:10 America/Toronto.
  *
  * @returns {Promise<null>} Returns null when the function completes.
  */
 exports.fetchMovieListES = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 4 * * 4")
-    .timeZone("America/Toronto") // Adjust if the timezone should be CST
+    .schedule("10 1 * * 4")
+    .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
       const startTime = Date.now();
@@ -399,15 +399,15 @@ exports.fetchMovieListES = functions
 
 /**
  * Fetches movies from Inox, processes trailers, and saves the result.
- * Scheduled to run every Thursday at 09:00 AM CST.
+ * Scheduled to run every Thursday at 01:00 America/Toronto.
  *
  * @returns {Promise<null>} Returns null when the function completes.
  */
 exports.fetchMovieListIN = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 3 * * 4")
-    .timeZone("America/Toronto") // Adjust if the timezone should be CST
+    .schedule("0 1 * * 4")
+    .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
       const startTime = Date.now();
@@ -426,15 +426,15 @@ exports.fetchMovieListIN = functions
 
 /**
  * Fetches movies from Wanda, processes trailers, and saves the result.
- * Scheduled to run every Friday at 11:00 AM JST.
+ * Scheduled to run every Friday at 01:00 America/Toronto.
  *
  * @returns {Promise<null>} Returns null when the function completes.
  */
 exports.fetchMovieListCN = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 3 * * 5")
-    .timeZone("America/Toronto") // Adjust if the timezone should be JST
+    .schedule("0 1 * * 5")
+    .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
       const startTime = Date.now();
@@ -455,14 +455,14 @@ exports.fetchMovieListCN = functions
 
 /**
  * Fetches movies in the special section by director, processes trailers, and saves the result.
- * Scheduled to run every First day of the month at 1:00 AM EST.
+ * Scheduled to run on the first day of every month at 01:00 America/Toronto.
  *
  * @returns {Promise<void>} Returns null when the function completes.
  */
 exports.fetchMovieListSpecial = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 0 1 * *")
+    .schedule("0 1 1 * *")
     .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
@@ -485,14 +485,14 @@ exports.fetchMovieListSpecial = functions
 
 /**
  * Fetches quotes in the special section
- * Scheduled to run every First day of the 6 month at 1:00 AM EST.
+ * Scheduled to run every six months at 01:20 America/Toronto.
  *
  * @returns {Promise<void>} Returns null when the function completes.
  */
 exports.fetchQuoteListSpecial = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 1 1 */6 *")
+    .schedule("20 1 1 */6 *")
     .timeZone("America/Toronto")
     .onRun(async () => {
       const specialQuotes = await fetchQuotesInSpecialSection();
@@ -507,15 +507,15 @@ exports.fetchQuoteListSpecial = functions
 
 /**
  * Fetches movies from Mojo, processes trailers, and saves the result.
- * Scheduled to run every Monday at 07:00 AM CET.
+ * Scheduled to run every Monday at 01:20 America/Toronto.
  *
  * @returns {Promise<null>} Returns null when the function completes.
  */
 exports.fetchMovieListBoxOffice = functions
     .runWith(movieRuntimeOptions)
     .pubsub
-    .schedule("0 5 * * 1")
-    .timeZone("America/Toronto") // Adjust if the timezone should be CET
+    .schedule("20 1 * * 1")
+    .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
       const startTime = Date.now();
@@ -539,7 +539,7 @@ exports.fetchMovieListBoxOffice = functions
 exports.fetchMovieListBoxOfficeKR = functions
     .runWith(kobisRuntimeOptions)
     .pubsub
-    .schedule("0 4 * * 1")
+    .schedule("10 1 * * 1")
     .timeZone("America/Toronto")
     .onRun(async () => {
       const processedCount = 0;
@@ -557,21 +557,23 @@ exports.fetchMovieListBoxOfficeKR = functions
       return null;
     });
 
-// Stores run after Sheet translation formulas have had roughly two hours.
-exports.storeMovieListKR = createScheduledStore("kr", "10 5 * * 1");
-exports.storeMovieListJP = createScheduledStore("jp", "0 5 * * 2");
-exports.storeMovieListCA = createScheduledStore("ca", "0 6 * * 3");
-exports.storeMovieListTW = createScheduledStore("tw", "0 7 * * 4");
-exports.storeMovieListFR = createScheduledStore("fr", "0 6 * * 5");
-exports.storeMovieListDE = createScheduledStore("de", "0 5 * * 6");
-exports.storeMovieListUS = createScheduledStore("us", "0 5 * * 3");
-exports.storeMovieListTH = createScheduledStore("th", "0 6 * * 7");
-exports.storeMovieListAU = createScheduledStore("au", "0 5 * * 7");
-exports.storeMovieListES = createScheduledStore("es", "0 6 * * 4");
-exports.storeMovieListIN = createScheduledStore("in", "10 5 * * 4");
-exports.storeMovieListCN = createScheduledStore("cn", "0 5 * * 5");
-exports.storeMovieListBoxOffice = createScheduledStore("box_office", "0 7 * * 1");
-exports.storeMovieListBoxOfficeKR = createScheduledStore("box_office_kr", "0 6 * * 1");
+// Fetches start after 01:00 and stores finish before 07:00 Toronto time.
+// The 5.5+ hour gap gives GOOGLETRANSLATE formulas time to settle; feeds on
+// the same day are staggered to avoid bursts against Sheets and movie APIs.
+exports.storeMovieListKR = createScheduledStore("kr", "30 6 * * 1");
+exports.storeMovieListJP = createScheduledStore("jp", "50 6 * * 2");
+exports.storeMovieListCA = createScheduledStore("ca", "50 6 * * 3");
+exports.storeMovieListTW = createScheduledStore("tw", "50 6 * * 4");
+exports.storeMovieListFR = createScheduledStore("fr", "50 6 * * 5");
+exports.storeMovieListDE = createScheduledStore("de", "50 6 * * 6");
+exports.storeMovieListUS = createScheduledStore("us", "40 6 * * 3");
+exports.storeMovieListTH = createScheduledStore("th", "50 6 * * 7");
+exports.storeMovieListAU = createScheduledStore("au", "40 6 * * 7");
+exports.storeMovieListES = createScheduledStore("es", "40 6 * * 4");
+exports.storeMovieListIN = createScheduledStore("in", "30 6 * * 4");
+exports.storeMovieListCN = createScheduledStore("cn", "40 6 * * 5");
+exports.storeMovieListBoxOffice = createScheduledStore("box_office", "50 6 * * 1");
+exports.storeMovieListBoxOfficeKR = createScheduledStore("box_office_kr", "40 6 * * 1");
 
 /**
  * Test function for fetching and processing movie data from CGV and Lotte.

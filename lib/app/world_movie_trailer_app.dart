@@ -10,13 +10,21 @@ import 'package:world_movie_trailer/common/system_ui.dart';
 import 'package:world_movie_trailer/layout/widgets/movie_loading_indicator.dart';
 import 'package:world_movie_trailer/v2/home/home_shell.dart';
 import 'package:world_movie_trailer/v2/home/widgets/main_text_scale_cap.dart';
+import 'package:world_movie_trailer/v2/onboarding/onboarding_page.dart';
 
 final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 class WorldMovieTrailerApp extends StatefulWidget {
-  const WorldMovieTrailerApp({super.key, required this.isFirstLaunch});
+  const WorldMovieTrailerApp({
+    super.key,
+    required this.isFirstLaunch,
+    required this.showOnboarding,
+    required this.onOnboardingComplete,
+  });
 
   final bool isFirstLaunch;
+  final bool showOnboarding;
+  final Future<void> Function() onOnboardingComplete;
 
   @override
   State<WorldMovieTrailerApp> createState() => _WorldMovieTrailerAppState();
@@ -24,11 +32,14 @@ class WorldMovieTrailerApp extends StatefulWidget {
 
 class _WorldMovieTrailerAppState extends State<WorldMovieTrailerApp>
     with WidgetsBindingObserver {
-  bool _homeReady = kIsWeb;
+  late bool _showOnboarding;
+  late bool _homeReady;
 
   @override
   void initState() {
     super.initState();
+    _showOnboarding = !kIsWeb && widget.showOnboarding;
+    _homeReady = kIsWeb || _showOnboarding;
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => hideAndroidNavigationBar(),
@@ -56,6 +67,15 @@ class _WorldMovieTrailerAppState extends State<WorldMovieTrailerApp>
 
   void _markHomeReady() {
     if (!_homeReady && mounted) setState(() => _homeReady = true);
+  }
+
+  Future<void> _completeOnboarding() async {
+    await widget.onOnboardingComplete();
+    if (!mounted) return;
+    setState(() {
+      _showOnboarding = false;
+      _homeReady = kIsWeb;
+    });
   }
 
   @override
@@ -92,7 +112,12 @@ class _WorldMovieTrailerAppState extends State<WorldMovieTrailerApp>
           ],
         ),
       ),
-      home: HomeShell(onInitialLoadComplete: _markHomeReady),
+      home: _showOnboarding
+          ? OnboardingPage(
+              language: settings.language,
+              onComplete: _completeOnboarding,
+            )
+          : HomeShell(onInitialLoadComplete: _markHomeReady),
     );
   }
 }

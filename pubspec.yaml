@@ -2,7 +2,7 @@ name: world_movie_trailer
 description: "world movie trailer version 2"
 publish_to: 'none'
 
-version: 2.0.0+98
+version: 2.0.0+99
 
 environment:
   sdk: '>=3.3.3 <4.0.0'
@@ -89,3 +89,4 @@ flutter:
     - assets/images/icon_list_delete_xxhdpi.png
     - assets/images/deco_donation_xxhdpi.png
     - assets/images/other_apps/
+    - assets/images/onboarding/

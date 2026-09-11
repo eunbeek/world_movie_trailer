@@ -211,8 +211,13 @@ class Movie extends HiveObject {
 
     dynamic value(String key, [dynamic fallback = '']) =>
         json[key] ?? metadata[key] ?? fallback;
-    String localized(String key, String legacyKey) =>
-        (selected[key] ?? origin[key] ?? json[legacyKey] ?? '').toString();
+    String localized(String key, String legacyKey) {
+      final translatedValue = (selected[key] ?? '').toString();
+      if (translatedValue.trim().isNotEmpty) return translatedValue;
+      final sourceValue = (origin[key] ?? '').toString();
+      if (sourceValue.trim().isNotEmpty) return sourceValue;
+      return (json[legacyKey] ?? '').toString();
+    }
 
     Map<String, dynamic> stringMap(Map<dynamic, dynamic> source) =>
         source.map((key, value) => MapEntry(key.toString(), value));
@@ -236,8 +241,7 @@ class Movie extends HiveObject {
         runtime: value('runtime', 0),
         credits: creditsMap(),
         status: value('status').toString(),
-        special: (selected['concept'] ?? origin['concept'] ?? value('special'))
-            .toString(),
+        special: localized('concept', 'special'),
         year: value('year').toString(),
         nameKR: translations['ko']?['credits'] ?? json['NameKR'] ?? '',
         nameJP: translations['ja']?['credits'] ?? json['NameJP'] ?? '',

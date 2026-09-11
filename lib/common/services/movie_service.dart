@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 class MovieService {
   static const String _webStorageBucket =
       'world-movie-trailer-v2.firebasestorage.app';
+  static const String _movieCacheVersion = 'v3';
 
   static Future<List<int>> _readStorageObject(String fileName) async {
     if (!kIsWeb) {
@@ -66,7 +67,7 @@ class MovieService {
 
     final box = await _openBox();
     final cacheKey =
-        'movies_v2_${countryCode}_${_translationKey(languageCode)}';
+        'movies_${_movieCacheVersion}_${countryCode}_${_translationKey(languageCode)}';
     final cached = await _getMoviesFromHive(box, cacheKey);
     final cachedAt = cached['cachedAt'] as String?;
     final cachedMovies =
@@ -152,7 +153,7 @@ class MovieService {
     // A Movie contains the selected localized values. Keep a cache per language
     // so changing the app language never returns objects localized previously.
     final cacheKey =
-        'movies_v2_${countryCode}_${_translationKey(languageCode)}';
+        'movies_${_movieCacheVersion}_${countryCode}_${_translationKey(languageCode)}';
     Map<String, dynamic> result = await _getMoviesFromHive(box, cacheKey);
     List<Movie> movies = [];
     String? timestamp = result['timestamp'];
@@ -258,7 +259,10 @@ class MovieService {
       var trailerUrls = <String>{};
 
       for (var movie in movies) {
-        String normalizedTitle = normalizeTitle(movie.localTitle);
+        final sourceTitle = (movie.originSource['title'] ?? '').toString();
+        final normalizedTitle = normalizeTitle(
+          sourceTitle.trim().isEmpty ? movie.localTitle : sourceTitle,
+        );
 
         if (!trailerUrls.contains(movie.trailerUrl)) {
           uniqueMovies[normalizedTitle] = movie;

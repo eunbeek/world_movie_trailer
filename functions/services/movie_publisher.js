@@ -160,6 +160,29 @@ function isUsableTranslation(value, sourceValue, field, targetLanguage, sourceLa
   return source.length < 20 || translated !== source;
 }
 
+/**
+ * TMDB sometimes returns an English overview when the requested locale has no
+ * overview. In that case the Sheet's English value legitimately matches the
+ * source even though the feed itself is German, Spanish, Hindi, or Thai.
+ */
+function overviewSourceLanguage(movie, configuredSourceLanguage) {
+  const source = String(movie && movie.originSource &&
+    movie.originSource.overview || "").trim();
+  if (source.length < 20 || configuredSourceLanguage === "en") {
+    return configuredSourceLanguage;
+  }
+  const translations = movie && movie.translations || {};
+  const english = String(translations.en && translations.en.overview || "").trim();
+  if (english !== source) return configuredSourceLanguage;
+
+  const hasCompletedDifferentLanguage = Object.entries(translations)
+      .some(([language, translation]) => language !== "en" &&
+        language !== configuredSourceLanguage &&
+        isReadyTranslation(translation && translation.overview) &&
+        String(translation.overview).trim() !== source);
+  return hasCompletedDifferentLanguage ? "en" : configuredSourceLanguage;
+}
+
 /** Reads TMDB person IDs staged by a Sheet-only Fetch function. */
 async function readStagedCredits(normalizedCountry) {
   const fileName = `system/pending_credits_${normalizedCountry}.json`;
@@ -203,9 +226,10 @@ async function readFinalizedSheet(normalizedCountry) {
 
 /** Returns true when every non-empty source field has every translation result. */
 function areTranslationsComplete(movies, normalizedCountry) {
-  const sourceLanguage = SOURCE_LANGUAGE_BY_FEED[normalizedCountry] || "en";
+  const configuredSourceLanguage = SOURCE_LANGUAGE_BY_FEED[normalizedCountry] || "en";
   return movies.every((movie) => {
     const source = movie.originSource || {};
+    const sourceLanguage = overviewSourceLanguage(movie, configuredSourceLanguage);
     const translations = Object.entries(movie.translations || {});
     if (translations.length === 0) return false;
     const requiredFields = ["title", "overview", "country", "credits"];
@@ -236,18 +260,19 @@ async function readFinalizedSheetAfterTranslations(normalizedCountry) {
     }
   }
   const waitSeconds = (maxAttempts - 1) * TRANSLATION_POLL_INTERVAL_MS / 1000;
-  console.warn(`Translations for ${normalizedCountry} did not finish within ${waitSeconds} seconds; publishing with preserved/fallback translations.`);
+  console.warn(`Translations for ${normalizedCountry} did not finish within ${waitSeconds} seconds; publishing with previous/source fallbacks.`);
   return latestMovies;
 }
 
-/** Uses current formula values first, then existing Storage, then the original text. */
+/** Uses current formula values first, then existing Storage, then source text. */
 function mergeTranslations(movie, existingMovie, normalizedCountry) {
   const source = movie.originSource || {};
   const current = movie.translations || {};
   const previous = existingMovie && existingMovie.translations || {};
   const languages = new Set([...Object.keys(current), ...Object.keys(previous)]);
   const fields = ["title", "overview", "country", "credits", "concept"];
-  const sourceLanguage = SOURCE_LANGUAGE_BY_FEED[normalizedCountry] || "en";
+  const configuredSourceLanguage = SOURCE_LANGUAGE_BY_FEED[normalizedCountry] || "en";
+  const sourceLanguage = overviewSourceLanguage(movie, configuredSourceLanguage);
   return Object.fromEntries([...languages].map((language) => {
     const currentTranslation = current[language] || {};
     const previousTranslation = previous[language] || {};
@@ -255,9 +280,10 @@ function mergeTranslations(movie, existingMovie, normalizedCountry) {
     fields.forEach((field) => {
       if (source[field] && !isUsableTranslation(
           merged[field], source[field], field, language, sourceLanguage)) {
-        merged[field] = isUsableTranslation(previousTranslation[field],
+        const previousIsUsable = isUsableTranslation(previousTranslation[field],
             source[field], field, language, sourceLanguage) ?
-          previousTranslation[field] : source[field];
+          previousTranslation[field] : "";
+        merged[field] = previousIsUsable || source[field];
       }
     });
     return [language, merged];
@@ -352,6 +378,8 @@ module.exports = {
   orderedCreditPeople,
   isPublishableMovie,
   isUsableTranslation,
+  mergeTranslations,
+  overviewSourceLanguage,
   publishMovies,
   publishSheetMovies,
   translationPollAttemptsFor,

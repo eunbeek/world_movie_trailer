@@ -8,6 +8,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
+import 'package:world_movie_trailer/app/legacy_purchase_migration.dart';
 import 'package:world_movie_trailer/app/world_movie_trailer_app.dart';
 import 'package:world_movie_trailer/common/background.dart';
 import 'package:world_movie_trailer/common/ad_manager/rewarded_translation_ad_manager.dart';
@@ -32,6 +33,10 @@ const _obsoleteHiveBoxes = [
   'movieByUserBoxForBookmark',
   'movieByUserBoxForMemo',
 ];
+const _onboardingBoxName = 'onboarding_state';
+// Shown once for a fresh v2 install or an upgrade from v1. Keep this key for
+// every 2.x release so ordinary v2 updates do not show onboarding again.
+const _onboardingCompletedKey = 'v2_completed';
 
 Future<void> bootstrap(FirebaseOptions firebaseOptions) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -103,18 +108,26 @@ Future<Widget> _initializeApplication(FirebaseOptions options) async {
   }
 
   await _runStage('Hive', Hive.initFlutter);
-  _registerHiveAdapters();
+  final legacyPurchase = await LegacyPurchaseMigration.read();
+  _registerHiveAdapters(
+    overrideLegacySettingsAdapter: legacyPurchase.registeredLegacyAdapter,
+  );
   await Future.wait(_obsoleteHiveBoxes.map(Hive.deleteBoxFromDisk));
 
   final settingsBox = await _openSettingsBox();
   final storedSettings = settingsBox.get(SettingsProvider.settingsKey);
   final isFirstLaunch = storedSettings == null;
   final settings = storedSettings ?? Settings.defaultSettings();
+  if (isFirstLaunch && legacyPurchase.isAdsFree) {
+    settings.isAdsFree = true;
+  }
   if (isFirstLaunch) {
     await settingsBox.put(SettingsProvider.settingsKey, settings);
   }
 
   final settingsProvider = SettingsProvider(settings);
+  final onboardingBox = await Hive.openBox<bool>(_onboardingBoxName);
+  final showOnboarding = onboardingBox.get(_onboardingCompletedKey) != true;
   settingsProvider.refreshContentUpdateIndicators();
   await _initializeNativeNotifications(settingsProvider, isFirstLaunch);
   await _runStage('Date formatting', initializeDateFormatting);
@@ -122,14 +135,22 @@ Future<Widget> _initializeApplication(FirebaseOptions options) async {
 
   return ChangeNotifierProvider.value(
     value: settingsProvider,
-    child: WorldMovieTrailerApp(isFirstLaunch: isFirstLaunch),
+    child: WorldMovieTrailerApp(
+      isFirstLaunch: isFirstLaunch,
+      showOnboarding: showOnboarding,
+      onOnboardingComplete: () =>
+          onboardingBox.put(_onboardingCompletedKey, true),
+    ),
   );
 }
 
-void _registerHiveAdapters() {
+void _registerHiveAdapters({required bool overrideLegacySettingsAdapter}) {
   Hive
     ..registerAdapter(MovieAdapter())
-    ..registerAdapter(SettingsAdapter())
+    ..registerAdapter(
+      SettingsAdapter(),
+      override: overrideLegacySettingsAdapter,
+    )
     ..registerAdapter(QuoteAdapter())
     ..registerAdapter(MovieByUserAdapter());
 }

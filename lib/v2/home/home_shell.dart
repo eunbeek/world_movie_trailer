@@ -1069,7 +1069,10 @@ class _HomeShellState extends State<HomeShell>
   }
 
   Widget _specialTitle() {
-    final movies = _visibleMovies;
+    // While the special feed is loading, `_movies` still belongs to the
+    // previously selected section. Do not build the special heading from that
+    // stale movie (its cast/credits would flash in the title).
+    final movies = _loading ? const <Movie>[] : _visibleMovies;
     final concept = movies.isEmpty
         ? ''
         : _displayMovieField(
