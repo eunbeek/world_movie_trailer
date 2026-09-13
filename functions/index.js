@@ -41,6 +41,36 @@ const SHEET_SYNC_COUNTRIES = new Set([
 ]);
 
 /**
+ * Allows only POST requests carrying a Firebase ID token whose user has the
+ * `admin: true` custom claim. IAM should also restrict these endpoints.
+ * @param {Object} req HTTP request.
+ * @param {Object} res HTTP response.
+ * @return {Promise<boolean>} Whether the request may continue.
+ */
+async function authorizeAdminRequest(req, res) {
+  if (req.method !== "POST") {
+    res.status(405).json({success: false, error: "Use POST."});
+    return false;
+  }
+  const match = /^Bearer (.+)$/.exec(String(req.headers.authorization || ""));
+  if (!match) {
+    res.status(401).json({success: false, error: "Authentication required."});
+    return false;
+  }
+  try {
+    const token = await admin.auth().verifyIdToken(match[1], true);
+    if (token.admin !== true) {
+      res.status(403).json({success: false, error: "Administrator access required."});
+      return false;
+    }
+    return true;
+  } catch (_) {
+    res.status(401).json({success: false, error: "Invalid authentication token."});
+    return false;
+  }
+}
+
+/**
  * Creates a scheduled Sheet-to-Storage publisher.
  * @param {string} country Storage country/category key.
  * @param {string} schedule Cloud Scheduler cron expression.
@@ -66,6 +96,7 @@ function createScheduledStore(country, schedule) {
 function createTestStore(country) {
   return functions.runWith({timeoutSeconds: 540}).https.onRequest((req, res) => {
     corsHandler(req, res, async () => {
+      if (!await authorizeAdminRequest(req, res)) return;
       try {
         const published = await publishSheetMovies(country);
         res.status(200).json({
@@ -89,9 +120,6 @@ function createTestStore(country) {
  * @return {Array} At most the requested number of test items.
  */
 function limitTestItems(req, items) {
-  if (String(req.query.limit).toLowerCase() === "all") {
-    return items;
-  }
   const requestedLimit = Number.parseInt(req.query.limit, 10);
   const limit = Number.isInteger(requestedLimit) ?
     Math.min(Math.max(requestedLimit, 1), MAX_TEST_LIMIT) : DEFAULT_TEST_LIMIT;
@@ -584,6 +612,7 @@ exports.storeMovieListBoxOfficeKR = createScheduledStore("box_office_kr", "40 6 
  * @returns {Promise<void>} Sends a JSON response when the function completes.
  */
 exports.testFetchMovieListKR = functions.runWith(movieRuntimeOptions).https.onRequest(async (req, res) => {
+  if (!await authorizeAdminRequest(req, res)) return;
   try {
     const processedCount = 0;
     const startTime = Date.now();
@@ -623,6 +652,7 @@ exports.testFetchMovieListKR = functions.runWith(movieRuntimeOptions).https.onRe
  * @returns {Promise<void>} Sends a JSON response when the function completes.
  */
 exports.testFetchMovieListJP = functions.runWith(movieRuntimeOptions).https.onRequest(async (req, res) => {
+  if (!await authorizeAdminRequest(req, res)) return;
   try {
     const processedCount = 0;
     const startTime = Date.now();
@@ -660,6 +690,7 @@ exports.testFetchMovieListJP = functions.runWith(movieRuntimeOptions).https.onRe
  * @returns {Promise<void>} Sends a JSON response when the function completes.
  */
 exports.testFetchMovieListCA = functions.runWith(movieRuntimeOptions).https.onRequest(async (req, res) => {
+  if (!await authorizeAdminRequest(req, res)) return;
   try {
     const processedCount = 0;
     const startTime = Date.now();
@@ -697,6 +728,7 @@ exports.testFetchMovieListCA = functions.runWith(movieRuntimeOptions).https.onRe
  * @returns {Promise<void>} Sends a JSON response when the function completes.
  */
 exports.testFetchMovieListTW = functions.runWith(movieRuntimeOptions).https.onRequest(async (req, res) => {
+  if (!await authorizeAdminRequest(req, res)) return;
   try {
     const allMovies = await fetchMovieListFromShowTime();
     const testMovies = limitTestItems(req, allMovies);
@@ -733,6 +765,7 @@ exports.testFetchMovieListTW = functions.runWith(movieRuntimeOptions).https.onRe
  * @returns {Promise<void>} Sends a JSON response when the function completes.
  */
 exports.testFetchMovieListFR = functions.runWith(movieRuntimeOptions).https.onRequest(async (req, res) => {
+  if (!await authorizeAdminRequest(req, res)) return;
   try {
     const processedCount = 0;
     const startTime = Date.now();
@@ -770,6 +803,7 @@ exports.testFetchMovieListFR = functions.runWith(movieRuntimeOptions).https.onRe
  * @returns {Promise<void>} Sends a JSON response when the function completes.
  */
 exports.testFetchMovieListDE = functions.runWith(movieRuntimeOptions).https.onRequest(async (req, res) => {
+  if (!await authorizeAdminRequest(req, res)) return;
   try {
     const processedCount = 0;
     const startTime = Date.now();
@@ -807,6 +841,7 @@ exports.testFetchMovieListDE = functions.runWith(movieRuntimeOptions).https.onRe
  * @returns {Promise<void>} Sends a JSON response when the function completes.
  */
 exports.testFetchMovieListUS = functions.runWith(movieRuntimeOptions).https.onRequest(async (req, res) => {
+  if (!await authorizeAdminRequest(req, res)) return;
   try {
     const processedCount = 0;
     const startTime = Date.now();
@@ -844,6 +879,7 @@ exports.testFetchMovieListUS = functions.runWith(movieRuntimeOptions).https.onRe
  * @returns {Promise<void>} Sends a JSON response when the function completes.
  */
 exports.testFetchMovieListTH = functions.runWith(movieRuntimeOptions).https.onRequest(async (req, res) => {
+  if (!await authorizeAdminRequest(req, res)) return;
   try {
     const processedCount = 0;
     const startTime = Date.now();
@@ -881,6 +917,7 @@ exports.testFetchMovieListTH = functions.runWith(movieRuntimeOptions).https.onRe
  * @returns {Promise<void>} Sends a JSON response when the function completes.
  */
 exports.testFetchMovieListAU = functions.runWith(movieRuntimeOptions).https.onRequest(async (req, res) => {
+  if (!await authorizeAdminRequest(req, res)) return;
   try {
     const processedCount = 0;
     const startTime = Date.now();
@@ -918,6 +955,7 @@ exports.testFetchMovieListAU = functions.runWith(movieRuntimeOptions).https.onRe
  * @returns {Promise<void>} Sends a JSON response when the function completes.
  */
 exports.testFetchMovieListES = functions.runWith(movieRuntimeOptions).https.onRequest(async (req, res) => {
+  if (!await authorizeAdminRequest(req, res)) return;
   try {
     const processedCount = 0;
     const startTime = Date.now();
@@ -955,6 +993,7 @@ exports.testFetchMovieListES = functions.runWith(movieRuntimeOptions).https.onRe
  * @returns {Promise<void>} Sends a JSON response when the function completes.
  */
 exports.testFetchMovieListIN = functions.runWith(movieRuntimeOptions).https.onRequest(async (req, res) => {
+  if (!await authorizeAdminRequest(req, res)) return;
   try {
     const processedCount = 0;
     const startTime = Date.now();
@@ -992,6 +1031,7 @@ exports.testFetchMovieListIN = functions.runWith(movieRuntimeOptions).https.onRe
  * @returns {Promise<void>} Sends a JSON response when the function completes.
  */
 exports.testFetchMovieListCN = functions.runWith(movieRuntimeOptions).https.onRequest(async (req, res) => {
+  if (!await authorizeAdminRequest(req, res)) return;
   try {
     const processedCount = 0;
     const startTime = Date.now();
@@ -1031,6 +1071,7 @@ exports.testFetchMovieListCN = functions.runWith(movieRuntimeOptions).https.onRe
  * @returns {Promise<void>} Sends a JSON response when the function completes.
  */
 exports.testFetchMovieListSpecial = functions.runWith(movieRuntimeOptions).https.onRequest(async (req, res) => {
+  if (!await authorizeAdminRequest(req, res)) return;
   try {
     const processedCount = 0;
     const startTime = Date.now();
@@ -1087,6 +1128,7 @@ exports.testFetchMovieListSpecial = functions.runWith(movieRuntimeOptions).https
  * @returns {Promise<void>} Sends a JSON response when the function completes.
  */
 exports.testFetchQuoteListSpecial = functions.runWith(movieRuntimeOptions).https.onRequest(async (req, res) => {
+  if (!await authorizeAdminRequest(req, res)) return;
   try {
     const specialQuotes = await fetchQuotesInSpecialSection();
     const testQuotes = limitTestItems(req, specialQuotes);
@@ -1118,6 +1160,7 @@ exports.testFetchQuoteListSpecial = functions.runWith(movieRuntimeOptions).https
  * @returns {Promise<void>} Sends a JSON response when the function completes.
  */
 exports.testFetchMovieListBoxOffice = functions.runWith(movieRuntimeOptions).https.onRequest(async (req, res) => {
+  if (!await authorizeAdminRequest(req, res)) return;
   try {
     const processedCount = 0;
     const startTime = Date.now();
@@ -1153,6 +1196,7 @@ exports.testFetchMovieListBoxOffice = functions.runWith(movieRuntimeOptions).htt
  * @returns {Promise<void>} Sends the processed test result.
  */
 exports.testFetchMovieListBoxOfficeKR = functions.runWith(kobisRuntimeOptions).https.onRequest(async (req, res) => {
+  if (!await authorizeAdminRequest(req, res)) return;
   try {
     const processedCount = 0;
     const startTime = Date.now();
@@ -1205,10 +1249,7 @@ exports.testStoreMovieListBoxOfficeKR = createTestStore("box_office_kr");
  */
 exports.syncMovieSheetToStorage = functions.runWith({timeoutSeconds: 300}).https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
-    if (req.method !== "POST") {
-      res.status(405).json({success: false, error: "Use POST."});
-      return;
-    }
+    if (!await authorizeAdminRequest(req, res)) return;
     const country = String(req.body && req.body.country || req.query.country || "").trim().toLowerCase();
     if (!SHEET_SYNC_COUNTRIES.has(country)) {
       res.status(400).json({success: false, error: "Unsupported country or category."});
@@ -1280,9 +1321,16 @@ exports.readMovieListByCountry = functions.https.onRequest((req, res) => {
    */
 exports.updatePromotionUrl = functions.https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
+    if (!await authorizeAdminRequest(req, res)) return;
     const {newUrl} = req.body;
 
-    if (!newUrl) {
+    let promotionUrl;
+    try {
+      promotionUrl = new URL(String(newUrl));
+    } catch (_) {
+      return res.status(400).json({success: false, message: "Invalid URL."});
+    }
+    if (promotionUrl.protocol !== "https:" || String(newUrl).length > 2048) {
       return res.status(400).json({success: false, message: "Missing required parameters."});
     }
 
@@ -1328,6 +1376,7 @@ exports.readPromotionUrl = functions.https.onRequest((req, res) => {
 
 exports.updateHotFixMode = functions.https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
+    if (!await authorizeAdminRequest(req, res)) return;
     const {hotFixMode} = req.body;
 
     if (typeof hotFixMode !== "boolean") {

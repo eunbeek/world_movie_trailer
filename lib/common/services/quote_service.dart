@@ -6,12 +6,14 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 
 class QuoteService {
+  static const _networkTimeout = Duration(seconds: 20);
   static Future<List<int>> _readQuotesBytes() async {
     if (!kIsWeb) {
       final data = await FirebaseStorage.instance
           .ref()
           .child('quotes_special.json')
-          .getData();
+          .getData()
+          .timeout(_networkTimeout);
       if (data == null) throw StateError('quotes_special.json is empty');
       return data;
     }
@@ -19,7 +21,7 @@ class QuoteService {
         'firebasestorage.googleapis.com',
         '/v0/b/world-movie-trailer-v2.firebasestorage.app/o/quotes_special.json',
         {'alt': 'media'});
-    final response = await http.get(uri);
+    final response = await http.get(uri).timeout(_networkTimeout);
     if (response.statusCode != 200) {
       throw StateError('Quotes Storage HTTP ${response.statusCode}');
     }

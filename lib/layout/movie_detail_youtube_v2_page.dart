@@ -18,6 +18,7 @@ import 'package:world_movie_trailer/model/movieByUser.dart';
 import 'package:world_movie_trailer/layout/widgets/tmdb_credit_info.dart';
 import 'package:world_movie_trailer/layout/widgets/detail_country_localization.dart';
 import 'package:world_movie_trailer/layout/widgets/detail_asset_icon.dart';
+import 'package:world_movie_trailer/layout/widgets/trailer_share_text.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 class MovieDetailPageYouTube extends StatefulWidget {
@@ -242,7 +243,10 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
       'movie': widget.movie.localTitle,
     });
     Share.share(
-      'https://www.youtube.com/watch?v=${widget.movie.trailerUrl}',
+      buildTrailerShareText(
+        title: _title,
+        trailerId: widget.movie.trailerUrl,
+      ),
       subject: 'Share $_title Movie Trailer',
       sharePositionOrigin: Rect.fromLTWH(
         0,
@@ -432,7 +436,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
             ),
             const SizedBox(width: 42),
             _action(
-              icon: DetailAssetIcon(name: 'translate', active: _showOriginal),
+              icon: DetailAssetIcon(name: 'translate', active: !_showOriginal),
               label: getMenuItemTitle(
                 _settings.language,
                 _showOriginal ? 'Translate' : 'Original',

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -56,12 +58,16 @@ class _WorldMovieTrailerAppState extends State<WorldMovieTrailerApp>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) hideAndroidNavigationBar();
+    if (state == AppLifecycleState.resumed) {
+      hideAndroidNavigationBar();
+      context.read<SettingsProvider>().refreshTranslationAccess();
+    }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    unawaited(IapHelper.dispose());
     super.dispose();
   }
 
@@ -80,12 +86,17 @@ class _WorldMovieTrailerAppState extends State<WorldMovieTrailerApp>
 
   @override
   Widget build(BuildContext context) {
-    final settings = context.watch<SettingsProvider>();
+    final isDarkTheme = context.select<SettingsProvider, bool>(
+      (settings) => settings.isDarkTheme,
+    );
+    final language = context.select<SettingsProvider, String>(
+      (settings) => settings.language,
+    );
     return MaterialApp(
       title: appTitle,
       scaffoldMessengerKey: scaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
-      themeMode: settings.isDarkTheme ? ThemeMode.dark : ThemeMode.light,
+      themeMode: isDarkTheme ? ThemeMode.dark : ThemeMode.light,
       theme: _theme(Brightness.light),
       darkTheme: _theme(Brightness.dark),
       builder: (context, child) => MainTextScaleCap(
@@ -114,7 +125,7 @@ class _WorldMovieTrailerAppState extends State<WorldMovieTrailerApp>
       ),
       home: _showOnboarding
           ? OnboardingPage(
-              language: settings.language,
+              language: language,
               onComplete: _completeOnboarding,
             )
           : HomeShell(onInitialLoadComplete: _markHomeReady),

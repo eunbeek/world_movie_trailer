@@ -41,13 +41,15 @@ class SettingsAdapter extends TypeAdapter<Settings> {
       translationAdAccessUntil: fields[19] as DateTime?,
       hasUsedFreeTranslation: fields[20] as bool?,
       showTranslatedContent: fields[21] as bool?,
+      freeTranslationAccessUntil: fields[22] as DateTime?,
+      hasShownTranslationButtonHint: fields[23] as bool?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Settings obj) {
     writer
-      ..writeByte(22)
+      ..writeByte(24)
       ..writeByte(0)
       ..write(obj.language)
       ..writeByte(1)
@@ -91,7 +93,11 @@ class SettingsAdapter extends TypeAdapter<Settings> {
       ..writeByte(20)
       ..write(obj.hasUsedFreeTranslation)
       ..writeByte(21)
-      ..write(obj.showTranslatedContent);
+      ..write(obj.showTranslatedContent)
+      ..writeByte(22)
+      ..write(obj.freeTranslationAccessUntil)
+      ..writeByte(23)
+      ..write(obj.hasShownTranslationButtonHint);
   }
 
   @override

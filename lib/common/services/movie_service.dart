@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 
 class MovieService {
+  static const _networkTimeout = Duration(seconds: 20);
   static const String _webStorageBucket =
       'world-movie-trailer-v2.firebasestorage.app';
   static const String _movieCacheVersion = 'v3';
@@ -15,7 +16,7 @@ class MovieService {
   static Future<List<int>> _readStorageObject(String fileName) async {
     if (!kIsWeb) {
       final ref = FirebaseStorage.instance.ref().child(fileName);
-      final data = await ref.getData();
+      final data = await ref.getData().timeout(_networkTimeout);
       if (data == null) throw StateError('Storage object is empty: $fileName');
       return data;
     }
@@ -26,7 +27,7 @@ class MovieService {
       // from reviving an older Storage response after a failed publish.
       'v': DateTime.now().millisecondsSinceEpoch.toString(),
     });
-    final response = await http.get(uri);
+    final response = await http.get(uri).timeout(_networkTimeout);
     if (response.statusCode != 200) {
       throw StateError('Storage HTTP ${response.statusCode}: $fileName');
     }

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:world_movie_trailer/common/ad_helper.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
+import 'package:world_movie_trailer/common/ad_manager/ad_consent_manager.dart';
 
 class RewardedTranslationAdManager {
   const RewardedTranslationAdManager._();
@@ -14,7 +15,11 @@ class RewardedTranslationAdManager {
 
   /// Starts loading the next rewarded ad without blocking app startup.
   static Future<void> preload() {
-    if (kIsWeb || _cachedAd != null) return Future.value();
+    if (kIsWeb ||
+        !AdConsentManager.instance.canRequestAds ||
+        _cachedAd != null) {
+      return Future.value();
+    }
     final existingLoad = _loading;
     if (existingLoad != null) return existingLoad;
 

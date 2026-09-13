@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -6,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:world_movie_trailer/common/background.dart';
 import 'package:world_movie_trailer/common/log_helper.dart';
 import 'package:world_movie_trailer/v2/home/special_period_schedule.dart';
+import 'package:world_movie_trailer/v2/home/translation_button_visibility.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
 import 'package:world_movie_trailer/common/premium_translation_prompt.dart';
 import 'package:world_movie_trailer/common/services/movie_by_user_service.dart';
@@ -190,8 +193,7 @@ class HomeShell extends StatefulWidget {
   State<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell>
-    with SingleTickerProviderStateMixin {
+class _HomeShellState extends State<HomeShell> with TickerProviderStateMixin {
   static const double _desktopBreakpoint = 1040;
   static const _defaultCountryByLanguage = <String, String>{
     'en': 'us',
@@ -240,6 +242,10 @@ class _HomeShellState extends State<HomeShell>
   late final ScrollController _countryScrollController;
   bool _editingCountryOrder = false;
   late final AnimationController _countryJiggleController;
+  late final AnimationController _translationHintController;
+  bool _translationSwitchWasVisible = false;
+  bool _translationHintScheduled = false;
+  int _loadRequestId = 0;
 
   @override
   void initState() {
@@ -248,6 +254,10 @@ class _HomeShellState extends State<HomeShell>
     _countryJiggleController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 150),
+    );
+    _translationHintController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _load();
@@ -258,6 +268,7 @@ class _HomeShellState extends State<HomeShell>
   void dispose() {
     _countryScrollController.dispose();
     _countryJiggleController.dispose();
+    _translationHintController.dispose();
     super.dispose();
   }
 
@@ -299,6 +310,47 @@ class _HomeShellState extends State<HomeShell>
   String get _contentLanguage {
     if (!_showEnglish) return '_origin';
     return context.read<SettingsProvider>().language;
+  }
+
+  bool _shouldShowTranslationSwitch(String selectedLanguage) {
+    if (_section == 2) {
+      return shouldShowTranslationForSources(
+        selectedLanguage: selectedLanguage,
+        sources: _bookmarks.map((bookmark) => bookmark.sourceFeedCode),
+      );
+    }
+    final source = switch (_section) {
+      0 => _countryCode,
+      1 => _boxOfficeCode,
+      3 => 'special',
+      4 => 'quotes',
+      _ => null,
+    };
+    return shouldShowTranslationForSources(
+      selectedLanguage: selectedLanguage,
+      sources: [source],
+    );
+  }
+
+  void _updateTranslationHint(
+    bool visible,
+    SettingsProvider settings,
+  ) {
+    if (!visible) {
+      _translationSwitchWasVisible = false;
+      return;
+    }
+    if (_translationSwitchWasVisible) return;
+    _translationSwitchWasVisible = true;
+    if (settings.hasShownTranslationButtonHint || _translationHintScheduled) {
+      return;
+    }
+    _translationHintScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      settings.markTranslationButtonHintShown();
+      _translationHintController.forward(from: 0);
+    });
   }
 
   String _displayMovieField(Movie movie, String field, String fallback) {
@@ -402,36 +454,48 @@ class _HomeShellState extends State<HomeShell>
 
   Future<void> _load({bool forceRefresh = false}) async {
     if (!mounted) return;
+    final requestId = ++_loadRequestId;
+    final requestedSection = _section;
+    final requestedLanguage = _contentLanguage;
+    final requestedCode = requestedSection == 1
+        ? _boxOfficeCode
+        : requestedSection == 3
+            ? special
+            : _countryCode;
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      if (_section == 2) {
-        _bookmarks = await MovieByUserService.getBookmarks();
-      } else if (_section == 4) {
-        _quotes = await QuoteService.fetchQuote();
+      if (requestedSection == 2) {
+        final bookmarks = await MovieByUserService.getBookmarks();
+        if (!mounted || requestId != _loadRequestId) return;
+        _bookmarks = bookmarks;
+      } else if (requestedSection == 4) {
+        final quotes = await QuoteService.fetchQuote();
+        if (!mounted || requestId != _loadRequestId) return;
+        _quotes = quotes;
       } else {
-        final code = _section == 1
-            ? _boxOfficeCode
-            : _section == 3
-                ? special
-                : _countryCode;
-        _movies = await MovieService.fetchMovieByCode(
-          code,
-          _contentLanguage,
+        final movies = await MovieService.fetchMovieByCode(
+          requestedCode,
+          requestedLanguage,
           forceRefresh: forceRefresh,
         );
+        if (!mounted || requestId != _loadRequestId) return;
+        _movies = movies;
       }
     } catch (error) {
-      if (_section == 4) {
+      if (!mounted || requestId != _loadRequestId) return;
+      if (requestedSection == 4) {
         try {
-          _section = FeaturedSectionRotation.specialSection;
-          _movies = await MovieService.fetchMovieByCode(
+          final movies = await MovieService.fetchMovieByCode(
             special,
-            _contentLanguage,
+            requestedLanguage,
             forceRefresh: forceRefresh,
           );
+          if (!mounted || requestId != _loadRequestId) return;
+          _section = FeaturedSectionRotation.specialSection;
+          _movies = movies;
           _error = null;
         } catch (fallbackError) {
           _error = fallbackError;
@@ -440,7 +504,7 @@ class _HomeShellState extends State<HomeShell>
         _error = error;
       }
     }
-    if (mounted) {
+    if (mounted && requestId == _loadRequestId) {
       setState(() => _loading = false);
       if (!_initialLoadReported) {
         _initialLoadReported = true;
@@ -625,7 +689,10 @@ class _HomeShellState extends State<HomeShell>
 
   @override
   Widget build(BuildContext context) {
-    final language = context.watch<SettingsProvider>().language;
+    final settings = context.watch<SettingsProvider>();
+    final language = settings.language;
+    final showTranslationSwitch = _shouldShowTranslationSwitch(language);
+    _updateTranslationHint(showTranslationSwitch, settings);
     final navigation = _navigationLabels[language] ?? _navigationLabels['en']!;
     final compact = MediaQuery.sizeOf(context).width < _desktopBreakpoint;
     return Scaffold(
@@ -657,6 +724,8 @@ class _HomeShellState extends State<HomeShell>
                     _section != 4 &&
                     _currentPlaylistMovies.isNotEmpty,
                 onPlay: _openPlaylist,
+                showLanguageSwitch: showTranslationSwitch,
+                translationHintAnimation: _translationHintController,
                 showEnglish: _showEnglish,
                 onLanguageChanged: (value) async {
                   final settings = context.read<SettingsProvider>();
@@ -1001,35 +1070,46 @@ class _HomeShellState extends State<HomeShell>
                       index, context.read<SettingsProvider>().language))
               .asMap()
               .entries
-              .map((entry) => TextButton(
-                    style: TextButton.styleFrom(
-                      minimumSize: const Size(0, 36),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    onPressed: () async {
-                      if (entry.key == 2 && !await _ensureRewardedAccess()) {
-                        return;
-                      }
-                      if (mounted) {
-                        setState(() => _movieFilter = entry.key);
-                        LogHelper().logEvent(
-                          'movie_filter_selected',
-                          parameters: {'filter': entry.key},
-                        );
-                      }
-                    },
-                    child: _selectionTabLabel(
-                      entry.value,
-                      _movieFilter == entry.key,
+              .map((entry) => Expanded(
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        minimumSize: const Size(0, 36),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () async {
+                        if (entry.key == 2 && !await _ensureRewardedAccess()) {
+                          return;
+                        }
+                        if (mounted) {
+                          setState(() => _movieFilter = entry.key);
+                          LogHelper().logEvent(
+                            'movie_filter_selected',
+                            parameters: {'filter': entry.key},
+                          );
+                        }
+                      },
+                      child: _selectionTabLabel(
+                        entry.value,
+                        _movieFilter == entry.key,
+                        fitToAvailableWidth: true,
+                      ),
                     ),
                   ))
               .toList(),
         ),
       );
 
-  Widget _selectionTabLabel(String label, bool selected) =>
-      SelectionTabLabel(label: label, selected: selected);
+  Widget _selectionTabLabel(
+    String label,
+    bool selected, {
+    bool fitToAvailableWidth = false,
+  }) =>
+      SelectionTabLabel(
+        label: label,
+        selected: selected,
+        fitToAvailableWidth: fitToAvailableWidth,
+      );
 
   Widget _weekTitle() {
     final first = _movies.isEmpty ? null : _movies.first;
@@ -2025,6 +2105,8 @@ class _Header extends StatelessWidget {
     required this.playUnavailableLabel,
     required this.playEnabled,
     required this.onPlay,
+    required this.showLanguageSwitch,
+    required this.translationHintAnimation,
     required this.showEnglish,
     required this.onLanguageChanged,
     required this.onSettings,
@@ -2042,6 +2124,8 @@ class _Header extends StatelessWidget {
   final String playUnavailableLabel;
   final bool playEnabled;
   final VoidCallback onPlay;
+  final bool showLanguageSwitch;
+  final Animation<double> translationHintAnimation;
   final bool showEnglish;
   final ValueChanged<bool> onLanguageChanged;
   final VoidCallback onSettings;
@@ -2106,7 +2190,7 @@ class _Header extends StatelessWidget {
                     _playButton(context),
                   ],
                   const SizedBox(width: 10),
-                  _languageSwitch(context),
+                  if (showLanguageSwitch) _animatedLanguageSwitch(context),
                   _settingsButton(context),
                 ],
               ),
@@ -2117,7 +2201,7 @@ class _Header extends StatelessWidget {
               _playButton(context, compact: true),
               const SizedBox(width: 6),
             ],
-            _languageSwitch(context),
+            if (showLanguageSwitch) _animatedLanguageSwitch(context),
             _settingsButton(context),
           ],
         ],
@@ -2188,8 +2272,8 @@ class _Header extends StatelessWidget {
     final desktop = MediaQuery.sizeOf(context).width >= 1040;
     return Container(
       width: desktop ? 150 : 124,
-      height: 34,
-      padding: const EdgeInsets.all(2),
+      height: 36,
+      padding: const EdgeInsets.all(1),
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark
             ? const Color(0xFF55545A)
@@ -2197,7 +2281,7 @@ class _Header extends StatelessWidget {
         border: Border.all(
           color: const Color(0xFF9D00C6).withValues(alpha: .55),
         ),
-        borderRadius: BorderRadius.circular(19),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         children: [
@@ -2218,6 +2302,17 @@ class _Header extends StatelessWidget {
     );
   }
 
+  Widget _animatedLanguageSwitch(BuildContext context) => AnimatedBuilder(
+        animation: translationHintAnimation,
+        child: _languageSwitch(context),
+        builder: (context, child) {
+          final progress = translationHintAnimation.value;
+          final opacity =
+              .35 + .65 * ((math.cos(progress * math.pi * 4) + 1) / 2);
+          return Opacity(opacity: opacity, child: child);
+        },
+      );
+
   Widget _languageSwitchItem({
     required BuildContext context,
     required String label,
@@ -2230,14 +2325,14 @@ class _Header extends StatelessWidget {
           selected: selected,
           child: InkWell(
             onTap: selected ? null : onTap,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(18),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 220),
               curve: Curves.easeOut,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 gradient: selected ? _navigationGradient : null,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(18),
                 boxShadow: selected
                     ? const [
                         BoxShadow(
@@ -2259,7 +2354,7 @@ class _Header extends StatelessWidget {
                           .colorScheme
                           .onSurface
                           .withValues(alpha: .72),
-                  fontSize: 11,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.w700,
                 ),
               ),

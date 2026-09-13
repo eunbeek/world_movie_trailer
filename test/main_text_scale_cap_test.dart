@@ -17,10 +17,10 @@ void main() {
         ),
       );
 
-  testWidgets('native main screen allows scaling only up to 1.2',
+  testWidgets('native text stays at 1.0 for every system font size',
       (tester) async {
     for (final scenario
-        in {0.8: 8.0, 1.0: 10.0, 1.2: 12.0, 2.0: 12.0, 3.0: 12.0}.entries) {
+        in {0.8: 10.0, 1.0: 10.0, 1.2: 10.0, 2.0: 10.0, 3.0: 10.0}.entries) {
       await tester.pumpWidget(subject(scenario.key));
       expect(find.text('${scenario.value}'), findsOneWidget,
           reason: 'system scale ${scenario.key}');

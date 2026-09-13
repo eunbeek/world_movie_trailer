@@ -1,4 +1,5 @@
 import 'dart:io' show Platform;
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +10,7 @@ import 'package:world_movie_trailer/common/translate.dart';
 class IapHelper {
   static final _iap = InAppPurchase.instance;
   static bool _isPending = false;
+  static StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
 
   static String get _productId => Platform.isIOS
       ? 'com.sunnyinnolab.worldMovieTrailer.ads_free'
@@ -25,7 +27,7 @@ class IapHelper {
   static Future<void> fetchProductPrice() async {
     final response = await _iap.queryProductDetails({_productId});
 
-    if (response.notFoundIDs.isNotEmpty) {
+    if (response.error != null || response.productDetails.isEmpty) {
       debugPrint("Product not found: $_productId");
       return;
     }
@@ -47,8 +49,13 @@ class IapHelper {
     }
 
     final response = await _iap.queryProductDetails({_productId});
-    if (response.notFoundIDs.isNotEmpty) {
+    if (response.error != null || response.productDetails.isEmpty) {
       debugPrint("Product not found: $_productId");
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content:
+                Text(getDonationLabel(settingsProvider.language, "retry"))));
+      }
       return;
     }
 
@@ -68,8 +75,11 @@ class IapHelper {
         'reason': e.toString(),
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(getDonationLabel(settingsProvider.language, "retry"))));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content:
+                Text(getDonationLabel(settingsProvider.language, "retry"))));
+      }
     }
   }
 
@@ -84,7 +94,8 @@ class IapHelper {
   }
 
   static void listenToPurchases(BuildContext context) {
-    _iap.purchaseStream.listen((purchases) async {
+    _purchaseSubscription?.cancel();
+    _purchaseSubscription = _iap.purchaseStream.listen((purchases) async {
       final settingsProvider =
           Provider.of<SettingsProvider>(context, listen: false);
 
@@ -99,11 +110,6 @@ class IapHelper {
       for (var purchase in purchases) {
         if (purchase.productID != _productId) continue;
 
-        if (purchase.pendingCompletePurchase) {
-          debugPrint('🔁 기존 미완료 트랜잭션 발견 → 완료 처리 시도');
-          await _iap.completePurchase(purchase);
-        }
-
         switch (purchase.status) {
           case PurchaseStatus.pending:
             _isPending = true;
@@ -111,7 +117,7 @@ class IapHelper {
 
           case PurchaseStatus.purchased:
             _isPending = false;
-            settingsProvider.updateIsAdsFree(true);
+            await settingsProvider.updateIsAdsFree(true);
             LogHelper().logEvent('pay_completed', parameters: {
               'product_id': _productId,
               'price': _price,
@@ -121,7 +127,7 @@ class IapHelper {
 
           case PurchaseStatus.restored:
             _isPending = false;
-            settingsProvider.updateIsAdsFree(true);
+            await settingsProvider.updateIsAdsFree(true);
             LogHelper().logEvent('restore_completed', parameters: {
               'product_id': _productId,
             });
@@ -144,7 +150,19 @@ class IapHelper {
             _isPending = false;
             break;
         }
+
+        // Complete only after the entitlement has been handled and persisted.
+        if (purchase.pendingCompletePurchase &&
+            (purchase.status == PurchaseStatus.purchased ||
+                purchase.status == PurchaseStatus.restored)) {
+          await _iap.completePurchase(purchase);
+        }
       }
     });
+  }
+
+  static Future<void> dispose() async {
+    await _purchaseSubscription?.cancel();
+    _purchaseSubscription = null;
   }
 }

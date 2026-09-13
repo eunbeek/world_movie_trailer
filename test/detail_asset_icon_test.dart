@@ -15,16 +15,18 @@ void main() {
           ));
           await tester.pumpAndSettle();
           final image = tester.widget<Image>(find.byType(Image));
+          final dark = brightness == Brightness.dark;
+          final themeCode = dark ? 'DT' : 'LT';
+          final state = active ? 'on' : 'off';
+          final assetName = name == 'bookmark'
+              ? 'icon_bookmark02_${state}_${themeCode}_xxhdpi.png'
+              : 'icon_translate_${state}_${themeCode}_xxhdpi.png';
           expect((image.image as AssetImage).assetName,
-              'assets/images/v2/${name}_inactive.png');
-          expect(
-              image.color,
-              (brightness == Brightness.dark
-                      ? Colors.white
-                      : theme.colorScheme.onSurface)
-                  .withValues(alpha: active ? 1 : 0.4));
-          expect(image.width, 29);
-          expect(image.height, 29);
+              'assets/images/${dark ? 'dark' : 'light'}/$assetName');
+          expect(image.width, 32);
+          expect(image.height, 32);
+          expect(image.color, isNull);
+          expect(find.byType(ShaderMask), findsNothing);
           expect(tester.takeException(), isNull);
         }
       }

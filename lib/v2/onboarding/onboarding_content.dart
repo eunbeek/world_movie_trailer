@@ -15,201 +15,192 @@ class OnboardingCopy {
 const onboardingCopies = <String, List<OnboardingCopy>>{
   'ko': [
     OnboardingCopy(
-      title: '국가 순서도\n내 마음대로',
-      description: '국가를 길게 누른 뒤 원하는 위치로 옮겨 순서를 변경하세요.',
+      title: '국가 순서 변경',
+      description: '국가를 길게 눌러 원하는 위치로 드래그하세요.',
       icon: Icons.drag_indicator_rounded,
     ),
     OnboardingCopy(
-      title: '원하는 언어로\n바로 번역',
-      description: '한국어와 원본을 버튼 하나로 간편하게 전환하세요.',
+      title: '내 언어로 번역',
+      description: '탭하여 원문과 번역문을 자유롭게 전환하세요.',
       icon: Icons.translate_rounded,
     ),
     OnboardingCopy(
-      title: '예고편을 연속으로\n자동 재생',
-      description: '재생이 끝나면 다음 예고편이 자동으로 이어져 끊김 없이 감상할 수 있어요.',
+      title: '예고편 연속 재생',
+      description: '다음 예고편이 자동으로 연속 재생됩니다.',
       icon: Icons.play_circle_fill_rounded,
     ),
     OnboardingCopy(
-      title: '스와이프로\n다음 영화 예고편',
-      description: '상세 화면에서 좌우로 스와이프하여 이전·다음 영화 예고편을 빠르게 탐색하세요.',
+      title: '스와이프하여 다음 영화 페이지로 이동',
+      description: '좌우로 스와이프하여 영화를 쉽게 탐색하세요.',
       icon: Icons.swipe_rounded,
     ),
   ],
   'en': [
     OnboardingCopy(
-        title: 'Countries in\nyour order',
-        description: 'Long-press a country and move it wherever you want.',
+        title: 'Reorder Countries',
+        description: 'Touch and hold a country to drag it anywhere.',
         icon: Icons.drag_indicator_rounded),
     OnboardingCopy(
-        title: 'Translate to\nyour language',
-        description:
-            'Switch between your language and the original with one tap.',
+        title: 'Translate to My Language',
+        description: 'Tap to switch between original and translated text.',
         icon: Icons.translate_rounded),
     OnboardingCopy(
-        title: 'Autoplay trailers\ncontinuously',
-        description: 'When one trailer ends, the next starts automatically.',
+        title: 'Continuous Autoplay',
+        description: 'Autoplay the next trailer automatically.',
         icon: Icons.play_circle_fill_rounded),
     OnboardingCopy(
-        title: 'Swipe to the next\nmovie trailer',
-        description:
-            'Swipe on the detail screen to browse the previous or next movie trailer.',
+        title: 'Swipe for Next Movie Page',
+        description: 'Swipe left or right to switch movies easily.',
         icon: Icons.swipe_rounded),
   ],
   'ja': [
     OnboardingCopy(
-        title: '国の順番を\n自由に変更',
-        description: '国を長押しして、好きな位置へ移動できます。',
+        title: '国の順序を変更',
+        description: '国を長押しして好きな位置へドラッグします。',
         icon: Icons.drag_indicator_rounded),
     OnboardingCopy(
-        title: '好きな言語に\nすぐ翻訳',
-        description: '翻訳と原文をボタンひとつで簡単に切り替えられます。',
+        title: '自分の言語に翻訳',
+        description: 'タップで原文と翻訳を切り替えます。',
         icon: Icons.translate_rounded),
     OnboardingCopy(
-        title: '予告編を自動で\n連続再生',
-        description: '再生が終わると、次の予告編が自動で始まります。',
+        title: '予告編の連続再生',
+        description: '次の予告編が自動で再生されます。',
         icon: Icons.play_circle_fill_rounded),
     OnboardingCopy(
-        title: 'スワイプで次の\n映画予告編へ',
-        description: '詳細画面を左右にスワイプして、前後の映画予告編をすばやく確認できます。',
+        title: 'スワイプで次の映画ページへ',
+        description: '左右にスワイプして簡単に映画を切り替えます。',
         icon: Icons.swipe_rounded),
   ],
   'zh': [
     OnboardingCopy(
-        title: '自定义国家\n顺序',
-        description: '长按国家并将其移动到想要的位置。',
+        title: '调整国家顺序',
+        description: '长按国家并拖动到任意位置。',
         icon: Icons.drag_indicator_rounded),
     OnboardingCopy(
-        title: '即时翻译为\n所选语言',
-        description: '轻点按钮，即可在翻译和原文之间切换。',
+        title: '翻译为我的语言',
+        description: '点击在原文和翻译之间切换。',
         icon: Icons.translate_rounded),
     OnboardingCopy(
-        title: '自动连续播放\n预告片',
-        description: '当前预告片结束后，下一部将自动播放。',
+        title: '连续自动播放',
+        description: '自动播放下一部预告片。',
         icon: Icons.play_circle_fill_rounded),
     OnboardingCopy(
-        title: '滑动查看下一部\n电影预告片',
-        description: '在详情页左右滑动，快速浏览上一部或下一部电影预告片。',
+        title: '滑动前往下一个电影页面',
+        description: '左右滑动即可轻松切换电影。',
         icon: Icons.swipe_rounded),
   ],
   'tw': [
     OnboardingCopy(
-        title: '自訂國家\n順序',
-        description: '長按國家並將它移動到想要的位置。',
+        title: '調整國家順序',
+        description: '長按國家並拖動至任意位置。',
         icon: Icons.drag_indicator_rounded),
     OnboardingCopy(
-        title: '即時翻譯為\n所選語言',
-        description: '輕觸按鈕，即可在翻譯與原文之間切換。',
+        title: '翻譯為我的語言',
+        description: '點擊在原文和翻譯之間切換。',
         icon: Icons.translate_rounded),
     OnboardingCopy(
-        title: '自動連續播放\n預告片',
-        description: '目前預告片結束後，下一部會自動播放。',
+        title: '連續自動播放',
+        description: '自動播放下一部預告片。',
         icon: Icons.play_circle_fill_rounded),
     OnboardingCopy(
-        title: '滑動查看下一部\n電影預告片',
-        description: '在詳細頁左右滑動，快速瀏覽上一部或下一部電影預告片。',
+        title: '滑動前往下一個電影頁面',
+        description: '左右滑動即可輕鬆切換電影。',
         icon: Icons.swipe_rounded),
   ],
   'fr': [
     OnboardingCopy(
-        title: 'Classez les pays\nà votre façon',
-        description: 'Maintenez un pays appuyé et déplacez-le où vous voulez.',
+        title: 'Réorganiser les pays',
+        description: 'Appuyez longuement sur un pays pour le faire glisser.',
         icon: Icons.drag_indicator_rounded),
     OnboardingCopy(
-        title: 'Traduisez dans\nvotre langue',
-        description: 'Passez de la traduction au texte original en un geste.',
+        title: 'Traduire dans ma langue',
+        description: 'Appuyez pour basculer entre texte original et traduit.',
         icon: Icons.translate_rounded),
     OnboardingCopy(
-        title: 'Lecture automatique\ndes bandes-annonces',
-        description:
-            'À la fin d’une bande-annonce, la suivante démarre automatiquement.',
+        title: 'Lecture en continu',
+        description: 'Lecture automatique de la bande-annonce suivante.',
         icon: Icons.play_circle_fill_rounded),
     OnboardingCopy(
-        title: 'Balayez vers la\nbande-annonce suivante',
+        title: 'Balayer pour la page du film suivant',
         description:
-            'Balayez la fiche pour voir rapidement la bande-annonce précédente ou suivante.',
+            'Balayez vers la gauche ou la droite pour changer de film.',
         icon: Icons.swipe_rounded),
   ],
   'de': [
     OnboardingCopy(
-        title: 'Länder nach Wunsch\nsortieren',
-        description:
-            'Halte ein Land gedrückt und verschiebe es an die gewünschte Position.',
+        title: 'Reihenfolge der Länder ändern',
+        description: 'Drücken und halten Sie ein Land, um es zu verschieben.',
         icon: Icons.drag_indicator_rounded),
     OnboardingCopy(
-        title: 'Direkt in deine Sprache\nübersetzen',
+        title: 'In meine Sprache übersetzen',
         description:
-            'Wechsle mit einem Tippen zwischen Übersetzung und Original.',
+            'Tippen Sie, um zwischen Original und Übersetzung zu wechseln.',
         icon: Icons.translate_rounded),
     OnboardingCopy(
-        title: 'Trailer automatisch\nweiterspielen',
-        description: 'Nach einem Trailer startet der nächste automatisch.',
+        title: 'Automatische Dauerausgabe',
+        description: 'Spielt den nächsten Trailer automatisch ab.',
         icon: Icons.play_circle_fill_rounded),
     OnboardingCopy(
-        title: 'Zum nächsten Filmtrailer\nwischen',
+        title: 'Wischen zur nächsten Filmseite',
         description:
-            'Wische auf der Detailseite zum vorherigen oder nächsten Filmtrailer.',
+            'Wischen Sie nach links oder rechts, um Filme zu wechseln.',
         icon: Icons.swipe_rounded),
   ],
   'es': [
     OnboardingCopy(
-        title: 'Ordena los países\na tu gusto',
-        description:
-            'Mantén pulsado un país y muévelo a la posición que quieras.',
+        title: 'Reordenar países',
+        description: 'Mantén presionado un país para arrastrarlo.',
         icon: Icons.drag_indicator_rounded),
     OnboardingCopy(
-        title: 'Traduce a tu idioma\nal instante',
+        title: 'Traducir a mi idioma',
         description:
-            'Cambia entre la traducción y el original con un solo toque.',
+            'Toca para alternar entre el texto original y el traducido.',
         icon: Icons.translate_rounded),
     OnboardingCopy(
-        title: 'Reproducción continua\nde tráilers',
-        description:
-            'Cuando termina un tráiler, el siguiente comienza automáticamente.',
+        title: 'Reproducción continua',
+        description: 'Reproduce automáticamente el siguiente tráiler.',
         icon: Icons.play_circle_fill_rounded),
     OnboardingCopy(
-        title: 'Desliza al siguiente\ntráiler',
+        title: 'Desliza para la página de la siguiente película',
         description:
-            'Desliza en la ficha para ver rápidamente el tráiler anterior o siguiente.',
+            'Desliza a la izquierda o derecha para cambiar de película.',
         icon: Icons.swipe_rounded),
   ],
   'hi': [
     OnboardingCopy(
-        title: 'देशों का क्रम\nअपने हिसाब से',
-        description: 'किसी देश को देर तक दबाएँ और मनचाही जगह पर ले जाएँ।',
+        title: 'देशों का क्रम बदलें',
+        description: 'किसी देश पर लंबा दबाएं और उसे कहीं भी खींचें।',
         icon: Icons.drag_indicator_rounded),
     OnboardingCopy(
-        title: 'अपनी भाषा में\nतुरंत अनुवाद',
-        description: 'एक टैप में अनुवाद और मूल भाषा के बीच बदलें।',
+        title: 'मेरी भाषा में अनुवाद करें',
+        description: 'मूल और अनुवादित पाठ के बीच स्विच करने के लिए टैप करें।',
         icon: Icons.translate_rounded),
     OnboardingCopy(
-        title: 'ट्रेलर लगातार\nअपने आप चलें',
-        description:
-            'एक ट्रेलर खत्म होते ही अगला ट्रेलर अपने आप शुरू हो जाएगा।',
+        title: 'लगातार ऑटोप्ले',
+        description: 'अगला ट्रेलर स्वचालित रूप से चलाएं।',
         icon: Icons.play_circle_fill_rounded),
     OnboardingCopy(
-        title: 'अगले फ़िल्म ट्रेलर के लिए\nस्वाइप करें',
+        title: 'अगले फिल्म पेज के लिए स्वाइप करें',
         description:
-            'पिछला या अगला फ़िल्म ट्रेलर देखने के लिए विवरण स्क्रीन पर स्वाइप करें।',
+            'फिल्मों को आसानी से बदलने के लिए बाएं या दाएं स्वाइप करें।',
         icon: Icons.swipe_rounded),
   ],
   'th': [
     OnboardingCopy(
-        title: 'จัดลำดับประเทศ\nได้ตามใจ',
-        description: 'กดประเทศค้างไว้แล้วเลื่อนไปยังตำแหน่งที่ต้องการ',
+        title: 'จัดเรียงลำดับประเทศ',
+        description: 'แตะค้างที่ประเทศแล้วลากไปที่ใดก็ได้',
         icon: Icons.drag_indicator_rounded),
     OnboardingCopy(
-        title: 'แปลเป็นภาษาที่ต้องการ\nทันที',
-        description: 'สลับระหว่างคำแปลและต้นฉบับได้ด้วยการแตะเพียงครั้งเดียว',
+        title: 'แปลเป็นภาษาของฉัน',
+        description: 'แตะเพื่อสลับระหว่างข้อความต้นฉบับและข้อความแปล',
         icon: Icons.translate_rounded),
     OnboardingCopy(
-        title: 'เล่นตัวอย่างต่อเนื่อง\nอัตโนมัติ',
-        description:
-            'เมื่อตัวอย่างหนึ่งจบ ตัวอย่างถัดไปจะเริ่มเล่นโดยอัตโนมัติ',
+        title: 'เล่นตัวอย่างต่อเนื่อง',
+        description: 'เล่นตัวอย่างถัดไปโดยอัตโนมัติ',
         icon: Icons.play_circle_fill_rounded),
     OnboardingCopy(
-        title: 'ปัดเพื่อดูตัวอย่าง\nเรื่องถัดไป',
-        description:
-            'ปัดหน้ารายละเอียดเพื่อดูตัวอย่างภาพยนตร์ก่อนหน้าหรือถัดไปอย่างรวดเร็ว',
+        title: 'ปัดเพื่อไปยังหน้าภาพยนตร์ถัดไป',
+        description: 'ปัดซ้ายหรือขวาเพื่อเปลี่ยนภาพยนตร์ได้ง่ายๆ',
         icon: Icons.swipe_rounded),
   ],
 };

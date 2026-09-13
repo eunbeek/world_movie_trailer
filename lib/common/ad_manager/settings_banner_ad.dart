@@ -4,6 +4,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 import 'package:world_movie_trailer/common/ad_helper.dart';
 import 'package:world_movie_trailer/common/providers/settings_provider.dart';
+import 'package:world_movie_trailer/common/ad_manager/ad_consent_manager.dart';
 
 class SettingsBannerAd extends StatefulWidget {
   const SettingsBannerAd({super.key});
@@ -20,7 +21,7 @@ class _SettingsBannerAdState extends State<SettingsBannerAd> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (kIsWeb) return;
+    if (kIsWeb || !AdConsentManager.instance.canRequestAds) return;
     final width = MediaQuery.sizeOf(context).width.truncate();
     if (width <= 0 || width == _requestedWidth) return;
     _requestedWidth = width;

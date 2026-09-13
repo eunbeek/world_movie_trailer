@@ -11,6 +11,7 @@ import 'package:world_movie_trailer/common/constants.dart';
 class SettingsProvider with ChangeNotifier {
   static const boxName = 'app_settings';
   static const settingsKey = 'current';
+  static const translationAccessDuration = Duration(hours: 2);
   final Settings _settings;
   final alarmService = AlarmService();
   Timer? _rewardedAccessTimer;
@@ -64,7 +65,9 @@ class SettingsProvider with ChangeNotifier {
       _settings.translationAdAccessUntil?.isAfter(DateTime.now()) == true;
 
   bool get hasActiveFreeTranslation =>
-      hasUsedFreeTranslation && translatedContentPreference == true;
+      hasUsedFreeTranslation &&
+      _settings.freeTranslationAccessUntil?.isAfter(DateTime.now()) == true &&
+      translatedContentPreference == true;
 
   bool get canTranslate =>
       isAdsFree || hasTranslationAdAccess || hasActiveFreeTranslation;
@@ -73,9 +76,18 @@ class SettingsProvider with ChangeNotifier {
 
   bool get hasUsedFreeTranslation => _settings.hasUsedFreeTranslation ?? false;
 
+  bool get hasShownTranslationButtonHint =>
+      _settings.hasShownTranslationButtonHint ?? false;
+
   bool? get translatedContentPreference => _settings.showTranslatedContent;
 
   bool get shouldShowVideoAds => !isAdsFree && !hasTranslationAdAccess;
+
+  /// Revalidates persisted access after the app returns from the background.
+  void refreshTranslationAccess() {
+    _expireElapsedAccess();
+    _scheduleRewardedAccessExpiration();
+  }
 
   String get userId {
     if (_settings.userId == null || _settings.userId!.isEmpty) {
@@ -269,20 +281,26 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void updateIsAdsFree(bool adsFree) {
+  Future<void> updateIsAdsFree(bool adsFree) async {
+    final previous = _settings.isAdsFree;
     _settings.isAdsFree = adsFree;
     if (adsFree) {
       _rewardedAccessTimer?.cancel();
     } else {
       _scheduleRewardedAccessExpiration();
     }
-    _saveSettings();
+    try {
+      await Hive.box<Settings>(boxName).put(settingsKey, _settings);
+    } catch (_) {
+      _settings.isAdsFree = previous;
+      rethrow;
+    }
     notifyListeners();
   }
 
   void grantRewardedAdAccess() {
     _settings.translationAdAccessUntil =
-        DateTime.now().add(const Duration(minutes: 10));
+        DateTime.now().add(translationAccessDuration);
     _scheduleRewardedAccessExpiration();
     _saveSettings();
     notifyListeners();
@@ -294,6 +312,9 @@ class SettingsProvider with ChangeNotifier {
     if (hasUsedFreeTranslation) return false;
     _settings.hasUsedFreeTranslation = true;
     _settings.showTranslatedContent = true;
+    _settings.freeTranslationAccessUntil =
+        DateTime.now().add(translationAccessDuration);
+    _scheduleRewardedAccessExpiration();
     _saveSettings();
     notifyListeners();
     return true;
@@ -305,23 +326,54 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void markTranslationButtonHintShown() {
+    if (hasShownTranslationButtonHint) return;
+    _settings.hasShownTranslationButtonHint = true;
+    _saveSettings();
+    notifyListeners();
+  }
+
   void _scheduleRewardedAccessExpiration() {
     _rewardedAccessTimer?.cancel();
     if (isAdsFree) return;
-    final expiresAt = _settings.translationAdAccessUntil;
+    final expiries = [
+      _settings.translationAdAccessUntil,
+      _settings.freeTranslationAccessUntil,
+    ]
+        .whereType<DateTime>()
+        .where((value) => value.isAfter(DateTime.now()))
+        .toList()
+      ..sort();
+    final expiresAt = expiries.isEmpty ? null : expiries.first;
+    _expireElapsedAccess(notify: false);
     if (expiresAt == null) return;
     final remaining = expiresAt.difference(DateTime.now());
     if (remaining <= Duration.zero) {
-      _expireRewardedAccess(notify: false);
+      _expireElapsedAccess(notify: false);
       return;
     }
-    _rewardedAccessTimer = Timer(remaining, _expireRewardedAccess);
+    _rewardedAccessTimer = Timer(remaining, () {
+      _expireElapsedAccess();
+      _scheduleRewardedAccessExpiration();
+    });
   }
 
-  void _expireRewardedAccess({bool notify = true}) {
+  void _expireElapsedAccess({bool notify = true}) {
     if (isAdsFree) return;
-    _settings.translationAdAccessUntil = null;
-    _settings.showTranslatedContent = false;
+    final now = DateTime.now();
+    var changed = false;
+    if (_settings.translationAdAccessUntil?.isAfter(now) == false) {
+      _settings.translationAdAccessUntil = null;
+      changed = true;
+    }
+    if (_settings.freeTranslationAccessUntil?.isAfter(now) == false) {
+      _settings.freeTranslationAccessUntil = null;
+      changed = true;
+    }
+    if (!hasTranslationAdAccess && !hasActiveFreeTranslation) {
+      _settings.showTranslatedContent = false;
+    }
+    if (!changed) return;
     _saveSettings();
     if (notify) notifyListeners();
   }

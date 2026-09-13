@@ -74,6 +74,14 @@ class Settings extends HiveObject {
   @HiveField(21)
   bool? showTranslatedContent;
 
+  /// Expiry for the one-time free translation trial.
+  @HiveField(22)
+  DateTime? freeTranslationAccessUntil;
+
+  /// Whether the contextual translation control has already introduced itself.
+  @HiveField(23)
+  bool? hasShownTranslationButtonHint;
+
   Settings(
       {required this.language,
       required this.theme,
@@ -96,7 +104,9 @@ class Settings extends HiveObject {
       this.userId,
       this.translationAdAccessUntil,
       this.hasUsedFreeTranslation,
-      this.showTranslatedContent});
+      this.showTranslatedContent,
+      this.freeTranslationAccessUntil,
+      this.hasShownTranslationButtonHint});
 
   // Factory constructor to create default settings
   factory Settings.defaultSettings() {
@@ -157,6 +167,8 @@ class Settings extends HiveObject {
         userId: generatedUuid,
         translationAdAccessUntil: null,
         hasUsedFreeTranslation: false,
-        showTranslatedContent: null);
+        showTranslatedContent: null,
+        freeTranslationAccessUntil: null,
+        hasShownTranslationButtonHint: false);
   }
 }

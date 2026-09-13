@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-/// Keeps the native main-screen layout usable at very large system font sizes.
+/// Keeps native Flutter text independent of the system font-size setting.
 class MainTextScaleCap extends StatelessWidget {
   const MainTextScaleCap({
     super.key,
@@ -15,8 +15,7 @@ class MainTextScaleCap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!enabled) return child;
-    return MediaQuery.withClampedTextScaling(
-      maxScaleFactor: 1.2,
+    return MediaQuery.withNoTextScaling(
       child: child,
     );
   }

@@ -66,6 +66,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     itemBuilder: (context, index) => _OnboardingFeature(
                       copy: _pages[index],
                       index: index,
+                      active: index == _page,
                       language: widget.language,
                     ),
                   ),
@@ -160,11 +161,13 @@ class _OnboardingFeature extends StatelessWidget {
   const _OnboardingFeature({
     required this.copy,
     required this.index,
+    required this.active,
     required this.language,
   });
 
   final OnboardingCopy copy;
   final int index;
+  final bool active;
   final String language;
 
   @override
@@ -229,6 +232,7 @@ class _OnboardingFeature extends StatelessWidget {
                 Expanded(
                   child: OnboardingFeatureVisual(
                     index: index,
+                    active: active,
                     language: language,
                   ),
                 ),

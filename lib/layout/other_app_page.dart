@@ -22,11 +22,6 @@ const _otherApps = <_OtherApp>[
     'assets/images/other_apps/Sky Peacemaker - Finger Force Icon.png',
   ),
   _OtherApp(
-    'World Movie Trailer',
-    'https://wmt.onelink.me/YPN9/m428wgpq',
-    'icons/appstore.png',
-  ),
-  _OtherApp(
     'World Book Ranking',
     'https://worldbookranking.onelink.me/so3H/gff32rq',
     'assets/images/other_apps/World Book Ranking Icon.png',
@@ -75,6 +70,11 @@ const _otherApps = <_OtherApp>[
     'Find Four',
     'https://findfour.onelink.me/vurA/0tfteiuf',
     'assets/images/other_apps/Find Four Icon.png',
+  ),
+  _OtherApp(
+    'decibella 2',
+    'https://decibella2.onelink.me/T5UV/x5q1f7vs',
+    'assets/images/other_apps/Decibella2 Icon 512.png',
   ),
   _OtherApp(
     'decibella',

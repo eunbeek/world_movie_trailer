@@ -14,7 +14,8 @@ void main() {
     if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(SettingsAdapter());
     try {
       var box = await Hive.openBox<Settings>(SettingsProvider.boxName);
-      await box.put(SettingsProvider.settingsKey, Settings.defaultSettings());
+      await box.put(SettingsProvider.settingsKey,
+          Settings.defaultSettings()..isAdsFree = true);
       final provider = SettingsProvider(box.get(SettingsProvider.settingsKey)!);
 
       provider.updateTranslatedContentPreference(true);
@@ -95,6 +96,7 @@ void main() {
       expect(restarted.hasUsedFreeTranslation, true);
       expect(restarted.translatedContentPreference, true);
       expect(restarted.canTranslate, true);
+      expect(restarted.hasActiveFreeTranslation, true);
       expect(restarted.canUseRewardedFeatures, false);
       expect(restarted.useFreeTranslationIfAvailable(), false);
       restarted.updateTranslatedContentPreference(false);
@@ -107,7 +109,7 @@ void main() {
     }
   });
 
-  test('rewarded access still expires after ten minutes', () async {
+  test('rewarded access expires after two hours', () async {
     final directory =
         await Directory.systemTemp.createTemp('wmt-reward-duration-test-');
     Hive.init(directory.path);
@@ -122,8 +124,35 @@ void main() {
       provider.grantRewardedAdAccess();
 
       final remaining = settings.translationAdAccessUntil!.difference(before);
-      expect(remaining, greaterThanOrEqualTo(const Duration(minutes: 10)));
-      expect(remaining, lessThan(const Duration(minutes: 10, seconds: 1)));
+      expect(remaining, greaterThanOrEqualTo(const Duration(hours: 2)));
+      expect(remaining, lessThan(const Duration(hours: 2, seconds: 1)));
+      provider.dispose();
+      await box.close();
+    } finally {
+      await Hive.close();
+      await directory.delete(recursive: true);
+    }
+  });
+
+  test('expired free trial restores original content after restart', () async {
+    final directory =
+        await Directory.systemTemp.createTemp('wmt-free-expiry-test-');
+    Hive.init(directory.path);
+    if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(SettingsAdapter());
+    try {
+      final box = await Hive.openBox<Settings>(SettingsProvider.boxName);
+      final settings = Settings.defaultSettings()
+        ..hasUsedFreeTranslation = true
+        ..showTranslatedContent = true
+        ..freeTranslationAccessUntil =
+            DateTime.now().subtract(const Duration(seconds: 1));
+      await box.put(SettingsProvider.settingsKey, settings);
+
+      final provider = SettingsProvider(settings);
+      expect(provider.hasActiveFreeTranslation, false);
+      expect(provider.canTranslate, false);
+      expect(provider.translatedContentPreference, false);
+      expect(settings.freeTranslationAccessUntil, isNull);
       provider.dispose();
       await box.close();
     } finally {

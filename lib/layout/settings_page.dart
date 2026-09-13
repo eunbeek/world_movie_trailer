@@ -17,6 +17,7 @@ import 'package:world_movie_trailer/layout/other_app_page.dart';
 import 'package:world_movie_trailer/layout/user_data_page.dart';
 import 'package:world_movie_trailer/layout/widgets/settings_footer_branding.dart';
 import 'package:world_movie_trailer/layout/widgets/settings_sliver_header.dart';
+import 'package:world_movie_trailer/common/ad_manager/ad_consent_manager.dart';
 
 const _proUpgradeLabels = <String, String>{
   'ko': 'Pro로 업그레이드',
@@ -52,7 +53,7 @@ class SettingsPage extends StatelessWidget {
             width: 1.0,
           ),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
       ),
       child: Text(
         theme == 'dark'
@@ -104,6 +105,32 @@ class SettingsPage extends StatelessWidget {
                     trailing: const Icon(Icons.chevron_right),
                   ),
                 ],
+                if (!kIsWeb)
+                  FutureBuilder<bool>(
+                    future: AdConsentManager.instance.privacyOptionsRequired(),
+                    builder: (context, snapshot) => snapshot.data == true
+                        ? Column(
+                            children: [
+                              const Divider(),
+                              ListTile(
+                                onTap: AdConsentManager
+                                    .instance.showPrivacyOptions,
+                                title: Text(
+                                  settingsProvider.language == 'ko'
+                                      ? '광고 개인정보 설정'
+                                      : 'Ad privacy choices',
+                                  style: TextStyle(
+                                    fontSize:
+                                        MediaQuery.of(context).size.height *
+                                            0.02,
+                                  ),
+                                ),
+                                trailing: const Icon(Icons.chevron_right),
+                              ),
+                            ],
+                          )
+                        : const SizedBox.shrink(),
+                  ),
                 const Divider(),
                 ListTile(
                   onTap: () => {
@@ -184,6 +211,8 @@ class SettingsPage extends StatelessWidget {
                     width: 150,
                     child: DropdownButton<String>(
                       isExpanded: true,
+                      isDense: true,
+                      alignment: Alignment.centerLeft,
                       value: settingsProvider.language,
                       underline: const SizedBox(),
                       onChanged: (String? newValue) {
@@ -219,12 +248,26 @@ class SettingsPage extends StatelessWidget {
                       fontSize: MediaQuery.of(context).size.height * 0.02,
                     ),
                   ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildThemeButton(context, 'dark', settingsProvider),
-                      _buildThemeButton(context, 'light', settingsProvider),
-                    ],
+                  trailing: SizedBox(
+                    width: 150,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _buildThemeButton(
+                            context,
+                            'dark',
+                            settingsProvider,
+                          ),
+                        ),
+                        Expanded(
+                          child: _buildThemeButton(
+                            context,
+                            'light',
+                            settingsProvider,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const Divider(),

@@ -9,8 +9,8 @@ void main() {
       expect(entry.value, hasLength(4), reason: entry.key);
       expect(onboardingActionLabels[entry.key], isNotNull);
       for (final page in entry.value) {
-        expect(page.title, contains('\n'),
-            reason: '${entry.key}: ${page.title}');
+        expect(page.title.trim(), isNotEmpty, reason: entry.key);
+        expect(page.description.trim(), isNotEmpty, reason: entry.key);
       }
     }
   });
@@ -31,7 +31,7 @@ void main() {
       ),
     ));
 
-    expect(find.text('국가 순서도\n내 마음대로'), findsOneWidget);
+    expect(find.text('국가 순서 변경'), findsOneWidget);
     expect(find.text('다음'), findsNothing);
     expect(find.text('시작하기'), findsNothing);
 
@@ -49,7 +49,7 @@ void main() {
 
     await tester.drag(find.byType(PageView), const Offset(-320, 0));
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('스와이프로\n다음 영화 예고편'), findsOneWidget);
+    expect(find.text('스와이프하여 다음 영화 페이지로 이동'), findsOneWidget);
     await tester.tap(find.text('시작하기'));
     await tester.pump();
     expect(completed, isTrue);

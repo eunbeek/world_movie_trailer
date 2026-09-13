@@ -197,7 +197,7 @@ Map<String, Map<String, String>> settingLabel = {
     'sns': 'X (Twitter)',
     'twitter': 'X (Twitter)',
     'share': 'Share the App',
-    'other': 'Sunny\'s Games and Apps',
+    'other': 'Sunny\'s Games & Apps',
     'review': 'Write a Review',
     'version': 'App Version',
     'privacy': 'Privacy',

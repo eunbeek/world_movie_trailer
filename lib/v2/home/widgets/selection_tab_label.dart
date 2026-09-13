@@ -4,10 +4,14 @@ import 'selection_indicator_width.dart';
 /// Centers the indicator against the label's actual laid-out bounds.
 class SelectionTabLabel extends StatelessWidget {
   const SelectionTabLabel(
-      {super.key, required this.label, required this.selected});
+      {super.key,
+      required this.label,
+      required this.selected,
+      this.fitToAvailableWidth = false});
 
   final String label;
   final bool selected;
+  final bool fitToAvailableWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +23,7 @@ class SelectionTabLabel extends StatelessWidget {
               : theme.colorScheme.onSurface.withValues(alpha: .62),
           fontWeight: FontWeight.w700,
         ));
-    return ConstrainedBox(
+    final content = ConstrainedBox(
       constraints: const BoxConstraints(minWidth: 32),
       child: Stack(
         alignment: Alignment.bottomCenter,
@@ -51,6 +55,14 @@ class SelectionTabLabel extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+    if (!fitToAvailableWidth) return content;
+    return SizedBox(
+      width: double.infinity,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: content,
       ),
     );
   }
