@@ -59,6 +59,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   YoutubePlayerController? _playerController;
   bool _isBookmarked = false;
   bool _showOriginal = false;
+  bool _translationIconActive = false;
   StreamSubscription<YoutubePlayerValue>? _playerSubscription;
   bool _playbackEnded = false;
 
@@ -219,7 +220,10 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   Future<void> _translate() async {
     void toggle() {
       if (!mounted) return;
-      setState(() => _showOriginal = !_showOriginal);
+      setState(() {
+        _showOriginal = !_showOriginal;
+        _translationIconActive = !_translationIconActive;
+      });
       widget.onShowOriginalChanged?.call(_showOriginal);
       LogHelper().logEvent('detail_language_toggled', parameters: {
         'movie': widget.movie.localTitle,
@@ -431,17 +435,15 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
             _action(
               icon: DetailAssetIcon(name: 'bookmark', active: _isBookmarked),
               label: getMenuItemTitle(_settings.language, 'Bookmark'),
-              selected: _isBookmarked,
               onTap: _toggleBookmark,
             ),
             const SizedBox(width: 42),
             _action(
-              icon: DetailAssetIcon(name: 'translate', active: !_showOriginal),
-              label: getMenuItemTitle(
-                _settings.language,
-                _showOriginal ? 'Translate' : 'Original',
+              icon: DetailAssetIcon(
+                name: 'translate',
+                active: _translationIconActive,
               ),
-              selected: _showOriginal,
+              label: getMenuItemTitle(_settings.language, 'Translate'),
               onTap: _translate,
             ),
             const SizedBox(width: 42),
@@ -454,7 +456,6 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                 size: 29,
               ),
               label: getMenuItemTitle(_settings.language, 'Share'),
-              selected: true,
               onTap: _share,
             ),
           ],
@@ -464,7 +465,6 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   Widget _action({
     required Widget icon,
     required String label,
-    required bool selected,
     required VoidCallback onTap,
   }) =>
       InkWell(
@@ -483,15 +483,9 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(
-                        alpha: selected
-                            ? 1
-                            : Theme.of(context).brightness == Brightness.dark
-                                ? .55
-                                : .78,
-                      ),
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 12,
-                  fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ],

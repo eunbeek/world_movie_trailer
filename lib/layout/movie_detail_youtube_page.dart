@@ -58,6 +58,7 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   YoutubePlayerController? _controller;
   bool _isBookmarked = false;
   bool _showOriginal = false;
+  bool _translationIconActive = false;
 
   SettingsProvider get _settings => context.read<SettingsProvider>();
 
@@ -205,7 +206,10 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   Future<void> _translate() async {
     void toggle() {
       if (!mounted) return;
-      setState(() => _showOriginal = !_showOriginal);
+      setState(() {
+        _showOriginal = !_showOriginal;
+        _translationIconActive = !_translationIconActive;
+      });
       widget.onShowOriginalChanged?.call(_showOriginal);
       LogHelper().logEvent('detail_language_toggled', parameters: {
         'movie': widget.movie.localTitle,
@@ -403,17 +407,15 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
             _action(
               DetailAssetIcon(name: 'bookmark', active: _isBookmarked),
               getMenuItemTitle(_settings.language, 'Bookmark'),
-              _isBookmarked,
               _toggleBookmark,
             ),
             const SizedBox(width: 34),
             _action(
-              DetailAssetIcon(name: 'translate', active: !_showOriginal),
-              getMenuItemTitle(
-                _settings.language,
-                _showOriginal ? 'Translate' : 'Original',
+              DetailAssetIcon(
+                name: 'translate',
+                active: _translationIconActive,
               ),
-              _showOriginal,
+              getMenuItemTitle(_settings.language, 'Translate'),
               _translate,
             ),
             const SizedBox(width: 34),
@@ -426,7 +428,6 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                 size: 29,
               ),
               getMenuItemTitle(_settings.language, 'Share'),
-              true,
               _share,
             ),
           ],
@@ -436,7 +437,6 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
   Widget _action(
     Widget icon,
     String label,
-    bool selected,
     VoidCallback onTap,
   ) =>
       InkWell(
@@ -455,15 +455,9 @@ class _MovieDetailPageYouTubeState extends State<MovieDetailPageYouTube> {
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(
-                        alpha: selected
-                            ? 1
-                            : Theme.of(context).brightness == Brightness.dark
-                                ? .55
-                                : .78,
-                      ),
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 12,
-                  fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ],
